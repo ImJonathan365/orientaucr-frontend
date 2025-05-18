@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import { HeaderBar } from './components/organisms/HeaderBar/HeaderBar';
 import LoginSection  from './components/organisms/LoginSection/LoginSection';
 import { FormBar } from './components/organisms/FormBar/FormBar';
+import UserProfile from './components/organisms/LoginSection/UserProfile';
 
 function App() {
   const handleLogin = (email: string, password: string) => {
@@ -24,34 +25,7 @@ function App() {
 
   return (
     <Router>
-      <div className="app-container">
-        <HeaderBar />
-        
-        <main className="main-content">
-          <Routes>
-            <Route 
-              path="/" 
-              element={
-                <LoginSection
-                  onLogin={handleLogin}
-                  onForgotPassword={handleForgotPassword}
-                />
-              } 
-            />
-            
-            <Route 
-              path="/register" 
-              element={
-                <FormBar 
-                  onSubmit={handleRegister}
-                  title="Registro de Nuevo Usuario"
-                  icon="user"  // Asegúrate que 'user' esté en tus IconVariant
-                />
-              } 
-            />
-          </Routes>
-        </main>
-      </div>
+     <UserProfile></UserProfile>
     </Router>
   );
 }
