@@ -5,6 +5,8 @@ import LoginSection  from './components/organisms/LoginSection/LoginSection';
 import { FormBar } from './components/organisms/FormBar/FormBar';
 import UserProfile from './components/organisms/LoginSection/UserProfile';
 import { CareerListPage } from './pages/CareerListPage';
+import { NewCareerPage } from './pages/NewCareerPage';
+import { EditCareerPage } from './pages/EditCareerPage';
 
 function App() {
   const handleLogin = (email: string, password: string) => {
@@ -54,6 +56,14 @@ function App() {
             <Route 
               path="/listCareers" 
               element={<CareerListPage />} 
+            />
+            <Route 
+              path="/careers/new" 
+              element={<NewCareerPage />} 
+            />
+            <Route 
+              path="/careers/edit/:id" 
+              element={<EditCareerPage />}
             />
           </Routes>
         </main>

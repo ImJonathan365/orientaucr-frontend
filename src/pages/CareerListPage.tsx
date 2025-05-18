@@ -98,7 +98,7 @@ export const CareerListPage = () => {
           variant="primary" 
           onClick={() => navigate('/careers/new')}
         >
-          <Icon variant="info" className="me-2" />
+          <Icon variant="add" className="me-2" />
           Nueva Carrera
         </Button>
       </div>

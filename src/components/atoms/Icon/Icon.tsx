@@ -1,7 +1,7 @@
 import React from 'react';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
-type IconVariant = 
+export type IconVariant = 
   // Iconos generales
   | 'trash' | 'check' | 'edit' | 'add' | 'close' | 'search'
   | 'arrow-left' | 'arrow-right' | 'settings' | 'info' | 'warning' | 'error'
