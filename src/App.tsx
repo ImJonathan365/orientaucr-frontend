@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import { HeaderBar } from './components/organisms/HeaderBar/HeaderBar';
 import LoginSection  from './components/organisms/LoginSection/LoginSection';
 import { FormBar } from './components/organisms/FormBar/FormBar';
+import { CareerListPage } from './pages/CareerListPage';
+
 
 function App() {
   const handleLogin = (email: string, password: string) => {
@@ -48,6 +50,10 @@ function App() {
                   icon="user"  // Asegúrate que 'user' esté en tus IconVariant
                 />
               } 
+            />
+            <Route 
+              path="/listCareers" 
+              element={<CareerListPage />} 
             />
           </Routes>
         </main>
