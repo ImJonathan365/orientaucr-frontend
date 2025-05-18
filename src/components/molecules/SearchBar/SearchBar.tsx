@@ -1,13 +1,15 @@
 import { Button } from "../../atoms/Button/Button";
 import { Icon } from "../../atoms/Icon/Icon";
 import { Input } from "../../atoms/Input/Input";
+import { Separator } from "../../atoms/Separator/Separator";
 export const SearchBar = () => (
-  <div className="d-flex">
+  <div className="col-auto ms-auto d-flex align-items-center">
     <Input variant="search" placeholder="Buscar..." />
-    <div>
+    <Separator variant="vertical"></Separator>
+    
     <Button variant="light" >
                   <Icon variant="search" size="sm" />
                 </Button>
-  </div>
+  
   </div>
 );
