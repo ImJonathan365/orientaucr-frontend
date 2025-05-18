@@ -38,25 +38,25 @@ export const HeaderBar: React.FC = () => {
         <div className="container">
           <div className="row align-items-center">
             {/* Logo + Botón móvil (extremo izquierdo) */}
-         <div className="col-auto d-flex align-items-center">
-  <Button
-    variant="light"
-    className="rounded-circle p-0 d-flex align-items-center justify-content-center d-lg-none me-2"
-    style={{ ...styles.circleButton, ...styles.menuButton }}
-    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-  >
-    <Icon variant={isMobileMenuOpen ? 'close' : 'menu'} size="sm" />
-  </Button>
-  
-  <Separator variant="vertical" thickness={1} color="#dee2e6" className="d-none d-lg-block me-3" />
-  
-  <a className="navbar-brand d-flex align-items-center" href="#">
-    <Icon variant="edit" size="lg" className="me-2 text-success" />
-    <Text variant="title" weight="bold" className="text-success">
-      Universidad de Costa Rica
-    </Text>
-  </a>
-</div>
+            <div className="col-auto d-flex align-items-center">
+              <Button
+                variant="light"
+                className="rounded-circle p-0 d-flex align-items-center justify-content-center d-lg-none me-2"
+                style={{ ...styles.circleButton, ...styles.menuButton }}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                <Icon variant={isMobileMenuOpen ? 'close' : 'menu'} size="sm" />
+              </Button>
+
+              <Separator variant="vertical" thickness={1} color="#dee2e6" className="d-none d-lg-block me-3" />
+
+              <a className="navbar-brand d-flex align-items-center" href="#">
+                <Icon variant="edit" size="lg" className="me-2 text-success" />
+                <Text variant="title" weight="bold" className="text-success">
+                  Universidad de Costa Rica
+                </Text>
+              </a>
+            </div>
 
             {/* Desktop Navigation */}
             <div className="col d-none d-lg-block">
