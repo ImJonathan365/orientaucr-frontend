@@ -38,6 +38,7 @@ export const registerUser = async (userData: UserFormData) => {
     throw error;
   }
 };
+
 export const uploadProfileImage = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('image', file);

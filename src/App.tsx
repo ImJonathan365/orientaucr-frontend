@@ -1,60 +1,43 @@
-import React from 'react';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import { HeaderBar } from './components/organisms/HeaderBar/HeaderBar';
-import LoginSection  from './components/organisms/LoginSection/LoginSection';
-import { FormBar } from './components/organisms/FormBar/FormBar';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { UserProvider, useUser } from "./contexts/UserContext";
+import { HomePage } from "./pages/home/HomePage";
+import { Login } from "./pages/auth/LoginPage";
+import { EventsPage } from "./pages/home/EventsPage";
+import { AcademicCentersPage } from "./pages/home/AcademicCentersPage";
+import { VocationalTestPage } from "./pages/home/VocationalTestPage";
+import { SimulationTestPage } from "./pages/home/SimulationTestPage";
 
-import { CareerListPage } from './pages/CareerListPage';
-const App = () => {
-  const handleLogin = async (email: string, password: string) => {
-    try {
-      console.log("Iniciando sesión con:", email, password);
-    } catch (error) {
-      console.error("Login error:", error);
-    }
-  };
+function AppRoutes() {
+  const { user } = useUser();
 
-  const handleForgotPassword = () => {
-    console.log("Redirigiendo a recuperación de contraseña...");
-  };
+  if (!user) {
+    return (
+      <Login />
+    );
+  }
 
   return (
-    
-    <Router>
-        <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
-      <div className="app-container">
-        <HeaderBar />
-        <main className="main-content">
-          <Routes>
-            <Route 
-              path="/" 
-              element={
-                <LoginSection
-                  onLogin={handleLogin}
-                  onForgotPassword={handleForgotPassword}
-                />
-              } 
-            />
-            <Route path="/register" element={<FormBar />} />
-            <Route path="/listCareers" element={<CareerListPage />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <>
+      <Routes>
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/events" element={<EventsPage />} />
+        <Route path="/academic-centers" element={<AcademicCentersPage />} />
+        <Route path="/vocational-test" element={<VocationalTestPage />} />
+        <Route path="/simulation-test" element={<SimulationTestPage />} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </>
   );
-};
+}
 
-export default App; // Exportación por defecto
+function App() {
+  return (
+    <UserProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </UserProvider>
+  );
+}
+
+export default App;
