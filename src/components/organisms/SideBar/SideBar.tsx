@@ -1,5 +1,3 @@
-import { User } from "../../../services/UserService";
-
 
 // CAMBIAR TODOS LOS LI POR LOS COMPONENTES QUE EL USUARIO TIENE PERMISO
 export default function SideBar() {
