@@ -9,7 +9,7 @@ export const SimulationTestPage = () => {
       <div style={{ display: "flex", minHeight: "80vh" }}>
         <SideBar />
         <main style={{ flex: 1, padding: "1rem" }}>
-          <center><h1>Bienvenido</h1></center>
+          <center><h1>Prueba simulada</h1></center>
         </main>
       </div>
       <FooterBar />

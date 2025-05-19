@@ -9,7 +9,6 @@ import { login } from '../../../services/authService';
 import { useUser } from '../../../contexts/UserContext';
 
 interface LoginSectionProps {
-  onLogin: (email: string, password: string) => Promise<void>;
   onForgotPassword?: () => void;
 }
 
@@ -31,10 +30,7 @@ const LoginSection: React.FC<LoginSectionProps> = ({ onForgotPassword }) => {
       const user = await login(email, password);
       setUser(user);
       toast.success(`🎉 ¡Bienvenido ${user.user_name}!`);
-
-      // Redirigir a dashboard después de login exitoso
-      navigate('/register'); // Cambia esta ruta según necesites
-
+      navigate("/home", { replace: true }); // Redirige solo a /home
     } catch (error) {
       let errorMessage = 'Error al iniciar sesión';
 
@@ -46,7 +42,10 @@ const LoginSection: React.FC<LoginSectionProps> = ({ onForgotPassword }) => {
         } else if (error.message.includes('servidor')) {
           errorMessage = '🚨 Error del servidor. Intente más tarde';
         }
+      } else if (typeof error === "string") {
+        errorMessage = error;
       }
+
 
       toast.error(errorMessage, {
         position: "top-center",
@@ -63,7 +62,7 @@ const LoginSection: React.FC<LoginSectionProps> = ({ onForgotPassword }) => {
     }
   };
 
-
+  // ...NO CAMBIES EL RETURN...
   return (
     <div className="bg-light bg-gradient min-vh-100 d-flex align-items-start pt-5 justify-content-center">
       <div className="bg-white rounded p-4 shadow w-100 mt-5" style={{ maxWidth: '400px' }}>

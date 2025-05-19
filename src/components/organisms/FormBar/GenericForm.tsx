@@ -7,7 +7,7 @@ import { IconVariant } from '../../atoms/Icon/Icon';
 export interface FormField {
     name: string;
     label: string;
-    type: 'text' | 'number' | 'textarea' | 'select' | 'date';
+    type: 'text' | 'number' | 'textarea' | 'select' | 'date' | 'file';
     required?: boolean;
     options?: Array<{ value: string | number; label: string }>;
     placeholder?: string;

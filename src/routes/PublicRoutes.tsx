@@ -1,26 +1,15 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { EventsPage } from "../pages/home/EventsPage";
-import { AcademicCentersPage } from "../pages/home/AcademicCentersPage";
-import { VocationalTestPage } from "../pages/home/VocationalTestPage";
-import { SimulationTestPage } from "../pages/home/SimulationTestPage";
+import { Routes, Route } from "react-router-dom";
 import { Login } from "../pages/auth/LoginPage";
-import { Register } from "../pages/auth/RegisterPage";
+import { RegisterPage } from "../pages/auth/RegisterPage";
 import { NotFound } from "../pages/NotFound";
-import { useUser } from "../contexts/UserContext";
+import PublicHomePage from "../pages/PublicHomePage";
 
 export default function PublicRoutes() {
-  const { user } = useUser();
-
-  if (user) return <Navigate to="/home" replace />;
-
   return (
     <Routes>
+      <Route path="/" element={<PublicHomePage />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/events" element={<EventsPage />} />
-      <Route path="/academic-centers" element={<AcademicCentersPage />} />
-      <Route path="/vocational-test" element={<VocationalTestPage />} />
-      <Route path="/simulation-test" element={<SimulationTestPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
