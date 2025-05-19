@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { EventsPage } from "../pages/home/EventsPage";
 import { AcademicCentersPage } from "../pages/home/AcademicCentersPage";
 import { VocationalTestPage } from "../pages/home/VocationalTestPage";
@@ -6,8 +6,13 @@ import { SimulationTestPage } from "../pages/home/SimulationTestPage";
 import { Login } from "../pages/auth/LoginPage";
 import { Register } from "../pages/auth/RegisterPage";
 import { NotFound } from "../pages/NotFound";
+import { useUser } from "../contexts/UserContext";
 
-export default function PublicRoutes({ onLogin }: { onLogin: (user: any) => void }) {
+export default function PublicRoutes() {
+  const { user } = useUser();
+
+  if (user) return <Navigate to="/home" replace />;
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
