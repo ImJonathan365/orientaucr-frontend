@@ -1,123 +1,106 @@
 import { Text } from "../../atoms/Text/Text";
 import { Icon } from "../../atoms/Icon/Icon";
 import { Button } from "../../atoms/Button/Button";
-import { SearchBar } from "../../molecules/SearchBar/SearchBar";
-import React, { useState } from "react";
-import { Separator } from "../../atoms/Separator/Separator";
+import React, { useState, useRef, useEffect } from "react";
 import { Image } from "../../atoms/Image/Image";
+import { Link } from "react-router-dom";
+import { ProfileDropdown } from "../../molecules/ProfileDropdown/ProfileDropdown";
 
 export const HeaderBar: React.FC = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node)
+      ) {
+        setProfileMenuOpen(false);
+      }
+    }
+    if (profileMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [profileMenuOpen]);
+
+  const navLinks = [
+    { to: "/home", label: "Inicio" },
+    { to: "/events", label: "Eventos" },
+    { to: "/academic-centers", label: "Centros Académicos" },
+    { to: "/vocational-test", label: "Test Vocacional" },
+    { to: "/simulation-test", label: "Prueba Simulada" },
+  ];
 
   return (
-    <>
-      <nav className="navbar navbar-light">
-        <div className="container">
-          <div className="row align-items-center">
-            <Image
-              src="https://accionsocial.ucr.ac.cr/sites/default/files/herramienta/imagenes/2020-12/Logo%20UCR%20transparentePNG.PNG"
-              alt="Logo UCR"
-              variant="hero"
-              className="img-fluid"
-              style={{ maxWidth: "120px" }}
-            />
-            <div className="col-auto d-flex align-items-center">
-              <Button
-                variant="light"
-                className=" align-items-center justify-content-center d-lg-none me-2"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              >
-                <Icon
-                  variant={isMobileMenuOpen ? "close" : "menu"}
-                  size="sm"
-                  style={{ alignItems: "center" }}
-                />
-              </Button>
-
-              <a className="navbar-brand d-flex align-items-center" href="#">
-                <Text variant="subtitle" weight="bold" className="text-success">
-                  Universidad de Costa Rica
-                </Text>
-              </a>
-            </div>
-
-            {/* Desktop Navigation */}
-            <div className="col d-none d-lg-block">
-              <nav className="navbar navbar-expand">
-                <ul className="navbar-nav ms-auto">
-                  <li className="nav-item me-3">
-                    <a className="nav-link" href="#">
-                      <Text variant="body" className="text-secondary">
-                        Sitio Principal
-                      </Text>
-                    </a>
-                  </li>
-                  <li className="nav-item me-3">
-                    <a className="nav-link" href="#">
-                      <Text variant="body" className="text-secondary">
-                        Carreras
-                      </Text>
-                    </a>
-                  </li>
-                  <li className="nav-item me-3">
-                    <a className="nav-link" href="#">
-                      <Text variant="body" className="text-secondary">
-                        Centros Académicos
-                      </Text>
-                    </a>
-                  </li>
-                  <li className="nav-item">
-                    <a className="nav-link" href="#">
-                      <Text variant="body" className="text-secondary">
-                        Test Vocacional
-                      </Text>
-                    </a>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-
-            {/* Search + Botones (extremo derecho) */}
-            <div className="col-auto ms-auto d-flex align-items-center">
-              <SearchBar></SearchBar>
-              <Separator variant="vertical" />
-              <Button variant="info">
-                <Icon variant="user" size="sm" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Menú móvil (se muestra al hacer click) */}
-          {isMobileMenuOpen && (
-            <div className="d-lg-none mt-3">
-              <nav className="navbar">
-                <ul className="navbar-nav">
-                  <li className="nav-item">
-                    <a className="nav-link" href="#">
-                      <Text variant="body">Sitio Principal</Text>
-                    </a>
-                  </li>
-                  <li className="nav-item">
-                    <a className="nav-link" href="#">
-                      <Text variant="body">Carreras</Text>
-                    </a>
-                  </li>
-                  <li className="nav-item">
-                    <a className="nav-link" href="#">
-                      <Text variant="body">Centros Académicos</Text>
-                    </a>
-                  </li>
-                  <li className="nav-item">
-                    <a className="nav-link" href="#">
-                      <Text variant="body">Test Vocacional</Text>
-                    </a>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-          )}
+    <nav className="navbar navbar-expand-lg navbar-light bg-light border-bottom shadow-sm" style={{ minHeight: 70 }}>
+      <div className="container-fluid px-4">
+        <div className="d-flex align-items-center">
+          <Image
+            src="https://accionsocial.ucr.ac.cr/sites/default/files/herramienta/imagenes/2020-12/Logo%20UCR%20transparentePNG.PNG"
+            alt="orietaucr"
+            variant="hero"
+            className="img-fluid"
+            style={{ maxWidth: 100 }}
+          />
+          <Link className="navbar-brand d-flex align-items-center ms-2" to="/home">
+            <Text variant="subtitle" weight="bold" className="text-success">
+              OrientaUCR
+            </Text>
+          </Link>
         </div>
-      </nav>
-    </>
+
+        <Button
+          variant="light"
+          className="d-lg-none"
+          onClick={() => setIsMenuOpen((v) => !v)}
+        >
+          <Icon variant={isMenuOpen ? "close" : "menu"} size="sm" />
+        </Button>
+
+        <div
+          className={`header-nav-wrapper align-items-center ${isMenuOpen ? "d-flex flex-column position-absolute top-100 end-0 bg-white p-3 rounded shadow mt-2" : "d-none d-lg-flex"}`}
+          style={isMenuOpen ? { zIndex: 1050, right: 16 } : {}}
+        >
+          <ul className={`navbar-nav ${isMenuOpen ? "" : "flex-lg-row ms-auto align-items-center"}`}>
+            {navLinks.map((link) => (
+              <li className={`nav-item ${isMenuOpen ? "mb-2" : "me-lg-3"}`} key={link.to}>
+                <Link
+                  className="nav-link"
+                  to={link.to}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setProfileMenuOpen(false);
+                  }}
+                >
+                  <Text variant="body" className="text-secondary">
+                    {link.label}
+                  </Text>
+                </Link>
+              </li>
+            ))}
+            <li className={`nav-item position-relative ${isMenuOpen ? "" : "ms-lg-3"}`}>
+              <div ref={profileMenuRef} style={{ position: "relative" }}>
+                <Button
+                  variant="info"
+                  onClick={() => setProfileMenuOpen((v) => !v)}
+                >
+                  <Icon variant="user" size="sm" />
+                </Button>
+                {profileMenuOpen && (
+                  <ProfileDropdown onClose={() => setProfileMenuOpen(false)} />
+                )}
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
   );
 };
