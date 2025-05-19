@@ -14,7 +14,7 @@ function AppRoutes() {
     return (
       <Login />
     );
-  }
+  } else {
 
   return (
     <>
@@ -27,7 +27,7 @@ function AppRoutes() {
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </>
-  );
+  );}
 }
 
 function App() {
