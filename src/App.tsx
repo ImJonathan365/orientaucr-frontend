@@ -3,10 +3,11 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import { HeaderBar } from './components/organisms/HeaderBar/HeaderBar';
 import LoginSection  from './components/organisms/LoginSection/LoginSection';
 import { FormBar } from './components/organisms/FormBar/FormBar';
-import UserProfile from './components/organisms/LoginSection/UserProfile';
+
 import { CareerListPage } from './pages/CareerListPage';
 import { NewCareerPage } from './pages/NewCareerPage';
 import { EditCareerPage } from './pages/EditCareerPage';
+import UserProfilesPages from './pages/UserProfilesPage';
 
 function App() {
   const handleLogin = (email: string, password: string) => {
@@ -28,46 +29,7 @@ function App() {
 
   return (
     <Router>
-      <div className="app-container">
-        <HeaderBar />
-        
-        <main className="main-content">
-          <Routes>
-            <Route 
-              path="/" 
-              element={
-                <LoginSection
-                  onLogin={handleLogin}
-                  onForgotPassword={handleForgotPassword}
-                />
-              } 
-            />
-            
-            <Route 
-              path="/register" 
-              element={
-                <FormBar 
-                  onSubmit={handleRegister}
-                  title="Registro de Nuevo Usuario"
-                  icon="user"  // Asegúrate que 'user' esté en tus IconVariant
-                />
-              } 
-            />
-            <Route 
-              path="/listCareers" 
-              element={<CareerListPage />} 
-            />
-            <Route 
-              path="/careers/new" 
-              element={<NewCareerPage />} 
-            />
-            <Route 
-              path="/careers/edit/:id" 
-              element={<EditCareerPage />}
-            />
-          </Routes>
-        </main>
-      </div>
+     <UserProfilesPages></UserProfilesPages>
     </Router>
   );
 }
