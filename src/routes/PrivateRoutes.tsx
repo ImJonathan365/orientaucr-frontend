@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { HomePage } from "../pages/home/HomePage";
 import { TestPage } from "../pages/test/TestPage";
-import { User } from "../services/authService";
+import { User } from "../types/user";
 
 // Simulación de verificación de login
 const isAuthenticated = () => {

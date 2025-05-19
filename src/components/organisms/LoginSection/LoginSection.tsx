@@ -6,7 +6,7 @@ import { Button } from '../../atoms/Button/Button';
 import { Image } from '../../atoms/Image/Image';
 import { toast } from 'react-toastify';
 import { login } from '../../../services/authService';
-import { setUser } from '../../../contexts/UserContext';
+import { useUser } from '../../../contexts/UserContext';
 
 interface LoginSectionProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -14,6 +14,7 @@ interface LoginSectionProps {
 }
 
 const LoginSection: React.FC<LoginSectionProps> = ({ onForgotPassword }) => {
+  const { setUser } = useUser();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
