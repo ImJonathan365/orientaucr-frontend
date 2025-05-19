@@ -3,19 +3,24 @@ import { Input } from '../../atoms/Input/Input';
 import { Button } from '../../atoms/Button/Button';
 import { Icon } from '../../atoms/Icon/Icon';
 import { Text } from '../../atoms/Text/Text';
+import { registerUser } from '../../../services/userService';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { UserFormData } from '../../../types/user';
 
 interface FormBarProps {
   title?: string;
-  icon?: 'user'
-  onSubmit: (userData: any) => void;
+  icon?: 'user';
+  onSubmit?: (userData: UserFormData) => void;
 }
 
-export const FormBar: React.FC<FormBarProps> = ({ 
-  title = 'Registro Completo de Usuario', 
+export const FormBar: React.FC<FormBarProps> = ({
+  title = 'Registro Completo de Usuario',
   icon = 'user-plus',
   onSubmit
 }) => {
-  const [formData, setFormData] = useState({
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<UserFormData>({
     user_name: '',
     user_lastname: '',
     user_email: '',
@@ -28,6 +33,10 @@ export const FormBar: React.FC<FormBarProps> = ({
     userProfilePicture: ''
   });
 
+  // Estado para la vista previa de la imagen
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -36,9 +45,51 @@ export const FormBar: React.FC<FormBarProps> = ({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Función para manejar el cambio de imagen
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Crear preview temporal
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      // Guardar solo el nombre del archivo
+      setFormData(prev => ({
+        ...prev,
+        userProfilePicture: file.name
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    setIsSubmitting(true);
+    
+    try {
+      if (onSubmit) {
+        await onSubmit(formData);
+      } else {
+        await registerUser({
+          ...formData,
+          user_phone_number: formData.user_phone_number,
+          user_birthdate: formData.user_birthdate,
+          user_admission_average: formData.user_admission_average,
+          userProfilePicture: formData.userProfilePicture || ''
+        });
+      }
+      
+      toast.success('Usuario registrado exitosamente!');
+      navigate('/');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al registrar usuario';
+      toast.error(message);
+      console.error('Registration error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -49,7 +100,7 @@ export const FormBar: React.FC<FormBarProps> = ({
           <Text variant="title" color="light" weight="bold">{title}</Text>
         </div>
       </div>
-      
+
       <div className="card-body">
         <form onSubmit={handleSubmit}>
           <div className="row g-3">
@@ -147,6 +198,45 @@ export const FormBar: React.FC<FormBarProps> = ({
                     <label className="form-check-label" htmlFor="whatsappNotifications">
                       WhatsApp
                     </label>
+                    
+                  </div>
+                </div>
+              </div>
+            </div>
+
+ <div className="col-12">
+              <div className="mb-3">
+                <Text variant="body" className="mb-2">Foto de Perfil</Text>
+                <div className="d-flex align-items-center gap-3">
+                  {previewImage && (
+                    <img 
+                      src={previewImage} 
+                      alt="Preview" 
+                      className="rounded-circle"
+                      style={{ width: '80px', height: '80px', objectFit: 'cover' }}
+                    />
+                  )}
+                  <div>
+                    <input
+                      type="file"
+                      id="profilePicture"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="form-control"
+                      style={{ display: 'none' }}
+                    />
+                    <label 
+                      htmlFor="profilePicture" 
+                      className="btn btn-outline-primary"
+                    >
+                      <Icon variant="upload" className="me-2" />
+                      {formData.userProfilePicture ? 'Cambiar imagen' : 'Seleccionar imagen'}
+                    </label>
+                    {formData.userProfilePicture && (
+                      <div className="small text-muted mt-1">
+                        {formData.userProfilePicture}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -157,7 +247,8 @@ export const FormBar: React.FC<FormBarProps> = ({
                 <Button 
                   variant="secondary" 
                   type="button"
-                  onClick={() => console.log('Cancelado')}
+                  onClick={() => navigate('/')}
+                  disabled={isSubmitting}
                 >
                   <Icon variant="close" className="me-2" />
                   Cancelar
@@ -165,9 +256,19 @@ export const FormBar: React.FC<FormBarProps> = ({
                 <Button 
                   variant="primary" 
                   type="submit"
+                  disabled={isSubmitting}
                 >
-                  <Icon variant="check" className="me-2" />
-                  Registrar Usuario
+                  {isSubmitting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                      <span role="status">Registrando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon variant="check" className="me-2" />
+                      Registrar Usuario
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
