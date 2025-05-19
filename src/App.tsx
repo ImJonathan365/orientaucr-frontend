@@ -8,6 +8,7 @@ import { CareerListPage } from './pages/CareerListPage';
 import { NewCareerPage } from './pages/NewCareerPage';
 import { EditCareerPage } from './pages/EditCareerPage';
 import UserProfilesPages from './pages/UserProfilesPage';
+import { UserProfileCard } from './components/organisms/LoginSection/UserProfileCardProps';
 
 function App() {
   const handleLogin = (email: string, password: string) => {
@@ -29,7 +30,7 @@ function App() {
 
   return (
     <Router>
-     <UserProfilesPages></UserProfilesPages>
+   <UserProfilesPages></UserProfilesPages>
     </Router>
   );
 }

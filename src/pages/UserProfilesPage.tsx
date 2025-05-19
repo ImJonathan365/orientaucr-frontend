@@ -65,19 +65,19 @@ const UserProfilesPages: React.FC = () => {
 
     const fetchUserDetails = async () => {
       try {
-        // Obtener permisos del usuario
-        const permissionsResponse = await axios.get<Permission[]>(
+        const { data } = await axios.get<ApiResponse<Permission[]>>(
           'http://localhost:9999/api/roles/permissions/user', 
           { params: { user_id: selectedUserId } }
         );
         
+        setPermissions(Array.isArray(data.data) ? data.data : []);
         // Obtener nombre del rol usando el procedimiento almacenado correcto
            const roleResponse = await axios.get<{ rol_name: string }>(
       'http://localhost:9999/api/roles/FindById',
       { params: { user_id: selectedUserId } }
     );
 
-        setPermissions(Array.isArray(permissionsResponse.data) ? permissionsResponse.data : []);
+        setPermissions(Array.isArray(data.data) ? data.data : []);
          setUserRoleName(roleResponse.data.rol_name || 'No asignado');
   } catch (err) {
     console.error('Error al cargar detalles:', err);
@@ -188,7 +188,7 @@ const UserProfilesPages: React.FC = () => {
         </div>
       </div>
 
-      <UserProfileCard
+      <UserProfileCard editableFields={["role_permissions"]}
         user={userWithRole}
         isEditing={isEditing}
         onEditToggle={() => setIsEditing(!isEditing)}

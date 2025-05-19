@@ -4,7 +4,6 @@ import { Input } from '../../atoms/Input/Input';
 import { Button } from '../../atoms/Button/Button';
 import { Title } from '../../atoms/Title/Ttile';
 
-
 interface User {
   user_id: string;
   user_name: string;
@@ -26,9 +25,12 @@ interface Permission {
   permission_description: string;
 }
 
+type EditableFields = 'profile' | 'personal_info' | 'notifications' | 'role_permissions';
+
 interface UserProfileCardProps {
   user: User;
   isEditing: boolean;
+  editableFields?: EditableFields[]; // Campos que pueden ser editados
   onEditToggle: () => void;
   onSave: () => void;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -40,6 +42,7 @@ interface UserProfileCardProps {
 export const UserProfileCard: React.FC<UserProfileCardProps> = ({
   user,
   isEditing,
+  editableFields = ['profile', 'personal_info', 'notifications'], // Por defecto permite editar estos campos
   onEditToggle,
   onSave,
   onInputChange,
@@ -47,6 +50,9 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
   isSaving = false,
   permissions = []
 }) => {
+  // Funciones helper para determinar qué se puede editar
+  const canEdit = (fieldType: EditableFields) => editableFields.includes(fieldType) && isEditing;
+
   return (
     <div className="row">
       <div className="col-md-4">
@@ -58,7 +64,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
               className="rounded-circle img-fluid mb-3" 
               style={{ width: '150px' }}
             />
-            {isEditing ? (
+            {canEdit('profile') ? (
               <>
                 <div className="mb-3">
                   <Input
@@ -87,13 +93,15 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
             )}
             
             <div className="d-flex justify-content-center mb-2">
-              <Button
-                className="btn btn-primary me-2"
-                onClick={onEditToggle}
-                disabled={isLoading || isSaving}
-              >
-                {isEditing ? 'Cancelar' : 'Editar Perfil'}
-              </Button>
+              {editableFields.length > 0 && (
+                <Button
+                  className="btn btn-primary me-2"
+                  onClick={onEditToggle}
+                  disabled={isLoading || isSaving}
+                >
+                  {isEditing ? 'Cancelar' : 'Editar Perfil'}
+                </Button>
+              )}
               {isEditing && (
                 <Button
                   className="btn btn-success"
@@ -118,7 +126,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                 <p className="mb-0">Email</p>
               </div>
               <div className="col-sm-8">
-                {isEditing ? (
+                {canEdit('personal_info') ? (
                   <Input
                     type="email"
                     className="form-control"
@@ -139,7 +147,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                 <p className="mb-0">Teléfono</p>
               </div>
               <div className="col-sm-8">
-                {isEditing ? (
+                {canEdit('personal_info') ? (
                   <Input
                     type="tel"
                     className="form-control"
@@ -162,7 +170,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                 <p className="mb-0">Cumpleaños</p>
               </div>
               <div className="col-sm-8">
-                {isEditing ? (
+                {canEdit('personal_info') ? (
                   <Input
                     type="date"
                     className="form-control"
@@ -198,7 +206,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                 <p className="mb-0">Promedio de admisión</p>
               </div>
               <div className="col-sm-8">
-                {isEditing ? (
+                {canEdit('personal_info') ? (
                   <Input
                     type="number"
                     className="form-control"
@@ -222,7 +230,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                 <p className="mb-0">Rol</p>
               </div>
               <div className="col-sm-8">
-                {isEditing ? (
+                {canEdit('role_permissions') ? (
                   <Input
                     type="text"
                     className="form-control"
@@ -238,24 +246,52 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
             
             <hr />
             
-            <div className="row">
-              <div className="col-sm-4">
-                <p className="mb-0">Permisos</p>
+            
+<hr />
+
+{/* Sección de Permisos (editable) */}
+<div className="row">
+  <div className="col-sm-4">
+    <p className="mb-0">Permisos</p>
+  </div>
+  <div className="col-sm-8">
+    {canEdit('role_permissions') ? (
+      <div>
+        {permissions.length > 0 ? (
+          <div className="form-group">
+            {permissions.map((permission) => (
+              <div key={permission.permission_id} className="form-check">
+                <Input
+                  className="form-check-input"
+                  type="checkbox"
+                  name={`permission_${permission.permission_id}`}
+                  onChange={onInputChange}  // Sin verificación de estado
+                />
+                <label className="form-check-label">
+                  {permission.permission_name} - {permission.permission_description}
+                </label>
               </div>
-              <div className="col-sm-8">
-                {permissions.length > 0 ? (
-                  <ul className="list-unstyled">
-                    {permissions.map(permission => (
-                      <li key={permission.permission_id}>
-                        <strong>{permission.permission_name}</strong>: {permission.permission_description}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted mb-0">No tiene permisos asignados</p>
-                )}
-              </div>
-            </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted">No hay permisos disponibles</p>
+        )}
+      </div>
+    ) : (
+      permissions.length > 0 ? (
+        <ul className="list-unstyled">
+          {permissions.map((permission) => (
+            <li key={permission.permission_id}>
+              <strong>{permission.permission_name}</strong>: {permission.permission_description}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-muted mb-0">No tiene permisos asignados</p>
+      )
+    )}
+  </div>
+</div>
             
             <hr />
             
@@ -264,7 +300,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                 <p className="mb-0">Notificaciones</p>
               </div>
               <div className="col-sm-8">
-                {isEditing ? (
+                {canEdit('notifications') ? (
                   <div>
                     <div className="form-check">
                       <Input
