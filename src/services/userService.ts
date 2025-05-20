@@ -40,3 +40,10 @@ export const deleteUser = async (user_id: string) => {
   await axios.delete(`${API_BASE_URL}/delete/${user_id}`);
 };
 
+export const updateUser = async (user: User) => {
+  await axios.post(`${API_BASE_URL}/update`, user, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+};
