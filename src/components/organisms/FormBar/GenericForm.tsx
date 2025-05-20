@@ -14,6 +14,7 @@ export interface FormField {
     min?: number;
     max?: number;
     disabled?: boolean;
+    accept?: string;
 }
 
 interface GenericFormProps<T = any> {
@@ -38,6 +39,7 @@ export const GenericForm = <T extends Record<string, any>>({
     icon
 }: GenericFormProps<T>) => {
     const [formValues, setFormValues] = React.useState<T>(initialValues);
+    const [filePreviews, setFilePreviews] = React.useState<Record<string, string>>({});
 
     // Sincroniza formValues cuando initialValues cambia
     React.useEffect(() => {
@@ -45,11 +47,44 @@ export const GenericForm = <T extends Record<string, any>>({
     }, [initialValues]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormValues(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        const { name, value, type } = e.target;
+
+        // Manejo especial para inputs de tipo file
+        if (type === 'file') {
+            const fileInput = e.target as HTMLInputElement;
+            const file = fileInput.files?.[0];
+
+            if (file) {
+                // Validar tipo de archivo
+                const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+                if (!validTypes.includes(file.type)) {
+                    alert('Por favor, sube solo imágenes en formato JPG o PNG');
+                    return;
+                }
+
+                // Crear vista previa
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setFilePreviews(prev => ({
+                        ...prev,
+                        [name]: reader.result as string
+                    }));
+                };
+                reader.readAsDataURL(file);
+
+                // Actualizar el valor del campo (aunque para files normalmente manejamos el file object aparte)
+                setFormValues(prev => ({
+                    ...prev,
+                    [name]: file.name // O podrías almacenar el file object si lo necesitas
+                }));
+            }
+        } else {
+            // Manejo para todos los otros tipos de inputs
+            setFormValues(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -103,6 +138,29 @@ export const GenericForm = <T extends Record<string, any>>({
                                         </option>
                                     ))}
                                 </select>
+                            ) : field.type === 'file' ? (
+                                <>
+                                    <input
+                                        type="file"
+                                        id={field.name}
+                                        name={field.name}
+                                        className="form-control"
+                                        onChange={handleChange}
+                                        required={field.required}
+                                        accept={field.accept || 'image/*'}
+                                        disabled={field.disabled}
+                                    />
+                                    {filePreviews[field.name] && (
+                                        <div className="mt-2">
+                                            <img
+                                                src={filePreviews[field.name]}
+                                                alt="Vista previa"
+                                                style={{ maxWidth: '100px', maxHeight: '100px' }}
+                                                className="img-thumbnail"
+                                            />
+                                        </div>
+                                    )}
+                                </>
                             ) : (
                                 <input
                                     type={field.type}
