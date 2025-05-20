@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { Table, TableColumn } from '../components/organisms/Tables/Table'; // Asegúrate de que esta ruta sea correcta
 import { Button } from '../components/atoms/Button/Button';
 import { Icon } from '../components/atoms/Icon/Icon';
-import { getCareers, deleteCareer } from '../services/CareerService'; // Servicio API ficticio
+import { getCareers, deleteCareer } from '../services/careerService'; // Servicio API ficticio
+
+
 
 interface Career {
   career_id: string;

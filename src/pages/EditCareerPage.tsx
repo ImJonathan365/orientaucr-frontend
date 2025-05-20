@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { GenericForm } from '../components/organisms/FormBar/GenericForm';
-import { getCareerById, updateCareer } from '../services/CareerService';
+import { getCareerById, updateCareer } from '../services/careerService';
 import { FormField } from '../components/organisms/FormBar/GenericForm';
 import { Career } from '../types/CareerTypes';
 import { Alert, Spinner } from 'react-bootstrap';
@@ -58,7 +58,7 @@ export const EditCareerPage = () => {
                 ...formData,
                 career_id: id
             } as Career);
-            navigate('/listCareers', {
+            navigate('/career-list', {
                 state: { success: true, message: 'Carrera actualizada exitosamente' }
             });
         } catch (err) {
@@ -71,14 +71,6 @@ export const EditCareerPage = () => {
 
     const formFields: FormField[] = [
         
-        {
-            name: 'career_id',
-            label: 'ID de la carrera',
-            type: 'text',
-            required: true,
-            placeholder: 'Ej: IF5000',
-            disabled: true
-        },
         {
             name: 'career_name',
             label: 'Nombre de la carrera',
@@ -141,7 +133,7 @@ export const EditCareerPage = () => {
                 initialValues={initialValues}
                 fields={formFields}
                 onSubmit={handleSubmit}
-                onCancel={() => navigate('/listCareers')}
+                onCancel={() => navigate('/career-list')}
                 submitText="Guardar Cambios"
                 cancelText="Cancelar"
             />
