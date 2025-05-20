@@ -63,10 +63,13 @@ const UserListPage: React.FC = () => {
     }
   };
 
-  const handleEdit = (user: User) => {
-    setEditingUser(user);
-    setForm(user);
-  };
+ const handleEdit = (user: User) => {
+  setEditingUser(user);
+  setForm({
+    ...user,
+    user_password: user.user_password
+  });
+};
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -76,16 +79,26 @@ const UserListPage: React.FC = () => {
     }));
   };
 
-  const handleUpdate = async () => {
-    try {
-      await updateUser({ ...editingUser, ...form } as User);
-      toast.success("Usuario actualizado correctamente");
-      setEditingUser(null);
-      cargarUsuarios();
-    } catch {
-      toast.error("Error al actualizar usuario");
+const handleUpdate = async () => {
+  try {
+    const userToUpdate: any = {
+      ...editingUser,
+      ...form,
+    };
+
+    if (!form.user_password?.trim()) {
+      delete userToUpdate.user_password;
     }
-  };
+
+    await updateUser(userToUpdate);
+    toast.success("Usuario actualizado correctamente");
+    setEditingUser(null);
+    cargarUsuarios();
+  } catch {
+    toast.error("Error al actualizar usuario");
+  }
+};
+
 
   const usersWithActions: UserWithActions[] = users.map(u => ({
     ...u,
