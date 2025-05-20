@@ -13,6 +13,7 @@ export default function SideBar() {
         <li><Link to="/events">Events</Link></li>
         <li><Link to="/vocational-test">Vocational Test</Link></li>
         <li><Link to="/simulation-test">Simulation Test</Link></li>
+        <li><Link to="/test-list">Pregintas Test</Link></li>
       </ul>
     </div>
   );

@@ -6,6 +6,10 @@ import { VocationalTestPage } from "../pages/home/VocationalTestPage";
 import { SimulationTestPage } from "../pages/home/SimulationTestPage";
 import { CareerListPage } from "../pages/CareerListPage";
 import { UserProfile } from '../pages/user/UserProfile'
+import { TestPage } from "../pages/test/TestPage";
+import { TestListPage } from "../pages/test/TestListPage";
+import { TestEditPage } from "../pages/test/TestEditPage";
+import { TestAddPage } from "../pages/test/TestAddPage";
 
 export default function PrivateRoutes() {
   return (
@@ -18,6 +22,10 @@ export default function PrivateRoutes() {
         <Route path="/simulation-test" element={<SimulationTestPage />} />
         <Route path="/career-list" element={<CareerListPage />} />
         <Route path="/profile" element={<UserProfile />} />
+        <Route path="/test" element={<TestPage />} />
+        <Route path="/test-list" element={<TestListPage />} />
+        <Route path="/test-list/edit/:id" element={<TestEditPage />} />
+        <Route path="/test-list/add" element={<TestAddPage />} />
       </Route>
     </Routes>
   );

@@ -3,7 +3,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
 export type IconVariant = 
   // Iconos generales
-  | 'trash' | 'check' | 'edit' | 'add' | 'close' | 'search'
+  | 'trash' | 'check' | 'edit' | 'add' | 'close' | 'search' | 'play'
   | 'arrow-left' | 'arrow-right' | 'settings' | 'info' | 'warning' | 'error'
   // Iconos para el header
   | 'home' | 'book' | 'building' | 'clipboard' | 'user' | 'menu'
@@ -49,6 +49,7 @@ export const Icon: React.FC<IconProps> = ({
     'info': 'info-circle',
     'warning': 'exclamation-triangle',
     'error': 'x-circle',
+    'play': 'play-fill',
     
     // Iconos para el header
     'home': 'house',
