@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { GenericForm } from '../components/organisms/FormBar/GenericForm';
 import { getCareerById, updateCareer } from '../services/careerService';
 import { FormField } from '../components/organisms/FormBar/GenericForm';
-import { Career } from '../types/careerTypes';
+import { Career } from '../types/CareerTypes';
 import { Alert, Spinner } from 'react-bootstrap';
 
 export const EditCareerPage = () => {
