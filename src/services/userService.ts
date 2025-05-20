@@ -32,4 +32,11 @@ export const login = async (user_email: string, user_password: string) => {
   }
 };
 
+export const getAllUsers = async (): Promise<User[]> => {
+  const response = await axios.get<User[]>(`${API_BASE_URL}/list`);
+  return response.data;
+};
+export const deleteUser = async (user_id: string) => {
+  await axios.delete(`${API_BASE_URL}/delete/${user_id}`);
+};
 
