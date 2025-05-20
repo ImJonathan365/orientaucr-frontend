@@ -11,10 +11,12 @@ import { TestPage } from "../pages/test/TestPage";
 import { TestListPage } from "../pages/test/TestListPage";
 import { TestEditPage } from "../pages/test/TestEditPage";
 import { TestAddPage } from "../pages/test/TestAddPage";
+import { UserEditPage } from "../pages/user/UserEditPage";
 
 export default function PrivateRoutes() {
   return (
     <Routes>
+      <Route path="/usuarios/edit/:id" element={<UserEditPage />} />
       <Route path="/usuarios" element={<UserListPage />} />
       <Route path="/home" element={<HomePage />} />
       <Route path="/events" element={<EventsPage />} />

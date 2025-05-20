@@ -1,6 +1,7 @@
 // src/services/userService.ts
 import axios from 'axios';
 import { User } from '../types/user';
+import { Permission, Role } from '../types/permissionAndRole';
 
 const API_BASE_URL = 'http://localhost:9999/api/user';
 
@@ -47,3 +48,46 @@ export const updateUser = async (user: User) => {
     }
   });
 };
+
+export const updateUserRoleAndPermissions = async (
+  userId: string,
+  roleId: string,
+  permissions: string[]
+): Promise<void> => {
+  console.log(permissions);
+  await axios.post(`${API_BASE_URL}/update-role-permissions`, {
+    userId,
+    roleId,
+    permissions
+  });
+}
+
+export const getUserById = async (userId: string): Promise<User> => {
+  const response = await axios.get<User>(`${API_BASE_URL}/search/${userId}`);
+  return response.data;
+};
+
+export const getPermissionsOfUser = async (
+  userId: string,
+  roleId: string
+): Promise<Permission[]> => {
+  const response = await axios.get<Permission[]>(`${API_BASE_URL}/permissions`, {
+    params: { userId, roleId },
+  });
+  return response.data;
+};
+
+export const getPermissionsOfRole = async (
+  roleId: string
+): Promise<Permission[]> => {
+  const response = await axios.get<Permission[]>(`${API_BASE_URL}/role-permissions`, {
+    params: { roleId },
+  });
+  return response.data;
+};
+
+export const getAllRoles = async (): Promise<Role[]> => {
+  const response = await axios.get<Role[]>(`${API_BASE_URL}/roles`);
+  return response.data;
+};
+
