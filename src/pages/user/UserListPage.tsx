@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getAllUsers, deleteUser, updateUser } from "../../services/userService";
+import { getAllUsers, deleteUser } from "../../services/userService";
 import { User } from "../../types/user";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 type UserWithActions = User & { onDelete: (user: User) => void; onEdit: (user: User) => void };
 
@@ -37,8 +38,7 @@ const columns: TableColumn<UserWithActions>[] = [
 const UserListPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [form, setForm] = useState<Partial<User>>({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     cargarUsuarios();
@@ -63,42 +63,9 @@ const UserListPage: React.FC = () => {
     }
   };
 
- const handleEdit = (user: User) => {
-  setEditingUser(user);
-  setForm({
-    ...user,
-    user_password: user.user_password
-  });
-};
-
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+  const handleEdit = (user: User) => {
+    navigate(`/usuarios/edit/${user.user_id}`);
   };
-
-const handleUpdate = async () => {
-  try {
-    const userToUpdate: any = {
-      ...editingUser,
-      ...form,
-    };
-
-    if (!form.user_password?.trim()) {
-      delete userToUpdate.user_password;
-    }
-
-    await updateUser(userToUpdate);
-    toast.success("Usuario actualizado correctamente");
-    setEditingUser(null);
-    cargarUsuarios();
-  } catch {
-    toast.error("Error al actualizar usuario");
-  }
-};
-
 
   const usersWithActions: UserWithActions[] = users.map(u => ({
     ...u,
@@ -113,87 +80,6 @@ const handleUpdate = async () => {
         <p>Cargando...</p>
       ) : (
         <Table columns={columns} data={usersWithActions} />
-      )}
-
-
-      {editingUser && (
-        <div
-          className="modal fade show"
-          style={{
-            display: "block",
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 1050,
-          }}
-          tabIndex={-1}
-          role="dialog"
-        >
-          <div className="modal-dialog modal-dialog-centered" role="document">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Editar Usuario</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  aria-label="Close"
-                  onClick={() => setEditingUser(null)}
-                />
-              </div>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">Nombre</label>
-                  <input
-                    className="form-control"
-                    name="user_name"
-                    value={form.user_name || ""}
-                    onChange={handleFormChange}
-                    placeholder="Nombre"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Apellido</label>
-                  <input
-                    className="form-control"
-                    name="user_lastname"
-                    value={form.user_lastname || ""}
-                    onChange={handleFormChange}
-                    placeholder="Apellido"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Correo</label>
-                  <input
-                    className="form-control"
-                    name="user_email"
-                    value={form.user_email || ""}
-                    onChange={handleFormChange}
-                    placeholder="Correo"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Teléfono</label>
-                  <input
-                    className="form-control"
-                    name="user_phone_number"
-                    value={form.user_phone_number || ""}
-                    onChange={handleFormChange}
-                    placeholder="Teléfono"
-                  />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setEditingUser(null)}
-                >
-                  Cancelar
-                </button>
-                <button className="btn btn-primary" onClick={handleUpdate}>
-                  Guardar Cambios
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
