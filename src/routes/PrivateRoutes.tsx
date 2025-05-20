@@ -5,8 +5,9 @@ import { AcademicCentersPage } from "../pages/home/AcademicCentersPage";
 import { VocationalTestPage } from "../pages/home/VocationalTestPage";
 import { SimulationTestPage } from "../pages/home/SimulationTestPage";
 import { CareerListPage } from "../pages/CareerListPage";
-import { UserProfile } from '../pages/user/UserProfile'
-
+import { UserProfile } from '../pages/user/UserProfile';
+import { NewCareerPage } from "../pages/NewCareerPage";
+import { EditCareerPage } from "../pages/EditCareerPage";
 export default function PrivateRoutes() {
   return (
     <Routes>
@@ -18,6 +19,8 @@ export default function PrivateRoutes() {
         <Route path="/simulation-test" element={<SimulationTestPage />} />
         <Route path="/career-list" element={<CareerListPage />} />
         <Route path="/profile" element={<UserProfile />} />
+        <Route path="/careers/new" element={<NewCareerPage />} />
+        <Route path="/careers/edit/:id" element={<EditCareerPage />} />
       </Route>
     </Routes>
   );

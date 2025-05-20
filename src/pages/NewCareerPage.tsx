@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GenericForm } from '../components/organisms/FormBar/GenericForm';
-import { addCareer } from '../services/CareerService';
+import { addCareer } from '../services/careerService';
 import { FormField } from '../components/organisms/FormBar/GenericForm';
 
 interface CareerFormValues {
@@ -17,24 +17,18 @@ export const NewCareerPage = () => {
   const handleSubmit = async (values: CareerFormValues) => {
     try {
       await addCareer(values);
-      navigate('/listCareers'); // Redirige a la lista después de guardar
+      navigate('/career-list'); // Redirige a la lista después de guardar
     } catch (error) {
       console.error('Error saving career:', error);
     }
   };
 
   const handleCancel = () => {
-    navigate('/listCareers'); // Redirige a la lista sin guardar
+    navigate('/career-list'); // Redirige a la lista sin guardar
   };
 
   const formFields: FormField[] = [
-    {
-      name: 'career_id',
-      label: 'ID de la carrera',
-      type: 'text',
-      required: true,
-      placeholder: 'Ingrese el ID de la carrera',
-    },
+    
     {
       name: 'career_name',
       label: 'Nombre de la carrera',
