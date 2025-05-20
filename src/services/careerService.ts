@@ -17,12 +17,12 @@ export const getCareerById = async (id: string): Promise<Career> => {
   return response.data as Career;
 };
 
-export const addCareer = async (careerData: any) => {
+export const addCareer = async (careerData: Career) => {
   const response = await axios.post(`${API_BASE_URL}/add`, careerData);
   return response.data;
 };
 
-export const updateCareer = async (careerData: any) => {
+export const updateCareer = async (careerData: Career) => {
   const response = await axios.post(`${API_BASE_URL}/update`, careerData);
   return response.data;
 };
