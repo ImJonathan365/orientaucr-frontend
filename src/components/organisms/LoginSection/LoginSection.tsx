@@ -5,8 +5,9 @@ import { Text } from '../../atoms/Text/Text';
 import { Button } from '../../atoms/Button/Button';
 import { Image } from '../../atoms/Image/Image';
 import { toast } from 'react-toastify';
-import { login } from '../../../services/authService';
+import { login } from '../../../services/userService';
 import { useUser } from '../../../contexts/UserContext';
+
 
 interface LoginSectionProps {
   onForgotPassword?: () => void;
