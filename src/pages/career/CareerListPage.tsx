@@ -1,10 +1,11 @@
 // src/pages/CareerListPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table, TableColumn } from '../components/organisms/Tables/Table'; // Asegúrate de que esta ruta sea correcta
-import { Button } from '../components/atoms/Button/Button';
-import { Icon } from '../components/atoms/Icon/Icon';
-import { getCareers, deleteCareer } from '../services/careerService'; // Servicio API ficticio
+import { Table, TableColumn } from '../../components/organisms/Tables/Table';
+import { Button } from '../../components/atoms/Button/Button';
+import { Icon } from '../../components/atoms/Icon/Icon';
+import { getCareers, deleteCareer } from '../../services/careerService';
+import GenericModal from '../../components/organisms/Alerts/GenericModal';
 
 
 
@@ -24,6 +25,11 @@ export const CareerListPage = () => {
   const [careers, setCareers] = useState<Career[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [modalData, setModalData] = useState({
+    show: false,
+    careerId: null as string | null,
+    careerName: "",
+  });
 
   useEffect(() => {
     fetchCareers();
@@ -32,7 +38,8 @@ export const CareerListPage = () => {
   const fetchCareers = async () => {
     try {
       setLoading(true);
-      const data = await getCareers(); // Llamada a tu API
+      const data = await getCareers();
+      (data as Career[]).sort((a: Career, b: Career) => a.career_name.localeCompare(b.career_name));
       setCareers(data as Career[]);
     } catch (error) {
       console.error('Error fetching careers:', error);
@@ -45,16 +52,30 @@ export const CareerListPage = () => {
     navigate(`/careers/edit/${career.career_id}`);
   };
 
-  const handleDelete = async (career: Career) => {
-    if (window.confirm(`¿Estás seguro de eliminar ${career.career_name}?`)) {
-      try {
-        await deleteCareer(career.career_id);
-        fetchCareers(); // Refrescar la lista
-      } catch (error) {
-        console.error('Error deleting career:', error);
-      }
+  const handleDeleteClick = (career: Career) => {
+    setModalData({
+      show: true,
+      careerId: career.career_id,
+      careerName: career.career_name
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!modalData.careerId) return;
+
+    try {
+      await deleteCareer(modalData.careerId);
+      fetchCareers();
+      setModalData({ show: false, careerId: null, careerName: "" });
+    } catch (error) {
+      console.error('Error deleting career:', error);
     }
   };
+
+  const handleCloseModal = () => {
+    setModalData({ show: false, careerId: null, careerName: "" });
+  };
+
 
   const columns: TableColumn<Career>[] = [
     {
@@ -96,21 +117,33 @@ export const CareerListPage = () => {
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Listado de Carreras</h2>
-        <Button 
-          variant="primary" 
+        <Button
+          variant="primary"
           onClick={() => navigate('/careers/new')}
         >
           <Icon variant="add" className="me-2" />
           Nueva Carrera
         </Button>
       </div>
-      
+
       <Table
         columns={columns}
         data={careers}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onDelete={handleDeleteClick}
       />
+      <>
+        <GenericModal
+          show={modalData.show}
+          onHide={handleCloseModal}
+          title="Eliminar Carrera"
+          message={`¿Está seguro de eliminar la carrera ${modalData.careerName}?`}
+          confirmText='Eliminar'
+          cancelText='Cancelar'
+          onConfirm={handleConfirmDelete}
+        />
+      </>
     </div>
+
   );
 };

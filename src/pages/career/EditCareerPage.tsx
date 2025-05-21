@@ -1,10 +1,10 @@
 // src/pages/EditCareerPage.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { GenericForm } from '../components/organisms/FormBar/GenericForm';
-import { getCareerById, updateCareer } from '../services/careerService';
-import { FormField } from '../components/organisms/FormBar/GenericForm';
-import { Career } from '../types/careerTypes';
+import { GenericForm } from '../../components/organisms/FormBar/GenericForm';
+import { getCareerById, updateCareer } from '../../services/careerService';
+import { FormField } from '../../components/organisms/FormBar/GenericForm';
+import { Career } from '../../types/careerTypes';
 import { Alert, Spinner } from 'react-bootstrap';
 
 export const EditCareerPage = () => {

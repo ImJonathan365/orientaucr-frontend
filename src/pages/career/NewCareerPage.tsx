@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GenericForm } from '../components/organisms/FormBar/GenericForm';
-import { addCareer } from '../services/careerService';
-import { FormField } from '../components/organisms/FormBar/GenericForm';
+import { GenericForm } from '../../components/organisms/FormBar/GenericForm';
+import { addCareer } from '../../services/careerService';
+import { FormField } from '../../components/organisms/FormBar/GenericForm';
 
 interface CareerFormValues {
   career_id?: string;
