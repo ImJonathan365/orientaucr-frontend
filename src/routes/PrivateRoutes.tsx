@@ -14,6 +14,7 @@ import { TestListPage } from "../pages/test/TestListPage";
 import { TestEditPage } from "../pages/test/TestEditPage";
 import { TestAddPage } from "../pages/test/TestAddPage";
 import { UserEditPage } from "../pages/user/UserEditPage";
+import UserProfilesPages from "../pages/UserProfilesPage";
 
 export default function PrivateRoutes() {
   return (
@@ -24,7 +25,7 @@ export default function PrivateRoutes() {
       <Route path="/vocational-test" element={<VocationalTestPage />} />
       <Route path="/simulation-test" element={<SimulationTestPage />} />
       <Route path="/career-list" element={<CareerListPage />} />
-      <Route path="/profile" element={<UserProfile />} />
+      <Route path="/profile" element={<UserProfilesPages />} />
       <Route path="/test" element={<TestPage />} />
       <Route path="/test-list" element={<TestListPage />} />
       <Route path="/test-list/edit/:id" element={<TestEditPage />} />
