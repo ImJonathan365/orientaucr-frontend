@@ -1,21 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import {
+  getAllUsers,
+  updateUser
+} from '../services/userService';
 import { UserProfileCard } from '../components/organisms/LoginSection/UserProfileCardProps';
-
-interface User {
-  user_id: string;
-  user_name: string;
-  user_lastname?: string | null;
-  user_email: string;
-  user_phone_number?: number | null;
-  user_birthdate?: string | null;
-  user_admission_average?: number | null;
-  user_allow_email_notification?: boolean;
-  user_allow_whatsapp_notification?: boolean;
-  create_at?: string;
-  user_role?: string | null;
-  user_profile?: string | null;
-}
+import { User } from '../types/user';
+import axios from 'axios';
 
 interface Permission {
   permission_id: string;
@@ -27,7 +17,6 @@ interface ApiResponse<T> {
   data: T;
 }
 
-
 const UserProfilesPages: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -37,19 +26,19 @@ const UserProfilesPages: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [userRoleName, setUserRoleName] = useState<string>('');
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const { data } = await axios.get<ApiResponse<User[]>>('http://localhost:9999/api/user/listUser');
-        
-        if (data.data && data.data.length > 0) {
-          setUsers(data.data);
-          setSelectedUserId(data.data[0].user_id);
+        const userList = await getAllUsers();
+
+        if (userList && userList.length > 0) {
+          setUsers(userList);
+          setSelectedUserId(userList[0].user_id || null);
         } else {
           throw new Error('No se encontraron usuarios');
         }
-        
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
       } finally {
@@ -65,26 +54,24 @@ const UserProfilesPages: React.FC = () => {
 
     const fetchUserDetails = async () => {
       try {
-        const { data } = await axios.get<ApiResponse<Permission[]>>(
-          'http://localhost:9999/api/roles/permissions/user', 
-          { params: { user_id: selectedUserId } }
-        );
-        
-        setPermissions(Array.isArray(data.data) ? data.data : []);
-        // Obtener nombre del rol usando el procedimiento almacenado correcto
-           const roleResponse = await axios.get<{ rol_name: string }>(
-      'http://localhost:9999/api/roles/FindById',
-      { params: { user_id: selectedUserId } }
-    );
+        const [{ data: permissionData }, roleResponse] = await Promise.all([
+          axios.get<ApiResponse<Permission[]>>('http://localhost:9999/api/roles/permissions/user', {
+            params: { user_id: selectedUserId },
+          }),
+          axios.get<{ rol_name: string }>('http://localhost:9999/api/roles/FindById', {
+            params: { user_id: selectedUserId },
+          }),
+        ]);
 
-        setPermissions(Array.isArray(data.data) ? data.data : []);
-         setUserRoleName(roleResponse.data.rol_name || 'No asignado');
-  } catch (err) {
-    console.error('Error al cargar detalles:', err);
-    setPermissions([]);
-    setUserRoleName('Error al cargar rol');
-  }
-};
+        setPermissions(Array.isArray(permissionData.data) ? permissionData.data : []);
+        setUserRoleName(roleResponse.data.rol_name || 'No asignado');
+        setSelectedPermissions([]); // Resetear selección al cambiar de usuario
+      } catch (err) {
+        console.error('Error al cargar detalles:', err);
+        setPermissions([]);
+        setUserRoleName('Error al cargar rol');
+      }
+    };
 
     fetchUserDetails();
   }, [selectedUserId]);
@@ -96,89 +83,123 @@ const UserProfilesPages: React.FC = () => {
   } : null;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-    
-    setUsers(prevUsers => {
-      return prevUsers.map(user => {
+    const { name, value, type, checked } = e.target as HTMLInputElement;
+
+    setUsers(prevUsers =>
+      prevUsers.map(user => {
         if (user.user_id !== selectedUserId) return user;
-        
+
         let newValue: any = value;
-        
+
         if (type === 'number') {
           newValue = value === '' ? null : Number(value);
         } else if (type === 'checkbox') {
-          newValue = (e.target as HTMLInputElement).checked;
+          newValue = checked;
         } else if (type === 'date') {
           newValue = value || null;
         }
-        
+
         return {
           ...user,
-          [name]: newValue
+          [name]: newValue,
         };
-      });
-    });
+      })
+    );
   };
 
   const handleSave = async () => {
-    if (!selectedUser) return;
-    
-    setIsSaving(true);
-    try {
-      // Actualizar datos del usuario
-      await axios.put(
-        `http://localhost:9999/api/user/update/${selectedUser.user_id}`,
-        selectedUser
-      );
+  if (!selectedUser) return;
+
+  setIsSaving(true);
+  try {
+    // 1. Actualizar datos básicos del usuario
+    await updateUser(selectedUser);
+
+    // 2. Actualizar rol solo si cambió
+    if (selectedUser.user_role !== userRoleName) {
+      await axios.post('http://localhost:9999/api/roles/update', {
+        user_id: selectedUser.user_id,
+        rol_id: selectedUser.user_role,
+      });
       
-      // Si se editó el rol, actualizarlo
-      if (selectedUser.user_role !== userRoleName) {
-        await axios.post(
-          'http://localhost:9999/api/roles/update',
-          {
-            user_id: selectedUser.user_id,
-            rol_id: selectedUser.user_role
-          }
-        );
-      }
-      
-      setIsEditing(false);
-      
-      // Refrescar los datos después de guardar
-      const roleResponse = await axios.get<string>(
-        `http://localhost:9999/api/roles/FindById`,
-        { params: { user_id: selectedUser.user_id } }
-      );
-      setUserRoleName(roleResponse.data || 'No asignado');
-      
-      const permissionsResponse = await axios.get<Permission[]>(
-        'http://localhost:9999/api/roles/permissions/user', 
-        { params: { user_id: selectedUser.user_id } }
-      );
-      setPermissions(Array.isArray(permissionsResponse.data) ? permissionsResponse.data : []);
-      
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar');
-    } finally {
-      setIsSaving(false);
+      // Actualizar el nombre del rol localmente
+      const roleResponse = await axios.get<{ rol_name: string }>('http://localhost:9999/api/roles/FindById', {
+        params: { user_id: selectedUser.user_id },
+      });
+      setUserRoleName(roleResponse.data.rol_name || 'No asignado');
     }
+
+    setIsEditing(false);
+    
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'Error al guardar');
+  } finally {
+    setIsSaving(false);
+  }
+};
+
+  const handlePermissionCheckboxChange = (permissionId: string) => {
+    setSelectedPermissions(prev => 
+      prev.includes(permissionId)
+        ? prev.filter(id => id !== permissionId)
+        : [...prev, permissionId]
+    );
   };
+
+  const handleDeletePermissions = async () => {
+  if (!selectedUserId || selectedPermissions.length === 0) return;
+
+  try {
+    setIsSaving(true);
+    setError(null);
+    
+    // Versión más robusta con manejo de errores
+    await Promise.all(
+      selectedPermissions.map(permissionId => 
+        axios.post('http://localhost:9999/api/roles/delete', {
+          user_id: selectedUserId,
+          permission_id: permissionId
+        })
+      )
+    );
+
+    // Actualización optimista (sin volver a cargar)
+    setPermissions(prev => 
+      prev.filter(p => !selectedPermissions.includes(p.permission_id))
+    );
+    setSelectedPermissions([]);
+
+  } catch (err) {
+    setError('Error al eliminar permisos');
+    console.error('Error:', err);
+    // Opcional: Recargar permisos para sincronizar
+    const { data } = await axios.get<ApiResponse<Permission[]>>(
+      'http://localhost:9999/api/roles/permissions/user', 
+      { params: { user_id: selectedUserId } }
+    );
+    setPermissions(Array.isArray(data.data) ? data.data : []);
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   if (isLoading) return <div className="container my-5">Loading profile...</div>;
   if (error) return <div className="container my-5">Error: {error}</div>;
-  if (!userWithRole) return <div className="container my-5">No user data found</div>;
+  if (users.length === 0) return <div className="container my-5">No hay usuarios disponibles</div>;
+  if (!selectedUserId || !userWithRole) return <div className="container my-5">Seleccione un usuario</div>;
 
   return (
     <div className="container my-5">
       <div className="row mb-4">
         <div className="col-12">
           <h2>Seleccionar Usuario</h2>
-          <select 
+          <select
             className="form-select"
             value={selectedUserId || ''}
-            onChange={(e) => setSelectedUserId(e.target.value)}
+            onChange={(e) => setSelectedUserId(e.target.value || null)}
             disabled={isEditing}
           >
+            <option value="">Seleccione un usuario</option>
             {users.map(user => (
               <option key={user.user_id} value={user.user_id}>
                 {user.user_name} {user.user_lastname}
@@ -188,16 +209,22 @@ const UserProfilesPages: React.FC = () => {
         </div>
       </div>
 
-      <UserProfileCard editableFields={["role_permissions"]}
-        user={userWithRole}
-        isEditing={isEditing}
-        onEditToggle={() => setIsEditing(!isEditing)}
-        onSave={handleSave}
-        onInputChange={handleInputChange}
-        isLoading={isLoading}
-        isSaving={isSaving}
-        permissions={permissions}
-      />
+      {userWithRole && (
+        <UserProfileCard
+          editableFields={["personal_info"]}
+          user={userWithRole}
+          isEditing={isEditing}
+          onEditToggle={() => setIsEditing(!isEditing)}
+          onSave={handleSave}
+          onInputChange={handleInputChange}
+          isLoading={isLoading}
+          isSaving={isSaving}
+          permissions={permissions}
+          selectedPermissions={selectedPermissions}
+          onPermissionCheckboxChange={handlePermissionCheckboxChange}
+          onDeletePermissions={handleDeletePermissions}
+        />
+      )}
     </div>
   );
 };
