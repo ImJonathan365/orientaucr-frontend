@@ -15,6 +15,10 @@ import { TestEditPage } from "../pages/test/TestEditPage";
 import { TestAddPage } from "../pages/test/TestAddPage";
 import { UserEditPage } from "../pages/user/UserEditPage";
 import UserProfilesPages from "../pages/UserProfilesPage";
+import { RolesPage } from "../pages/roles/RolesPage";
+import { RolesListPage } from "../pages/roles/RolesListPage";
+import { RolesEditPage } from "../pages/roles/RolesEditPage";
+import { RolesAddPage } from "../pages/roles/RolesAddPage";
 
 export default function PrivateRoutes() {
   return (
@@ -34,6 +38,11 @@ export default function PrivateRoutes() {
       <Route path="/careers/edit/:id" element={<EditCareerPage />} />
       <Route path="/usuarios/edit/:id" element={<UserEditPage />} />
       <Route path="/usuarios" element={<UserListPage />} />
+       <Route path="/roles" element={<RolesPage />} />
+      <Route path="/roles-list" element={<RolesListPage />} />
+      <Route path="/roles-list/edit/:id" element={<RolesEditPage />} />
+      <Route path="/roles-list/add" element={<RolesAddPage />} />
+      
     </Routes>
   );
 }
