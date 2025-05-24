@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { GenericForm } from '../../components/organisms/FormBar/GenericForm';
 import { addCareer } from '../../services/careerService';
 import { FormField } from '../../components/organisms/FormBar/GenericForm';
+import Swal from "sweetalert2";
 
 interface CareerFormValues {
   career_id?: string;
@@ -17,14 +18,20 @@ export const NewCareerPage = () => {
   const handleSubmit = async (values: CareerFormValues) => {
     try {
       await addCareer(values);
-      navigate('/career-list'); // Redirige a la lista después de guardar
+      Swal.fire({
+        title: 'Éxito',
+        text: 'La carrera se ha creado correctamente.',
+        icon: 'success',
+        confirmButtonText: 'Aceptar'
+      });
+      navigate('/career-list'); 
     } catch (error) {
       console.error('Error saving career:', error);
     }
   };
 
   const handleCancel = () => {
-    navigate('/career-list'); // Redirige a la lista sin guardar
+    navigate('/career-list'); 
   };
 
   const formFields: FormField[] = [

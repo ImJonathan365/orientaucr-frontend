@@ -30,6 +30,11 @@ const LoginSection: React.FC<LoginSectionProps> = ({ onForgotPassword }) => {
     try {
       const user = await login(email, password);
       setUser(user);
+      const sessionData = {
+        user,
+        lastActivity: Date.now()
+      };
+      localStorage.setItem("user", JSON.stringify(sessionData));
       toast.success(`🎉 ¡Bienvenido ${user.user_name}!`);
       navigate("/home", { replace: true }); // Redirige solo a /home
     } catch (error) {

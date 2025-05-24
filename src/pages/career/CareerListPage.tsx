@@ -5,7 +5,7 @@ import { Table, TableColumn } from '../../components/organisms/Tables/Table';
 import { Button } from '../../components/atoms/Button/Button';
 import { Icon } from '../../components/atoms/Icon/Icon';
 import { getCareers, deleteCareer } from '../../services/careerService';
-import GenericModal from '../../components/organisms/Alerts/GenericModal';
+import Swal from "sweetalert2";
 
 
 
@@ -52,29 +52,31 @@ export const CareerListPage = () => {
     navigate(`/careers/edit/${career.career_id}`);
   };
 
-  const handleDeleteClick = (career: Career) => {
-    setModalData({
-      show: true,
-      careerId: career.career_id,
-      careerName: career.career_name
-    });
-  };
+  const handleDeleteClick = async (career: Career) => {
+  const result = await Swal.fire({
+    title: "¿Estás seguro?",
+    text: `Esta acción eliminará la carrera "${career.career_name}".`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+  });
 
-  const handleConfirmDelete = async () => {
-    if (!modalData.careerId) return;
+  if (result.isConfirmed) {
+    handleConfirmDeleteWithId(career.career_id, career.career_name);
+  }
+};
 
-    try {
-      await deleteCareer(modalData.careerId);
-      fetchCareers();
-      setModalData({ show: false, careerId: null, careerName: "" });
-    } catch (error) {
-      console.error('Error deleting career:', error);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setModalData({ show: false, careerId: null, careerName: "" });
-  };
+const handleConfirmDeleteWithId = async (careerId: string, careerName: string) => {
+  try {
+    await deleteCareer(careerId);
+    await Swal.fire("Eliminado", `La carrera "${careerName}" fue eliminada correctamente.`, "success");
+    fetchCareers();
+  } catch (error) {
+    await Swal.fire("Error", "Hubo un problema al eliminar la carrera.", "error");
+    console.error('Error deleting career:', error);
+  }
+};
 
 
   const columns: TableColumn<Career>[] = [
@@ -132,17 +134,6 @@ export const CareerListPage = () => {
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
       />
-      <>
-        <GenericModal
-          show={modalData.show}
-          onHide={handleCloseModal}
-          title="Eliminar Carrera"
-          message={`¿Está seguro de eliminar la carrera ${modalData.careerName}?`}
-          confirmText='Eliminar'
-          cancelText='Cancelar'
-          onConfirm={handleConfirmDelete}
-        />
-      </>
     </div>
 
   );

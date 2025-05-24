@@ -2,24 +2,8 @@ import { BrowserRouter } from "react-router-dom";
 import { UserProvider, useUser } from "./contexts/UserContext";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import PublicRoutes from "./routes/PublicRoutes";
-import PrivateRoutes from "./routes/PrivateRoutes";
+import AppRoutes from "./routes/AppRoutes";
 
-function AppRoutes() {
-  const { user } = useUser();
-
-  if (!user) {
-    return (
-      <PublicRoutes />
-    );
-  }
-
-  return (
-    <>
-    <PrivateRoutes />
-    </>
-  );
-}
 
 function App() {
   return (

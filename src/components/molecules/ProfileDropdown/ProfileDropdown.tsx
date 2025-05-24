@@ -19,7 +19,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onClose }) => 
           className="dropdown-item py-2 px-3"
           style={{ background: "none", border: "none", width: "100%", textAlign: "left" }}
           onClick={() => {
-            localStorage.removeItem("token");
+            localStorage.removeItem("user");
             window.location.href = "/login";
           }}
         >

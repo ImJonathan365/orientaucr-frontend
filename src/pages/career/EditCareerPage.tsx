@@ -6,6 +6,7 @@ import { getCareerById, updateCareer } from '../../services/careerService';
 import { FormField } from '../../components/organisms/FormBar/GenericForm';
 import { Career } from '../../types/careerTypes';
 import { Alert, Spinner } from 'react-bootstrap';
+import Swal from "sweetalert2";
 
 export const EditCareerPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -21,30 +22,51 @@ export const EditCareerPage = () => {
     useEffect(() => {
         const loadCareerData = async () => {
             if (!id) {
-                setError('No se proporcionó ID de carrera');
                 setIsLoading(false);
+                await Swal.fire({
+                    title: 'Error',
+                    text: 'No se proporcionó ID de carrera',
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar'
+                });
+                navigate('/career-list');
                 return;
             }
 
             try {
                 setIsLoading(true);
-                const data = await getCareerById(id); 
+                const data = await getCareerById(id);
+                if (!data || !data.career_id) {
+                    await Swal.fire({
+                        title: 'No encontrado',
+                        text: 'No se pudo encontrar la carrera solicitada.',
+                        icon: 'error',
+                        confirmButtonText: 'Aceptar'
+                    });
+                    navigate('/career-list');
+                    return;
+                }
                 setInitialValues({
                     career_id: data.career_id,
                     career_name: data.career_name,
                     career_description: data.career_description,
                     career_duration_years: data.career_duration_years
                 });
-            } catch (err) {
-                console.error('Error al cargar carrera:', err);
-                setError('No se pudo cargar la información de la carrera');
+            } catch (err: any) {
+                await Swal.fire({
+                    title: 'No encontrado',
+                    text: 'No se pudo encontrar la carrera solicitada.',
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar'
+                });
+                navigate('/career-list');
             } finally {
                 setIsLoading(false);
             }
         };
 
         loadCareerData();
-    }, [id]);
+    }, [id, navigate]);
 
     const handleSubmit = async (formData: Partial<Career>) => {
         if (!id) {
@@ -58,6 +80,12 @@ export const EditCareerPage = () => {
                 ...formData,
                 career_id: id
             } as Career);
+            Swal.fire({
+                title: 'Éxito',
+                text: 'La carrera se ha actualizado correctamente.',
+                icon: 'success',
+                confirmButtonText: 'Aceptar'
+            });
             navigate('/career-list', {
                 state: { success: true, message: 'Carrera actualizada exitosamente' }
             });
@@ -70,7 +98,7 @@ export const EditCareerPage = () => {
     };
 
     const formFields: FormField[] = [
-        
+
         {
             name: 'career_name',
             label: 'Nombre de la carrera',
