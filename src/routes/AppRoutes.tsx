@@ -25,6 +25,9 @@ import { RolesListPage } from "../pages/roles/RolesListPage";
 import { RolesEditPage } from "../pages/roles/RolesEditPage";
 import { RolesAddPage } from "../pages/roles/RolesAddPage";
 import { RequireAuth } from "../pages/auth/RequireAuth";
+import { EventsListPage } from "../pages/events/EventListPage";
+import { EventsEditPage } from "../pages/events/EventEditPage";
+import { EventAddPage } from "../pages/events/EventAddPage";
 
 
 export default function AppRoutes() {
@@ -55,6 +58,10 @@ export default function AppRoutes() {
       <Route path="/roles-list" element={<RequireAuth><RolesListPage /></RequireAuth>} />
       <Route path="/roles-list/edit/:id" element={<RequireAuth><RolesEditPage /></RequireAuth>} />
       <Route path="/roles-list/add" element={<RequireAuth><RolesAddPage /></RequireAuth>} />
+      <Route path="/events" element={<RequireAuth><EventsPage /></RequireAuth>} />
+      <Route path="/events-list" element={<RequireAuth><EventsListPage /></RequireAuth>} />
+      <Route path="/events-list/edit/:id" element={<RequireAuth><EventsEditPage /></RequireAuth>} />
+      <Route path="/events-list/add" element={<RequireAuth><EventAddPage /></RequireAuth>} />
       <Route path="*" element={<NotFound />} />
 
     </Routes>

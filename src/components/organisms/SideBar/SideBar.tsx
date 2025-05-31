@@ -10,7 +10,7 @@ export default function SideBar() {
       <ul>
         <li><Link to="/home">Home</Link></li>
         <li><Link to="/career-list">Careers</Link></li>
-        <li><Link to="/events">Events</Link></li>
+        <li><Link to="/events-list">Events</Link></li>
         <li><Link to="/vocational-test">Vocational Test</Link></li>
         <li><Link to="/simulation-test">Simulation Test</Link></li>
         <li><Link to="/usuarios">List User</Link></li>
