@@ -12,7 +12,7 @@ import { EventsPage } from "../pages/home/EventsPage";
 import { AcademicCentersPage } from "../pages/home/AcademicCentersPage";
 import { VocationalTestPage } from "../pages/home/VocationalTestPage";
 import { SimulationTestPage } from "../pages/home/SimulationTestPage";
-import UserProfilesPages from "../pages/UserProfilesPage";
+import UserProfilesPages from "../pages/UserProfilePage";
 import { TestPage } from "../pages/test/TestPage";
 import { TestListPage } from "../pages/test/TestListPage";
 import { TestEditPage } from "../pages/test/TestEditPage";
