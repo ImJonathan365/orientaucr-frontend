@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getAllUsers, deleteUser } from "../../services/userService";
-import { User } from "../../types/user";
+import { User } from "../../types/userType";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -8,11 +8,19 @@ import { useNavigate } from "react-router-dom";
 type UserWithActions = User & { onDelete: (user: User) => void; onEdit: (user: User) => void };
 
 const columns: TableColumn<UserWithActions>[] = [
-  { key: "user_name", label: "Nombre" },
-  { key: "user_lastname", label: "Apellido" },
-  { key: "user_email", label: "Correo" },
-  { key: "user_phone_number", label: "Teléfono" },
-  { key: "user_role", label: "Rol" },
+  { key: "userName", label: "Nombre" },
+  { key: "userLastname", label: "Apellido" },
+  { key: "userEmail", label: "Correo" },
+  { key: "userBirthdate", label: "Fecha de nacimiento" },
+  { key: "userAdmissionAverage", label: "Promedio de admisión" },
+  {
+    key: "rolName",
+    label: "Rol",
+    render: (row) =>
+      row.userRoles && row.userRoles.length > 0
+        ? row.userRoles.map(r => r.rolName).join(", ")
+        : "Sin rol"
+  },
   {
     key: "acciones",
     label: "Acciones",
@@ -53,9 +61,9 @@ const UserListPage: React.FC = () => {
   };
 
   const handleDelete = async (user: User) => {
-    if (!window.confirm(`¿Seguro que deseas eliminar a ${user.user_name}?`)) return;
+    if (!window.confirm(`¿Seguro que deseas eliminar a ${user.userName}?`)) return;
     try {
-      await deleteUser(user.user_id!);
+      await deleteUser(user.userId!);
       toast.success("Usuario eliminado correctamente");
       cargarUsuarios();
     } catch {
@@ -64,7 +72,11 @@ const UserListPage: React.FC = () => {
   };
 
   const handleEdit = (user: User) => {
-    navigate(`/usuarios/edit/${user.user_id}`);
+    navigate(`/usuarios/edit/${user.userId}`);
+  };
+
+  const handleCreate = () => {
+    navigate("/usuarios/crear");
   };
 
   const usersWithActions: UserWithActions[] = users.map(u => ({
@@ -75,7 +87,12 @@ const UserListPage: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <h2>Lista de Usuarios</h2>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2>Lista de Usuarios</h2>
+        <button className="btn btn-primary" onClick={handleCreate}>
+          Crear Usuario
+        </button>
+      </div>
       {loading ? (
         <p>Cargando...</p>
       ) : (

@@ -30,7 +30,7 @@ const LoginSection: React.FC<LoginSectionProps> = ({ onForgotPassword }) => {
     try {
       const user = await login(email, password);
       setUser(user);
-      toast.success(`🎉 ¡Bienvenido ${user.user_name}!`);
+      toast.success(`🎉 ¡Bienvenido ${user.userName}!`);
       navigate("/home", { replace: true }); // Redirige solo a /home
     } catch (error) {
       let errorMessage = 'Error al iniciar sesión';
