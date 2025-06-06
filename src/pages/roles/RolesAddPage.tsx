@@ -2,6 +2,8 @@ import Swal from "sweetalert2";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Roles } from "../../types/rolesType";
+
+/*
 import { addRoles } from "../../services/RolesService";
 import { getAllPermissions } from "../../services/RolesService";
 import { Permissions } from "../../types/permissionType";
@@ -94,7 +96,6 @@ export const RolesAddPage = () => {
                 <p>Cargando permisos...</p>
             ) : (
                 <form onSubmit={handleSubmit}>
-                    {/* Nombre del Rol */}
                     <div className="mb-3">
                         <label htmlFor="rol_name" className="form-label">Nombre del Rol</label>
                         <Input
@@ -108,7 +109,6 @@ export const RolesAddPage = () => {
                         />
                     </div>
 
-                    {/* Selección de Permisos */}
                     <div className="mb-3">
                         <label htmlFor="permissions" className="form-label">Permisos</label>
                         <select
@@ -126,7 +126,6 @@ export const RolesAddPage = () => {
                         </select>
                     </div>
 
-                    {/* Lista de permisos seleccionados */}
                     <ul className="list-group mb-3">
                         {Roles.permissions.map((p) => (
                             <li
@@ -145,10 +144,10 @@ export const RolesAddPage = () => {
                         ))}
                     </ul>
 
-                    {/* Botón para guardar */}
                     <button type="submit" className="btn btn-primary">Guardar Rol</button>
                 </form>
             )}
         </div>
     );
 };
+*/

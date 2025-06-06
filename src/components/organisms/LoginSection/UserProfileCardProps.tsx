@@ -3,27 +3,8 @@ import { Image } from '../../atoms/Image/Image';
 import { Input } from '../../atoms/Input/Input';
 import { Button } from '../../atoms/Button/Button';
 import { Title } from '../../atoms/Title/Ttile';
-
-interface User {
-  user_id?: string;
-  user_name: string;
-  user_lastname?: string | null;
-  user_email: string;
-  user_phone_number?: number | null;
-  user_birthdate?: string | null;
-  user_admission_average?: number | null;
-  user_allow_email_notification?: boolean;
-  user_allow_whatsapp_notification?: boolean;
-  create_at?: string;
-  user_role?: string | null;
-  user_profile?: string | null;
-}
-
-interface Permission {
-  permission_id: string;
-  permission_name: string;
-  permission_description: string;
-}
+import { User } from '../../../types/userType';
+import { Permission } from '../../../types/permissionType';
 
 type EditableFields = 'profile' | 'personal_info' | 'notifications' | 'role_permissions';
 
@@ -33,7 +14,7 @@ interface UserProfileCardProps {
   editableFields?: EditableFields[];
   onEditToggle: () => void;
   onSave: () => void;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   isLoading?: boolean;
   isSaving?: boolean;
   permissions: Permission[];
@@ -73,7 +54,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
         <div className="card mb-4">
           <div className="card-body text-center">
             <Image
-              src={user.user_profile || 'https://via.placeholder.com/150'}
+              src={user.userProfilePicture || 'https://via.placeholder.com/150'}
               alt="Profile"
               className="rounded-circle img-fluid mb-3"
               style={{ width: '150px' }}
@@ -85,8 +66,8 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                   <Input
                     type="text"
                     className="form-control text-center"
-                    name="user_name"
-                    value={user.user_name}
+                    name="userName"
+                    value={user.userName}
                     onChange={onInputChange}
                   />
                 </div>
@@ -94,16 +75,16 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                   <Input
                     type="text"
                     className="form-control text-center"
-                    name="user_lastname"
-                    value={user.user_lastname || ''}
+                    name="userLastname"
+                    value={user.userLastname || ''}
                     onChange={onInputChange}
                   />
                 </div>
               </>
             ) : (
               <>
-                <h5 className="card-title">{user.user_name} {user.user_lastname}</h5>
-                <p className="text-muted mb-1">{user.user_email}</p>
+                <h5 className="card-title">{user.userName} {user.userLastname}</h5>
+                <p className="text-muted mb-1">{user.userEmail}</p>
               </>
             )}
 
@@ -144,34 +125,13 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                   <Input
                     type="email"
                     className="form-control"
-                    name="user_email"
-                    value={user.user_email}
+                    name="userEmail"
+                    value={user.userEmail}
                     onChange={onInputChange}
                     disabled={isSaving}
                   />
                 ) : (
-                  <p className="text-muted mb-0">{user.user_email}</p>
-                )}
-              </div>
-            </div>
-
-            <hr />
-
-            {/* Teléfono */}
-            <div className="row">
-              <div className="col-sm-4"><p className="mb-0">Teléfono</p></div>
-              <div className="col-sm-8">
-                {canEdit('personal_info') ? (
-                  <Input
-                    type="tel"
-                    className="form-control"
-                    name="user_phone_number"
-                    value={user.user_phone_number?.toString() || ''}
-                    onChange={onInputChange}
-                    disabled={isSaving}
-                  />
-                ) : (
-                  <p className="text-muted mb-0">{user.user_phone_number ?? 'No proporcionado'}</p>
+                  <p className="text-muted mb-0">{user.userEmail}</p>
                 )}
               </div>
             </div>
@@ -186,24 +146,14 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                   <Input
                     type="date"
                     className="form-control"
-                    name="user_birthdate"
-                    value={user.user_birthdate?.substring(0, 10) || ''}
+                    name="userBirthdate"
+                    value={user.userBirthdate?.substring(0, 10) || ''}
                     onChange={onInputChange}
                     disabled={isSaving}
                   />
                 ) : (
-                  <p className="text-muted mb-0">{formatDate(user.user_birthdate)}</p>
+                  <p className="text-muted mb-0">{formatDate(user.userBirthdate)}</p>
                 )}
-              </div>
-            </div>
-
-            <hr />
-
-            {/* Fecha de creación */}
-            <div className="row">
-              <div className="col-sm-4"><p className="mb-0">Miembro desde</p></div>
-              <div className="col-sm-8">
-                <p className="text-muted mb-0">{formatDate(user.create_at)}</p>
               </div>
             </div>
 
@@ -217,8 +167,8 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                   <Input
                     type="number"
                     className="form-control"
-                    name="user_admission_average"
-                    value={user.user_admission_average?.toString() || ''}
+                    name="userAdmissionAverage"
+                    value={user.userAdmissionAverage?.toString() || ''}
                     onChange={onInputChange}
                     step="0.01"
                     min="0"
@@ -226,7 +176,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                     disabled={isSaving}
                   />
                 ) : (
-                  <p className="text-muted mb-0">{user.user_admission_average ?? 'No proporcionado'}</p>
+                  <p className="text-muted mb-0">{user.userAdmissionAverage ?? 'No proporcionado'}</p>
                 )}
               </div>
             </div>
@@ -237,25 +187,18 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
             <div className="row">
               <div className="col-sm-4"><p className="mb-0">Rol</p></div>
               <div className="col-sm-8">
-                {canEdit('role_permissions') ? (
-                  <Input
-                    type="text"
-                    className="form-control"
-                    name="user_role"
-                    value={user.user_role || ''}
-                    onChange={onInputChange}
-                    disabled={isSaving}
-                  />
-                ) : (
-                  <p className="text-muted mb-0">{user.user_role ?? 'No asignado'}</p>
-                )}
+                <p className="text-muted mb-0">
+                  {user.userRoles && user.userRoles.length > 0
+                    ? user.userRoles.map(r => r.rolName).join(', ')
+                    : 'No asignado'}
+                </p>
               </div>
             </div>
 
             <hr />
 
             {/* Permisos */}
-               <div className="row">
+            <div className="row">
               <div className="col-sm-4"><p className="mb-0">Permisos</p></div>
               <div className="col-sm-8">
                 {canEdit('role_permissions') ? (
@@ -263,16 +206,16 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                     {permissions.length > 0 ? (
                       <>
                         {permissions.map(permission => (
-                          <div key={permission.permission_id} className="form-check">
+                          <div key={permission.permissionId} className="form-check">
                             <Input
                               className="form-check-input"
                               type="checkbox"
-                              checked={selectedPermissions.includes(permission.permission_id)}
-                              onChange={() => onPermissionCheckboxChange(permission.permission_id)}
+                              checked={selectedPermissions.includes(permission.permissionId)}
+                              onChange={() => onPermissionCheckboxChange(permission.permissionId)}
                               disabled={isSaving}
                             />
                             <label className="form-check-label">
-                              {permission.permission_name} - {permission.permission_description}
+                              {permission.permissionName} - {permission.permissionDescription}
                             </label>
                           </div>
                         ))}
@@ -292,8 +235,8 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                   permissions.length > 0 ? (
                     <ul className="list-unstyled">
                       {permissions.map(permission => (
-                        <li key={permission.permission_id}>
-                          <strong>{permission.permission_name}</strong>: {permission.permission_description}
+                        <li key={permission.permissionId}>
+                          <strong>{permission.permissionName}</strong>: {permission.permissionDescription}
                         </li>
                       ))}
                     </ul>
@@ -316,29 +259,17 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                       <Input
                         className="form-check-input"
                         type="checkbox"
-                        name="user_allow_email_notification"
-                        checked={user.user_allow_email_notification || false}
+                        name="userAllowEmailNotification"
+                        checked={user.userAllowEmailNotification || false}
                         onChange={onInputChange}
                         disabled={isSaving}
                       />
                       <label className="form-check-label">Notificaciones por Email</label>
                     </div>
-                    <div className="form-check">
-                      <Input
-                        className="form-check-input"
-                        type="checkbox"
-                        name="user_allow_whatsapp_notification"
-                        checked={user.user_allow_whatsapp_notification || false}
-                        onChange={onInputChange}
-                        disabled={isSaving}
-                      />
-                      <label className="form-check-label">Notificaciones por WhatsApp</label>
-                    </div>
                   </>
                 ) : (
                   <ul className="list-unstyled mb-0">
-                    <li>Email: {user.user_allow_email_notification ? 'Sí' : 'No'}</li>
-                    <li>WhatsApp: {user.user_allow_whatsapp_notification ? 'Sí' : 'No'}</li>
+                    <li>Email: {user.userAllowEmailNotification ? 'Sí' : 'No'}</li>
                   </ul>
                 )}
               </div>

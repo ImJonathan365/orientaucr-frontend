@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Roles } from "../../types/rolesType";
+
+/*
 import { Permissions } from "../../types/permissionType";
 import { getRolesById, updateRoles } from "../../services/RolesService";
 import { getAllPermissions } from "../../services/RolesService";
@@ -198,3 +200,4 @@ export const RolesEditPage = () => {
     </div>
   );
 };
+*/

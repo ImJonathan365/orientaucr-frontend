@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+/*
 import { getAllRoles, deleteRoles } from "../../services/RolesService";
 import { Roles } from "../../types/rolesType";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
@@ -109,4 +110,4 @@ export const RolesListPage = () => {
             )}
         </div>
     );
-};
+};*/

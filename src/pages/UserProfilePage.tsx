@@ -1,21 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import {
-  getAllUsers,
-  updateUser
-} from '../services/userService';
+import { getAllUsers, updateUser } from '../services/userService';
 import { UserProfileCard } from '../components/organisms/LoginSection/UserProfileCardProps';
-import { User } from '../types/user';
+import { User } from '../types/userType';
+import { Permission } from '../types/permissionType';
 import axios from 'axios';
-
-interface Permission {
-  permission_id: string;
-  permission_name: string;
-  permission_description: string;
-}
-
-interface ApiResponse<T> {
-  data: T;
-}
 
 const UserProfilesPages: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -32,10 +20,9 @@ const UserProfilesPages: React.FC = () => {
     const fetchUserData = async () => {
       try {
         const userList = await getAllUsers();
-
         if (userList && userList.length > 0) {
           setUsers(userList);
-          setSelectedUserId(userList[0].user_id || null);
+          setSelectedUserId(userList[0].userId || null);
         } else {
           throw new Error('No se encontraron usuarios');
         }
@@ -45,52 +32,40 @@ const UserProfilesPages: React.FC = () => {
         setIsLoading(false);
       }
     };
-
     fetchUserData();
   }, []);
 
   useEffect(() => {
     if (!selectedUserId) return;
-
     const fetchUserDetails = async () => {
       try {
-        const [{ data: permissionData }, roleResponse] = await Promise.all([
-          axios.get<ApiResponse<Permission[]>>('http://localhost:9999/api/roles/permissions/user', {
-            params: { user_id: selectedUserId },
-          }),
-          axios.get<{ rol_name: string }>('http://localhost:9999/api/roles/FindById', {
-            params: { user_id: selectedUserId },
-          }),
-        ]);
-
-        setPermissions(Array.isArray(permissionData.data) ? permissionData.data : []);
-        setUserRoleName(roleResponse.data.rol_name || 'No asignado');
-        setSelectedPermissions([]); // Resetear selección al cambiar de usuario
+        // Busca el usuario seleccionado y su rol
+        const user = users.find(u => u.userId === selectedUserId);
+        if (user && user.userRoles && user.userRoles.length > 0) {
+          setUserRoleName(user.userRoles[0].rolName);
+          setPermissions(user.userRoles[0].permissions || []);
+          setSelectedPermissions(user.userRoles[0].permissions?.map(p => p.permissionId) || []);
+        } else {
+          setUserRoleName('No asignado');
+          setPermissions([]);
+          setSelectedPermissions([]);
+        }
       } catch (err) {
-        console.error('Error al cargar detalles:', err);
         setPermissions([]);
         setUserRoleName('Error al cargar rol');
       }
     };
-
     fetchUserDetails();
-  }, [selectedUserId]);
+  }, [selectedUserId, users]);
 
-  const selectedUser = users.find(user => user.user_id === selectedUserId);
-  const userWithRole = selectedUser ? {
-    ...selectedUser,
-    user_role: userRoleName
-  } : null;
+  const selectedUser = users.find(user => user.userId === selectedUserId);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type, checked } = e.target as HTMLInputElement;
-
     setUsers(prevUsers =>
       prevUsers.map(user => {
-        if (user.user_id !== selectedUserId) return user;
-
+        if (user.userId !== selectedUserId) return user;
         let newValue: any = value;
-
         if (type === 'number') {
           newValue = value === '' ? null : Number(value);
         } else if (type === 'checkbox') {
@@ -98,7 +73,6 @@ const UserProfilesPages: React.FC = () => {
         } else if (type === 'date') {
           newValue = value || null;
         }
-
         return {
           ...user,
           [name]: newValue,
@@ -108,38 +82,33 @@ const UserProfilesPages: React.FC = () => {
   };
 
   const handleSave = async () => {
-  if (!selectedUser) return;
-
-  setIsSaving(true);
-  try {
-    // 1. Actualizar datos básicos del usuario
-    await updateUser(selectedUser);
-
-    // 2. Actualizar rol solo si cambió
-    if (selectedUser.user_role !== userRoleName) {
-      await axios.post('http://localhost:9999/api/roles/update', {
-        user_id: selectedUser.user_id,
-        rol_id: selectedUser.user_role,
-      });
-      
-      // Actualizar el nombre del rol localmente
-      const roleResponse = await axios.get<{ rol_name: string }>('http://localhost:9999/api/roles/FindById', {
-        params: { user_id: selectedUser.user_id },
-      });
-      setUserRoleName(roleResponse.data.rol_name || 'No asignado');
+    if (!selectedUser) return;
+    setIsSaving(true);
+    try {
+      // Actualiza el usuario con los permisos seleccionados
+      const updatedUser: User = {
+        ...selectedUser,
+        userRoles: selectedUser.userRoles && selectedUser.userRoles.length > 0
+          ? [{
+              ...selectedUser.userRoles[0],
+              permissions: permissions.filter(p => selectedPermissions.includes(p.permissionId))
+            }]
+          : []
+      };
+      await updateUser(updatedUser);
+      setIsEditing(false);
+      setUsers(prevUsers =>
+        prevUsers.map(u => (u.userId === updatedUser.userId ? updatedUser : u))
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al guardar');
+    } finally {
+      setIsSaving(false);
     }
-
-    setIsEditing(false);
-    
-  } catch (err) {
-    setError(err instanceof Error ? err.message : 'Error al guardar');
-  } finally {
-    setIsSaving(false);
-  }
-};
+  };
 
   const handlePermissionCheckboxChange = (permissionId: string) => {
-    setSelectedPermissions(prev => 
+    setSelectedPermissions(prev =>
       prev.includes(permissionId)
         ? prev.filter(id => id !== permissionId)
         : [...prev, permissionId]
@@ -147,46 +116,40 @@ const UserProfilesPages: React.FC = () => {
   };
 
   const handleDeletePermissions = async () => {
-  if (!selectedUserId || selectedPermissions.length === 0) return;
-
-  try {
+    if (!selectedUser || selectedPermissions.length === 0) return;
     setIsSaving(true);
     setError(null);
-    
-    // Versión más robusta con manejo de errores
-    await Promise.all(
-      selectedPermissions.map(permissionId => 
-        axios.post('http://localhost:9999/api/roles/delete', {
-          user_id: selectedUserId,
-          permission_id: permissionId
-        })
-      )
-    );
+    try {
+      // Elimina los permisos seleccionados del usuario localmente
+      setPermissions(prev =>
+        prev.filter(p => !selectedPermissions.includes(p.permissionId))
+      );
+      setSelectedPermissions([]);
+      // Actualiza el usuario en el backend
+      const updatedUser: User = {
+        ...selectedUser,
+        userRoles: selectedUser.userRoles && selectedUser.userRoles.length > 0
+          ? [{
+              ...selectedUser.userRoles[0],
+              permissions: permissions.filter(p => !selectedPermissions.includes(p.permissionId))
+            }]
+          : []
+      };
+      await updateUser(updatedUser);
+      setUsers(prevUsers =>
+        prevUsers.map(u => (u.userId === updatedUser.userId ? updatedUser : u))
+      );
+    } catch (err) {
+      setError('Error al eliminar permisos');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-    // Actualización optimista (sin volver a cargar)
-    setPermissions(prev => 
-      prev.filter(p => !selectedPermissions.includes(p.permission_id))
-    );
-    setSelectedPermissions([]);
-
-  } catch (err) {
-    setError('Error al eliminar permisos');
-    console.error('Error:', err);
-    // Opcional: Recargar permisos para sincronizar
-    const { data } = await axios.get<ApiResponse<Permission[]>>(
-      'http://localhost:9999/api/roles/permissions/user', 
-      { params: { user_id: selectedUserId } }
-    );
-    setPermissions(Array.isArray(data.data) ? data.data : []);
-  } finally {
-    setIsSaving(false);
-  }
-};
-
-  if (isLoading) return <div className="container my-5">Loading profile...</div>;
+  if (isLoading) return <div className="container my-5">Cargando perfil...</div>;
   if (error) return <div className="container my-5">Error: {error}</div>;
   if (users.length === 0) return <div className="container my-5">No hay usuarios disponibles</div>;
-  if (!selectedUserId || !userWithRole) return <div className="container my-5">Seleccione un usuario</div>;
+  if (!selectedUserId || !selectedUser) return <div className="container my-5">Seleccione un usuario</div>;
 
   return (
     <div className="container my-5">
@@ -201,18 +164,18 @@ const UserProfilesPages: React.FC = () => {
           >
             <option value="">Seleccione un usuario</option>
             {users.map(user => (
-              <option key={user.user_id} value={user.user_id}>
-                {user.user_name} {user.user_lastname}
+              <option key={user.userId} value={user.userId}>
+                {user.userName} {user.userLastname}
               </option>
             ))}
           </select>
         </div>
       </div>
 
-      {userWithRole && (
+      {selectedUser && (
         <UserProfileCard
-          editableFields={["personal_info"]}
-          user={userWithRole}
+          editableFields={["personal_info", "role_permissions"]}
+          user={selectedUser}
           isEditing={isEditing}
           onEditToggle={() => setIsEditing(!isEditing)}
           onSave={handleSave}

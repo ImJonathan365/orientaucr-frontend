@@ -20,7 +20,7 @@ export const EventAddPage = () => {
     event_time: "",
     event_modality: "in-person", // valor por defecto
     event_image_path: null,
-    created_by: user?.user_id || null,
+    created_by: user?.userId || null,
     campus_id: "1",
     subcampus_id: "1",
   });

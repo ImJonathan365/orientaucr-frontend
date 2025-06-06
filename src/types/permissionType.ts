@@ -1,5 +1,5 @@
-export interface Permissions {
-  permission_id: string;
-  permission_name: string;
-  permission_description: string;
+export interface Permission {
+  permissionId: string;
+  permissionName: string;
+  permissionDescription: string;
 }

@@ -21,7 +21,7 @@ export default function SideBar() {
     <div className="d-flex flex-column flex-shrink-0 p-3 bg-light" style={{width: "280px", height: "100vh"}}>
       <div className="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
         <i className="bi bi-person-circle fs-4 me-2"></i>
-        <span className="fs-4">{user?.user_name }</span>
+        <span className="fs-4">{user?.userName }</span>
       </div>
       <hr />
       <ul className="nav nav-pills flex-column mb-auto">

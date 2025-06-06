@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getUserById, getAllRoles, getPermissionsOfRole, getPermissionsOfUser, updateUserRoleAndPermissions } from "../../services/userService";
-import { User } from "../../types/user";
-import { Role, Permission } from "../../types/permissionAndRole";
+import { getUserById, getAllUsers, updateUser } from "../../services/userService";
+import { User } from "../../types/userType";
+import { Roles } from "../../types/rolesType";
+import { Permission } from "../../types/permissionType";
 import { toast } from "react-toastify";
 
 export const UserEditPage = () => {
@@ -10,27 +11,44 @@ export const UserEditPage = () => {
     const navigate = useNavigate();
 
     const [user, setUser] = useState<User | null>(null);
-    const [roles, setRoles] = useState<Role[]>([]);
+    const [roles, setRoles] = useState<Roles[]>([]);
     const [roleId, setRoleId] = useState<string>("");
     const [rolePermissions, setRolePermissions] = useState<Permission[]>([]);
     const [userPermissions, setUserPermissions] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Cargar datos del usuario y roles
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const userData = await getUserById(id!);
                 setUser(userData);
-                setRoleId(userData.user_role || "");
-                const rolesData = await getAllRoles();
-                setRoles(rolesData);
-                // Cargar permisos del usuario y del rol
-                if (userData.user_role) {
-                    const rolePerms = await getPermissionsOfRole(userData.user_role);
-                    setRolePermissions(rolePerms);
-                    const userPerms = await getPermissionsOfUser(userData.user_id!, userData.user_role);
-                    setUserPermissions(userPerms.map(p => p.permission_id));
+
+                // Si el usuario tiene roles, toma el primero (ajusta según tu lógica)
+                let initialRoleId = "";
+                if (userData.userRoles && userData.userRoles.length > 0) {
+                    initialRoleId = userData.userRoles[0].rolId;
+                }
+                setRoleId(initialRoleId);
+
+                // Cargar todos los roles (de la base de datos)
+                const allUsers = await getAllUsers();
+                // Extraer todos los roles únicos de todos los usuarios (o usa un endpoint específico si tienes)
+                const allRoles: Roles[] = [];
+                allUsers.forEach(u => {
+                    u.userRoles?.forEach(r => {
+                        if (!allRoles.find(ar => ar.rolId === r.rolId)) {
+                            allRoles.push(r);
+                        }
+                    });
+                });
+                setRoles(allRoles);
+
+                // Cargar permisos del rol seleccionado
+                if (initialRoleId && userData.userRoles) {
+                    const selectedRole = userData.userRoles.find(r => r.rolId === initialRoleId);
+                    setRolePermissions(selectedRole?.permissions || []);
+                    // Solo los permisos que el usuario ya tiene deben estar checked
+                    setUserPermissions(selectedRole?.permissions?.map(p => p.permissionId) || []);
                 }
             } catch (error) {
                 toast.error("Error al cargar datos del usuario");
@@ -43,18 +61,15 @@ export const UserEditPage = () => {
 
     // Cuando cambia el rol, cargar los permisos del nuevo rol
     useEffect(() => {
-        const fetchRolePerms = async () => {
-            if (roleId) {
-                const perms = await getPermissionsOfRole(roleId);
-                setRolePermissions(perms);
-                setUserPermissions(perms.map(p => p.permission_id)); // Por defecto, todos los permisos del rol
-            }
-        };
-        if (roleId && user && roleId !== user.user_role) {
-            fetchRolePerms();
-        }
-        // eslint-disable-next-line
-    }, [roleId]);
+        if (!roleId || !user) return;
+        // Buscar el rol seleccionado en los roles del usuario o en la lista de roles
+        let selectedRole: Roles | undefined =
+            user.userRoles?.find(r => r.rolId === roleId) ||
+            roles.find(r => r.rolId === roleId);
+
+        setRolePermissions(selectedRole?.permissions || []);
+        setUserPermissions(selectedRole?.permissions?.map(p => p.permissionId) || []);
+    }, [roleId, user, roles]);
 
     const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setRoleId(e.target.value);
@@ -69,11 +84,16 @@ export const UserEditPage = () => {
     const handleUpdate = async () => {
         if (!user) return;
         try {
-            await updateUserRoleAndPermissions(
-                user.user_id!,
-                roleId,
-                userPermissions
-            );
+            const updatedUser: User = {
+                ...user,
+                userRoles: [
+                    {
+                        ...roles.find(r => r.rolId === roleId)!,
+                        permissions: rolePermissions.filter(p => userPermissions.includes(p.permissionId))
+                    }
+                ]
+            };
+            await updateUser(updatedUser);
             toast.success("Usuario actualizado correctamente");
             navigate("/usuarios");
         } catch (error) {
@@ -94,23 +114,23 @@ export const UserEditPage = () => {
             <h1>Editar Usuario</h1>
             <div className="mb-3">
                 <label className="form-label">Nombre</label>
-                <input className="form-control" value={user.user_name} disabled />
+                <input className="form-control" value={user.userName} disabled />
             </div>
             <div className="mb-3">
                 <label className="form-label">Apellido</label>
-                <input className="form-control" value={user.user_lastname} disabled />
+                <input className="form-control" value={user.userLastname} disabled />
             </div>
             <div className="mb-3">
                 <label className="form-label">Correo</label>
-                <input className="form-control" value={user.user_email} disabled />
+                <input className="form-control" value={user.userEmail} disabled />
             </div>
             <div className="mb-3">
                 <label className="form-label">Rol</label>
                 <select className="form-select" value={roleId} onChange={handleRoleChange}>
                     <option value="">Seleccione un rol</option>
                     {roles.map(role => (
-                        <option key={role.rol_id} value={role.rol_id}>
-                            {role.rol_name}
+                        <option key={role.rolId} value={role.rolId}>
+                            {role.rolName}
                         </option>
                     ))}
                 </select>
@@ -119,16 +139,16 @@ export const UserEditPage = () => {
                 <label className="form-label">Permisos</label>
                 <div>
                     {rolePermissions.map(perm => (
-                        <div key={perm.permission_id} className="form-check">
+                        <div key={perm.permissionId} className="form-check">
                             <input
                                 className="form-check-input"
                                 type="checkbox"
-                                id={perm.permission_id}
-                                checked={userPermissions.includes(perm.permission_id)}
-                                onChange={e => handlePermissionChange(perm.permission_id, e.target.checked)}
+                                id={perm.permissionId}
+                                checked={userPermissions.includes(perm.permissionId)}
+                                onChange={e => handlePermissionChange(perm.permissionId, e.target.checked)}
                             />
-                            <label className="form-check-label" htmlFor={perm.permission_id}>
-                                {perm.permission_name}
+                            <label className="form-check-label" htmlFor={perm.permissionId}>
+                                {perm.permissionName}
                             </label>
                         </div>
                     ))}
