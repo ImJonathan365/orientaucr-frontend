@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { Career } from '../types/CareerTypes';
-const API_BASE_URL = 'http://localhost:9999/api/career'; // Reemplaza con tu URL real
+import { Career } from '../types/careerTypes';
+const API_BASE_URL = 'http://localhost:9999/api/career'; 
 
 export const getCareers = async () => {
   const response = await axios.get(`${API_BASE_URL}/list`);

@@ -14,7 +14,7 @@ interface Career {
   career_name: string;
   career_description: string;
   career_duration_years: number;
-  characteristicList: Array<{
+  characteristics: Array<{
     characteristics_id: string;
     characteristics_name: string;
     characteristics_description: string;
@@ -97,11 +97,11 @@ const handleConfirmDeleteWithId = async (careerId: string, careerName: string) =
       render: (row) => `${row.career_duration_years}`
     },
     {
-      key: 'characteristicList',
+      key: 'characteristics',
       label: 'Características',
       render: (row) => (
         <div className="d-flex flex-wrap gap-1">
-          {row.characteristicList?.map(char => (
+          {row.characteristics?.map(char => (
             <span key={char.characteristics_id} className="badge bg-primary">
               {char.characteristics_name}
             </span>
