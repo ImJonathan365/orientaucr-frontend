@@ -28,6 +28,9 @@ import { RequireAuth } from "../pages/auth/RequireAuth";
 import { EventsListPage } from "../pages/events/EventListPage";
 import { EventsEditPage } from "../pages/events/EventEditPage";
 import { EventAddPage } from "../pages/events/EventAddPage";
+import { SimulationQuestionListPage } from "../pages/SimulationQuestion/SimulationQuestionListPage";
+import { SimulationQuestionAddPage } from "../pages/SimulationQuestion/SimulationQuestionAddPage";
+import { SimulationQuestionEditPage } from "../pages/SimulationQuestion/SimulationQuestionEditPage";
 
 
 export default function AppRoutes() {
@@ -54,6 +57,9 @@ export default function AppRoutes() {
       <Route path="/careers/edit/:id" element={<RequireAuth><EditCareerPage /></RequireAuth>} />
       <Route path="/usuarios/edit/:id" element={<RequireAuth><UserEditPage /></RequireAuth>} />
       <Route path="/usuarios" element={<RequireAuth><UserListPage /></RequireAuth>} />
+      <Route path="/simulation-questions" element={<SimulationQuestionListPage />} />
+      <Route path="/simulation-questions/add" element={<SimulationQuestionAddPage />} />
+      <Route path="/simulation-questions/edit/:id" element={<SimulationQuestionEditPage />} />
       {/*}
       <Route path="/roles" element={<RequireAuth><RolesPage /></RequireAuth>} />
       <Route path="/roles-list" element={<RequireAuth><RolesListPage /></RequireAuth>} />

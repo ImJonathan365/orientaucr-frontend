@@ -14,6 +14,7 @@ export default function SideBar() {
     { path: "/simulation-test", icon: "bi-pencil-square", label: "Simulation Test" },
     { path: "/usuarios", icon: "bi-people", label: "List User" },
     { path: "/test-list", icon: "bi-question-circle", label: "Preguntas Test" },
+    { path: "/simulation-questions", icon: "bi-question-circle", label: "Preguntas prueba simulada" },
     { path: "/roles-list", icon: "bi-shield-check", label: "Roles" },
   ];
 
