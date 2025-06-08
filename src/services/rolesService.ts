@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { Roles } from '../types/rolesType';
+import { UserRoles ,Roles } from '../types/rolesType';
+import { Permission } from '../types/permissionType';
 
 const API_URL = 'http://localhost:9999/api/roles';
 
@@ -28,13 +29,13 @@ export const deleteRoles = async (id: string): Promise<string> => {
   return response.data;
 };
 
-/*export const submitRoles = async (answers: UserRoles[]): Promise<string> => {
+export const submitRoles = async (answers: UserRoles[]): Promise<string> => {
   //const response = await axios.post<string>(`${API_URL}/submit-answers`, answers);
   //return response.data;
   console.log('Submitting answers: ', answers);
   return "200 OK";
-};*/
-export const getAllPermissions = async (): Promise<Permissions[]> => {
-    const response = await axios.get<Permissions[]>(`${API_URL}/allPermissions`);
+};
+export const getAllPermissions = async (): Promise<Permission[]> => {
+    const response = await axios.get<Permission[]>(`${API_URL}/allPermissions`);
     return response.data;
 }

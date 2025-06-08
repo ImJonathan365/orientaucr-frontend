@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-/*
-import { getAllRoles, deleteRoles } from "../../services/RolesService";
+import { getAllRoles, deleteRoles } from "../../services/rolesService";
 import { Roles } from "../../types/rolesType";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
 import { useNavigate, Link } from "react-router-dom";
@@ -29,7 +28,7 @@ export const RolesListPage = () => {
     const handleEdit = async (roles: Roles) => {
   const result = await Swal.fire({
     title: "¿Editar rol?",
-    text: `¿Deseas editar el rol: ${roles.rol_name}?`,
+    text: `¿Deseas editar el rol: ${roles.rolName}?`,
     icon: "question",
     showCancelButton: true,
     confirmButtonText: "Sí, editar",
@@ -37,7 +36,7 @@ export const RolesListPage = () => {
   });
 
   if (result.isConfirmed) {
-    navigate(`/roles-list/edit/${roles.rol_id}`);
+    navigate(`/roles-list/edit/${roles.rolId}`);
   }
 };
 
@@ -45,7 +44,7 @@ export const RolesListPage = () => {
   const handleDelete = async (roles: Roles) => {
   const result = await Swal.fire({
     title: "¿Eliminar rol?",
-    text: `¿Seguro que deseas eliminar el rol: ${roles.rol_name}?`,
+    text: `¿Seguro que deseas eliminar el rol: ${roles.rolName}?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Sí, eliminar",
@@ -54,8 +53,8 @@ export const RolesListPage = () => {
 
   if (result.isConfirmed) {
     try {
-      await deleteRoles(roles.rol_id);
-      setRoles(Roles.filter((t) => t.rol_id !== roles.rol_id));
+      await deleteRoles(roles.rolId);
+      setRoles(Roles.filter((t) => t.rolId !== roles.rolId));
       Swal.fire("Eliminado", "El rol fue eliminado correctamente", "success");
     } catch {
       Swal.fire("Error", "No se pudo eliminar el rol", "error");
@@ -66,9 +65,9 @@ export const RolesListPage = () => {
 
  const columns: TableColumn<Roles>[] = [
     {
-        key: "rol_name",
+        key: "rolName",
         label: "Rol",
-        render: (row) => row.rol_name,
+        render: (row) => row.rolName,
     },
     {
         key: "permissions",
@@ -76,11 +75,11 @@ export const RolesListPage = () => {
         render: (row) => {
             return (
                 <select className="form-select">
-                    {row.permissions.some((c) => c.permission_name === "") ? (
+                    {row.permissions.some((c) => c.permissionName === "") ? (
                         <option disabled>No tiene permisos asignados</option>
                     ) : (
                         row.permissions.map((c) => (
-                            <option key={c.permission_id}>{c.permission_name}</option>
+                            <option key={c.permissionId}>{c.permissionName}</option>
                         ))
                     )}
                 </select>
@@ -110,4 +109,4 @@ export const RolesListPage = () => {
             )}
         </div>
     );
-};*/
+};

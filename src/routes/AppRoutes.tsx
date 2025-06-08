@@ -20,10 +20,10 @@ import { TestAddPage } from "../pages/test/TestAddPage";
 import { NewCareerPage } from "../pages/career/NewCareerPage";
 import { UserEditPage } from "../pages/user/UserEditPage";
 import UserListPage from "../pages/user/UserListPage";
-/*import { RolesPage } from "../pages/roles/RolesPage";
+
 import { RolesListPage } from "../pages/roles/RolesListPage";
 import { RolesEditPage } from "../pages/roles/RolesEditPage";
-import { RolesAddPage } from "../pages/roles/RolesAddPage";*/
+import { RolesAddPage } from "../pages/roles/RolesAddPage";
 import { RequireAuth } from "../pages/auth/RequireAuth";
 import { EventsListPage } from "../pages/events/EventListPage";
 import { EventsEditPage } from "../pages/events/EventEditPage";
@@ -56,16 +56,10 @@ export default function AppRoutes() {
       <Route path="/careers/new" element={<RequireAuth><NewCareerPage /></RequireAuth>} />
       <Route path="/careers/edit/:id" element={<RequireAuth><EditCareerPage /></RequireAuth>} />
       <Route path="/usuarios/edit/:id" element={<RequireAuth><UserEditPage /></RequireAuth>} />
-      <Route path="/usuarios" element={<RequireAuth><UserListPage /></RequireAuth>} />
-      <Route path="/simulation-questions" element={<SimulationQuestionListPage />} />
-      <Route path="/simulation-questions/add" element={<SimulationQuestionAddPage />} />
-      <Route path="/simulation-questions/edit/:id" element={<SimulationQuestionEditPage />} />
-      {/*}
-      <Route path="/roles" element={<RequireAuth><RolesPage /></RequireAuth>} />
+      <Route path="/usuarios" element={<RequireAuth><UserListPage /></RequireAuth>} /> 
       <Route path="/roles-list" element={<RequireAuth><RolesListPage /></RequireAuth>} />
       <Route path="/roles-list/edit/:id" element={<RequireAuth><RolesEditPage /></RequireAuth>} />
-      <Route path="/roles-list/add" element={<RequireAuth><RolesAddPage /></RequireAuth>}
-      {*/}
+      <Route path="/roles-list/add" element={<RequireAuth><RolesAddPage /></RequireAuth>} />
       <Route path="/events" element={<RequireAuth><EventsPage /></RequireAuth>} />
       <Route path="/events-list" element={<RequireAuth><EventsListPage /></RequireAuth>} />
       <Route path="/events-list/edit/:id" element={<RequireAuth><EventsEditPage /></RequireAuth>} />
