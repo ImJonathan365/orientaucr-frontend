@@ -2,10 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Roles } from "../../types/rolesType";
 
-/*
-import { Permissions } from "../../types/permissionType";
-import { getRolesById, updateRoles } from "../../services/RolesService";
-import { getAllPermissions } from "../../services/RolesService";
+import { Permission } from "../../types/permissionType";
+import { getRolesById, updateRoles } from "../../services/rolesService";
+import { getAllPermissions } from "../../services/rolesService";
 import { Title } from "../../components/atoms/Title/Ttile";
 import { Input } from "../../components/atoms/Input/Input";
 import { Button } from "../../components/atoms/Button/Button";
@@ -15,7 +14,7 @@ export const RolesEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const [Roles, setRoles] = useState<Roles | null>(null);
   const [loading, setLoading] = useState(true);
-  const [Permissions, setPermissions] = useState<Permissions[]>([]);
+  const [Permissions, setPermissions] = useState<Permission[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,11 +45,12 @@ export const RolesEditPage = () => {
     if (!Roles) return;
     const selectedPermissionsId = e.target.value;
     const selectedPermissions = Permissions.find(
-      (c) => c.permission_id === selectedPermissionsId
+      (c) => c.permissionId === selectedPermissionsId
     );
     if (
       selectedPermissions &&
-      !Roles.permissions.some((c) => c.permission_id === selectedPermissionsId)
+      !Roles.permissions.some((c) => c.permissionId
+       === selectedPermissionsId)
     ) {
       setRoles({
         ...Roles,
@@ -75,7 +75,7 @@ export const RolesEditPage = () => {
     setRoles({
       ...Roles,
       permissions: Roles.permissions.filter(
-        (c) => c.permission_id !== PermissionId
+        (c) => c.permissionId !== PermissionId
       ),
     });
 
@@ -137,9 +137,9 @@ export const RolesEditPage = () => {
           <Input
             type="text"
             className="form-control"
-            id="rol_name"
-            name="rol_name"
-            value={Roles?.rol_name}
+            id="rolName"
+            name="rolName"
+            value={Roles?.rolName}
             onChange={handleChange}
           />
         </div>
@@ -159,31 +159,31 @@ export const RolesEditPage = () => {
             {Permissions.filter(
               (c) =>
                 !Roles?.permissions.some(
-                  (tc) => tc.permission_id === c.permission_id
+                  (tc) => tc.permissionId === c.permissionId
                 )
             ).map((c) => (
-              <option key={c.permission_id} value={c.permission_id}>
-                {c.permission_name}
+              <option key={c.permissionId} value={c.permissionId}>
+                {c.permissionName}
               </option>
             ))}
           </select>
         </div>
         <ul className="list-group mb-3">
           {Roles?.permissions.map((c) => (
-            <li key={c.permission_id} className="list-group-item">
+            <li key={c.permissionId} className="list-group-item">
               <div className="mb-2 d-flex justify-content-between align-items-center">
-                <strong>{c.permission_name}</strong>
+                <strong>{c.permissionName}</strong>
                 <Button
                   type="button"
                   className="btn btn-danger btn-sm"
-                  onClick={() => handleRemovePermissions(c.permission_id)}
+                  onClick={() => handleRemovePermissions(c.permissionId)}
                 >
                   Eliminar
                 </Button>
               </div>
               <textarea
                 className="form-control"
-                value={c.permission_description}
+                value={c.permissionDescription}
                 readOnly
                 onClick={() => alert("Los permisos no son editables")}
                 style={{ cursor: "not-allowed", backgroundColor: "#f8f9fa" }}
@@ -198,6 +198,5 @@ export const RolesEditPage = () => {
         </button>
       </form>
     </div>
-  );
+  );
 };
-*/
