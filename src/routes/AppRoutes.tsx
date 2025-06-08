@@ -53,12 +53,10 @@ export default function AppRoutes() {
       <Route path="/careers/new" element={<RequireAuth><NewCareerPage /></RequireAuth>} />
       <Route path="/careers/edit/:id" element={<RequireAuth><EditCareerPage /></RequireAuth>} />
       <Route path="/usuarios/edit/:id" element={<RequireAuth><UserEditPage /></RequireAuth>} />
-      <Route path="/usuarios" element={<RequireAuth><UserListPage /></RequireAuth>} />
-     
-<Route path="/roles-list" element={<RequireAuth><RolesListPage /></RequireAuth>} />
-<Route path="/roles-list/edit/:id" element={<RequireAuth><RolesEditPage /></RequireAuth>} />
-<Route path="/roles-list/add" element={<RequireAuth><RolesAddPage /></RequireAuth>} />
-
+      <Route path="/usuarios" element={<RequireAuth><UserListPage /></RequireAuth>} /> 
+      <Route path="/roles-list" element={<RequireAuth><RolesListPage /></RequireAuth>} />
+      <Route path="/roles-list/edit/:id" element={<RequireAuth><RolesEditPage /></RequireAuth>} />
+      <Route path="/roles-list/add" element={<RequireAuth><RolesAddPage /></RequireAuth>} />
       <Route path="/events" element={<RequireAuth><EventsPage /></RequireAuth>} />
       <Route path="/events-list" element={<RequireAuth><EventsListPage /></RequireAuth>} />
       <Route path="/events-list/edit/:id" element={<RequireAuth><EventsEditPage /></RequireAuth>} />

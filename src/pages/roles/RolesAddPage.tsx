@@ -101,7 +101,7 @@ export const RolesAddPage = () => {
                     <Input
                         type="text"
                         className="form-control"
-                        id="rolId"
+                        id="rolName"
                         name="rolName"
                         value={Roles.rolName}
                         onChange={handleChange}
