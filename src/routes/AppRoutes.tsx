@@ -64,6 +64,9 @@ export default function AppRoutes() {
       <Route path="/events-list" element={<RequireAuth><EventsListPage /></RequireAuth>} />
       <Route path="/events-list/edit/:id" element={<RequireAuth><EventsEditPage /></RequireAuth>} />
       <Route path="/events-list/add" element={<RequireAuth><EventAddPage /></RequireAuth>} />
+      <Route path="/simulation-questions" element={<RequireAuth><SimulationQuestionListPage /></RequireAuth>} />
+      <Route path="/simulation-questions/add" element={<RequireAuth><SimulationQuestionAddPage /></RequireAuth>} />
+      <Route path="/simulation-questions/edit/:id" element={<RequireAuth><SimulationQuestionEditPage /></RequireAuth>} />
       <Route path="*" element={<NotFound />} />
 
     </Routes>
