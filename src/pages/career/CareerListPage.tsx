@@ -53,30 +53,30 @@ export const CareerListPage = () => {
   };
 
   const handleDeleteClick = async (career: Career) => {
-  const result = await Swal.fire({
-    title: "¿Estás seguro?",
-    text: `Esta acción eliminará la carrera "${career.career_name}".`,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar",
-  });
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: `Esta acción eliminará la carrera "${career.career_name}".`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
 
-  if (result.isConfirmed) {
-    handleConfirmDeleteWithId(career.career_id, career.career_name);
-  }
-};
+    if (result.isConfirmed) {
+      handleConfirmDeleteWithId(career.career_id, career.career_name);
+    }
+  };
 
-const handleConfirmDeleteWithId = async (careerId: string, careerName: string) => {
-  try {
-    await deleteCareer(careerId);
-    await Swal.fire("Eliminado", `La carrera "${careerName}" fue eliminada correctamente.`, "success");
-    fetchCareers();
-  } catch (error) {
-    await Swal.fire("Error", "Hubo un problema al eliminar la carrera.", "error");
-    console.error('Error deleting career:', error);
-  }
-};
+  const handleConfirmDeleteWithId = async (careerId: string, careerName: string) => {
+    try {
+      await deleteCareer(careerId);
+      await Swal.fire("Eliminado", `La carrera "${careerName}" fue eliminada correctamente.`, "success");
+      fetchCareers();
+    } catch (error) {
+      await Swal.fire("Error", "Hubo un problema al eliminar la carrera.", "error");
+      console.error('Error deleting career:', error);
+    }
+  };
 
 
   const columns: TableColumn<Career>[] = [
@@ -119,13 +119,22 @@ const handleConfirmDeleteWithId = async (careerId: string, careerName: string) =
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Listado de Carreras</h2>
-        <Button
-          variant="primary"
-          onClick={() => navigate('/careers/new')}
-        >
-          <Icon variant="add" className="me-2" />
-          Nueva Carrera
-        </Button>
+        <div className="d-flex gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => navigate('/home')}
+          >
+            <Icon variant="home" className="me-2" />
+            Regresar
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => navigate('/careers/new')}
+          >
+            <Icon variant="add" className="me-2" />
+            Nueva Carrera
+          </Button>
+        </div>
       </div>
 
       <Table

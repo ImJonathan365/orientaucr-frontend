@@ -143,7 +143,7 @@ export const EditCareerPage = () => {
                     <div className="d-flex justify-content-end">
                         <button
                             className="btn btn-outline-primary"
-                            onClick={() => navigate('/listCareers')}
+                            onClick={() => navigate('/career-list')}
                         >
                             Volver al listado
                         </button>
