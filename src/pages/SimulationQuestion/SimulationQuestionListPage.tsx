@@ -2,9 +2,35 @@ import { useEffect, useState } from "react";
 import { getAllQuestions, deleteQuestion } from "../../services/simulationService";
 import { SimulationQuestion } from "../../types/SimulationQuestion";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Title } from "../../components/atoms/Title/Ttile";
+import { Button } from "../../components/atoms/Button/Button";
+import { Icon } from "../../components/atoms/Icon/Icon";
+
+const translateCategory = (category: string) => {
+  switch (category) {
+    case "mathematical_logic":
+      return "Lógica matemática";
+    case "verbal_logic":
+      return "Lógica verbal";
+    default:
+      return "-";
+  }
+};
+
+const translateDifficulty = (difficulty?: string) => {
+  switch (difficulty) {
+    case "easy":
+      return "Fácil";
+    case "medium":
+      return "Media";
+    case "hard":
+      return "Difícil";
+    default:
+      return "-";
+  }
+};
 
 export const SimulationQuestionListPage = () => {
   const navigate = useNavigate();
@@ -46,7 +72,7 @@ export const SimulationQuestionListPage = () => {
       try {
         await deleteQuestion(question.questionId);
         await Swal.fire("Eliminado", "La pregunta fue eliminada correctamente", "success");
-        fetchQuestions(); // Refresca la lista automáticamente
+        fetchQuestions();
       } catch {
         Swal.fire("Error", "No se pudo eliminar la pregunta", "error");
       }
@@ -75,40 +101,68 @@ export const SimulationQuestionListPage = () => {
     {
       key: "questionCategory",
       label: "Categoría",
-      render: (row) => row.questionCategory || "-",
+      render: (row) => translateCategory(row.questionCategory ?? "-"),
+    },
+    {
+      key: "difficulty",
+      label: "Dificultad",
+      render: (row) => translateDifficulty(row.difficulty),
     },
     {
       key: "acciones",
       label: "Acciones",
       render: (row) => (
-        <>
-          <button className="btn btn-warning btn-sm me-2" onClick={() => handleEdit(row)}>
+        <div className="d-flex gap-2">
+          <Button
+            variant="primary" 
+            size="small"
+            style={{ minWidth: 90 }}
+            onClick={() => handleEdit(row)}>
+            <Icon variant="edit" className="me-2" />
             Editar
-          </button>
-          <button className="btn btn-danger btn-sm" onClick={() => handleDelete(row)}>
+          </Button>
+          <Button
+            variant="danger"
+            size="small"
+            style={{ minWidth: 90 }}
+            onClick={() => handleDelete(row)}>
+            <Icon variant="trash" className="me-2" />
             Eliminar
-          </button>
-        </>
+          </Button>
+        </div>
       ),
     },
   ];
 
+  if (loading) {
+    return <div>Cargando preguntas...</div>;
+  }
+
   return (
     <div className="container py-4">
-      <div className="d-flex justify-content-between align-items-center mt-4">
-        <Title variant="h2" className="mb-4">Preguntas de Simulación</Title>
-        <Link to="/simulation-questions/add" className="btn btn-primary mb-4">
-          Añadir Pregunta
-        </Link>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>Preguntas de Simulación</h2>
+        <div className="d-flex gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => navigate('/home')}
+          >
+            <Icon variant="home" className="me-2" />
+            Volver
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => navigate('/simulation-questions/add')}
+          >
+            <Icon variant="add" className="me-2" />
+            Añadir Pregunta
+          </Button>
+        </div>
       </div>
-      {loading ? (
-        <p>Cargando...</p>
-      ) : (
-        <Table
-          columns={columns}
-          data={questions}
-        />
-      )}
+      <Table
+        columns={columns}
+        data={questions}
+      />
     </div>
   );
 };

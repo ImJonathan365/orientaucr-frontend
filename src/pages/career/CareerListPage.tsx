@@ -144,6 +144,5 @@ export const CareerListPage = () => {
         onDelete={handleDeleteClick}
       />
     </div>
-
   );
 };
