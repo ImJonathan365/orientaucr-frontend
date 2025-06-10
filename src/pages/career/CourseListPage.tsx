@@ -5,29 +5,61 @@ import { Button } from '../../components/atoms/Button/Button';
 import { Icon } from '../../components/atoms/Icon/Icon';
 import { getCareerById } from '../../services/careerService';
 import { Career, Course } from '../../types/careerTypes';
+import { Alert, Spinner } from 'react-bootstrap';
+import Swal from "sweetalert2";
 
 export const CourseListPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [career, setCareer] = useState<Career | null>(null);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [career, setCareer] = useState<Career | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCareer = async () => {
+      if (!id) {
+        setIsLoading(false);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se proporcionó ID de carrera',
+          icon: 'error',
+          confirmButtonText: 'Aceptar'
+        }).then(() => {
+          navigate('/career-list');
+        });
+        return;
+      }
       try {
-        if (id) {
-          const data = await getCareerById(id);
-          console.log('Career data:', data);
-          setCareer(data);
+        setIsLoading(true);
+        const data = await getCareerById(id);
+        if (!data || !data.careerId) {
+          Swal.fire({
+            title: 'No encontrado',
+            text: 'No se pudo encontrar la carrera solicitada.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
+          }).then(() => {
+            navigate('/career-list');
+          });
+          return;
         }
-      } catch (error) {
-        console.error('Error fetching career:', error);
+        setCareer(data);
+      } catch (err: any) {
+        setError('No se pudo encontrar la carrera solicitada.');
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo encontrar la carrera solicitada.',
+          icon: 'error',
+          confirmButtonText: 'Aceptar'
+        }).then(() => {
+          navigate('/career-list');
+        });
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
     fetchCareer();
-  }, [id]);
+  }, [id, navigate]);
 
   const columns: TableColumn<Course>[] = [
     {
@@ -59,12 +91,33 @@ export const CourseListPage = () => {
     }
   ];
 
-  if (loading) {
-    return <div>Cargando malla curricular...</div>;
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center mt-5">
+        <Spinner animation="border" variant="primary" />
+        <span className="ms-2">Cargando malla curricular...</span>
+      </div>
+    );
   }
 
-  if (!career || !career.curricula || !career.curricula.courses) {
-    return <div>No se encontró la malla curricular para esta carrera.</div>;
+  if (error || !career || !career.curricula || !career.curricula.courses) {
+    return (
+      <div className="container mt-4">
+        <Alert variant="danger">
+          <Alert.Heading>Error</Alert.Heading>
+          <p>{error || 'No se encontró la malla curricular para esta carrera.'}</p>
+          <hr />
+          <div className="d-flex justify-content-end">
+            <button
+              className="btn btn-outline-primary"
+              onClick={() => navigate('/career-list')}
+            >
+              Volver al listado
+            </button>
+          </div>
+        </Alert>
+      </div>
+    );
   }
 
   return (

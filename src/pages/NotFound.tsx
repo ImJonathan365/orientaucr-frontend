@@ -28,6 +28,12 @@ export const NotFound = () => {
         
     }, [location, navigate]);
     useEffect(() => {
+        if(location.pathname.startsWith("/careers/curricula/")){
+            setRedirecting(true);
+            navigate("/career-list", { replace: true });
+        }
+    }, [location, navigate]);
+    useEffect(() => {
         if(location.pathname.startsWith("simulation-questions/edit/")){
             setRedirecting(true);
             navigate("/simulation-questions", { replace: true });

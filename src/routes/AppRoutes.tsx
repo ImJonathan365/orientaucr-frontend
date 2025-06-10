@@ -58,7 +58,7 @@ export default function AppRoutes() {
       <Route path="/test-list/add" element={<RequireAuth><TestAddPage /></RequireAuth>} />
       <Route path="/careers/new" element={<RequireAuth><NewCareerPage /></RequireAuth>} />
       <Route path="/careers/edit/:id" element={<RequireAuth><EditCareerPage /></RequireAuth>} />
-      <Route path="/careers/:id/curricula" element={<RequireAuth><CourseListPage /></RequireAuth>} />
+      <Route path="/careers/curricula/:id" element={<RequireAuth><CourseListPage /></RequireAuth>} />
       <Route path="/usuarios/edit/:id" element={<RequireAuth><UserEditPage /></RequireAuth>} />
       <Route path="/usuarios" element={<RequireAuth><UserListPage /></RequireAuth>} /> 
       <Route path="/roles-list" element={<RequireAuth><RolesListPage /></RequireAuth>} />
