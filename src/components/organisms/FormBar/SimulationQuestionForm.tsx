@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { SimulationQuestion, SimulationOption } from "../../../types/SimulationQuestion";
-import { SimulationOptionInput } from "../../atoms/Input/SimulationOptionInput";
+import { SimulationQuestion, SimulationOption, Difficulty } from "../../../types/SimulationQuestion";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
     initial?: SimulationQuestion;
@@ -8,51 +8,50 @@ interface Props {
     loading?: boolean;
 }
 
+const defaultOptions: SimulationOption[] = [
+    { optionId: "", optionText: "", isCorrect: false },
+    { optionId: "", optionText: "", isCorrect: false },
+    { optionId: "", optionText: "", isCorrect: false },
+    { optionId: "", optionText: "", isCorrect: false },
+];
+
 export const SimulationQuestionForm: React.FC<Props> = ({ initial, onSubmit, loading }) => {
     const [questionText, setQuestionText] = useState(initial?.questionText ?? "");
     const [questionCategory, setQuestionCategory] = useState(initial?.questionCategory ?? "");
-    const [options, setOptions] = useState<SimulationOption[]>(initial?.options ?? []);
+    const [difficulty, setDifficulty] = useState<Difficulty>(initial?.difficulty ?? "medium");
+    const [options, setOptions] = useState<SimulationOption[]>(
+        initial?.options && initial.options.length === 4
+            ? initial.options
+            : defaultOptions
+    );
+    const navigate = useNavigate();
 
-    // Sincroniza el estado cuando initial cambie (por ejemplo, al editar)
     useEffect(() => {
         setQuestionText(initial?.questionText ?? "");
         setQuestionCategory(initial?.questionCategory ?? "");
-        setOptions(initial?.options ?? []);
+        setDifficulty(initial?.difficulty ?? "medium");
+        setOptions(
+            initial?.options && initial.options.length === 4
+                ? initial.options
+                : defaultOptions
+        );
     }, [initial]);
 
-    // Solo una opción puede ser correcta
     const handleOptionChange = (idx: number, field: keyof SimulationOption, value: any) => {
         setOptions(opts =>
             field === "isCorrect"
                 ? opts.map((opt, i) => ({ ...opt, isCorrect: i === idx ? value : false }))
                 : opts.map((opt, i) => i === idx ? { ...opt, [field]: value } : opt)
         );
-        console.log("Cambio opción", idx, field, value);
-    };
-
-    const handleAddOption = () => {
-        setOptions([...options, { optionId: "", optionText: "", isCorrect: false }]);
-    };
-
-    const handleRemoveOption = (idx: number) => {
-        setOptions(opts => opts.filter((_, i) => i !== idx));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (options.length < 2) {
-            alert("Debe agregar al menos dos opciones.");
-            return;
-        }
-        if (!options.some(opt => opt.isCorrect)) {
-            alert("Debe marcar una opción como correcta.");
-            return;
-        }
-        console.log("Opciones al enviar (definitivo):", options);
         onSubmit({
             questionId: initial?.questionId || "",
             questionText,
             questionCategory,
+            difficulty, // <-- Nuevo campo
             options,
         });
     };
@@ -83,31 +82,59 @@ export const SimulationQuestionForm: React.FC<Props> = ({ initial, onSubmit, loa
                 </select>
             </div>
             <div className="mb-3">
-                <div className="d-flex align-items-center gap-2 mb-2">
-                    <label className="form-label mb-0">Opciones:</label>
-                    <button
-                        type="button"
-                        className="btn btn-secondary btn-sm"
-                        onClick={handleAddOption}
-                    >
-                        Agregar opción
-                    </button>
-                </div>
-                {options.map((opt, idx) => (
-                    <SimulationOptionInput
-                        key={idx}
-                        value={opt.optionText || ""}
-                        isCorrect={!!opt.isCorrect}
-                        onChangeText={text => handleOptionChange(idx, "optionText", text)}
-                        onChangeCorrect={checked => handleOptionChange(idx, "isCorrect", checked)}
-                        onRemove={() => handleRemoveOption(idx)}
-                        name="correctOptionGroup" // <-- mismo nombre para todas
-                    />
-                ))}
+                <label className="form-label">Dificultad</label>
+                <select
+                    className="form-select"
+                    value={difficulty}
+                    onChange={e => setDifficulty(e.target.value as Difficulty)}
+                    required
+                >
+                    <option value="easy">Fácil</option>
+                    <option value="medium">Media</option>
+                    <option value="hard">Difícil</option>
+                </select>
             </div>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? "Guardando..." : "Guardar"}
-            </button>
+            <div className="mb-3">
+                <label className="form-label mb-2">Opciones:</label>
+                {options.map((opt, idx) => (
+                    <div className="mb-2" key={idx}>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder={`Opción ${idx + 1}`}
+                            value={opt.optionText}
+                            onChange={e => handleOptionChange(idx, "optionText", e.target.value)}
+                            required
+                        />
+                    </div>
+                ))}
+                <div className="mt-3">
+                    <label className="form-label">Selecciona la opción correcta:</label>
+                    <div className="d-flex gap-3">
+                        {options.map((opt, idx) => (
+                            <div key={idx} className="form-check">
+                                <input
+                                    className="form-check-input"
+                                    type="radio"
+                                    name="correctOption"
+                                    id={`correctOption${idx}`}
+                                    checked={opt.isCorrect}
+                                    onChange={() => handleOptionChange(idx, "isCorrect", true)}
+                                    required
+                                />
+                                <label className="form-check-label" htmlFor={`correctOption${idx}`}>
+                                    {`Opción ${idx + 1}`}
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+            <div className="d-flex gap-2 mt-3">
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                    {loading ? "Guardando..." : "Guardar"}
+                </button>
+            </div>
         </form>
     );
 };

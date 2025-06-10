@@ -12,6 +12,12 @@ export const NotFound = () => {
             navigate("/career-list", { replace: true });
         }
     }, [location, navigate]);
+    useEffect(() => {
+        if(location.pathname.startsWith("simulation-questions/edit/")){
+            setRedirecting(true);
+            navigate("/simulation-questions", { replace: true });
+        }
+    }, [location, navigate]);
   return (
     <div className="not-found">
       <center><h1>404 - Página no encontrada</h1></center>

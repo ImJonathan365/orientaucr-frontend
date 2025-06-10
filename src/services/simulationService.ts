@@ -20,11 +20,9 @@ export const createQuestion = async (question: SimulationQuestion) => {
   });
 
   if (!response.ok) {
-    // Intenta leer el mensaje de error del backend
     const errorText = await response.text();
     throw new Error(errorText || "Error al crear la pregunta");
   }
-  // No intentes hacer response.json() si el backend responde texto plano
   return await response.text();
 };
 
@@ -46,6 +44,26 @@ export const deleteQuestion = async (id: string) => {
   if (!res.ok) {
     const errorText = await res.text();
     throw new Error(errorText || "Error al eliminar la pregunta");
+  }
+  return await res.text();
+};
+export const getSimulationExam = async (): Promise<SimulationQuestion[]> => {
+  const res = await fetch("http://localhost:9999/api/questions/simulation-exam");
+  if (!res.ok) throw new Error("No se pudo cargar el examen simulado");
+  return res.json();
+};
+export const submitExamAttempt = async (attempt: {
+  attemptScore: number;
+  userId: string;
+}) => {
+  const res = await fetch("http://localhost:9999/api/questions/submit-exam", { // <-- aquí el cambio
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(attempt),
+  });
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || "Error al guardar el intento");
   }
   return await res.text();
 };
