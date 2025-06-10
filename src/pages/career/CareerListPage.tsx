@@ -127,15 +127,15 @@ export const CareerListPage = () => {
     },
     {
       key: 'curricula',
-      label: 'Maya Curricular',
-      className: 'btn',
+      label: 'Malla Curricular',
+      className: 'text-center w-10',
       render: (row) => (
         <Button
           variant="info"
           size="small"
-          onClick={() => navigate(`/careers/${row.careerId}/curricula`)}
+          onClick={() => navigate(`/careers/curricula/${row.careerId}`)}
         >
-          Ver Maya
+          Ver Malla
         </Button>
       )
     }
