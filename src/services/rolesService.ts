@@ -15,9 +15,18 @@ export const getRolesById = async (id: string): Promise<Roles> => {
 };
 
 export const addRoles = async (test: Roles): Promise<string> => {
-  const response = await axios.post<string>(`${API_URL}/add`, test);
-  return response.data;
+  try {
+    const response = await axios.post<string>(`${API_URL}/add`, test);
+    return response.data;
+  } catch (error: any) {
+    // Captura el mensaje enviado desde el backend (MySQL)
+   const message = 
+  "Error al añadir el rol.\n\nYa existe un rol con el mismo nombre\n o con los mismos permisos.";
+throw new Error(message);
+
+  }
 };
+
 
 export const updateRoles = async (test: Roles): Promise<string> => {
   const response = await axios.put<string>(`${API_URL}/update`, test);
