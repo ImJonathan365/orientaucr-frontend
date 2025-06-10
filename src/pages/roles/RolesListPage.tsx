@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { getAllRoles, deleteRoles } from "../../services/rolesService";
 import { Roles } from "../../types/rolesType";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Title } from "../../components/atoms/Title/Ttile";
 import Swal from "sweetalert2";
+import { Button } from "../../components/atoms/Button/Button";
+import { Icon } from "../../components/atoms/Icon/Icon";
 
 export const RolesListPage = () => {
     const navigate = useNavigate();
@@ -92,10 +94,23 @@ export const RolesListPage = () => {
     return (
         <div className="container py-4">
             <div className="d-flex justify-content-between align-items-center mt-4">
-                <Title variant="h2" className="mb-4">roles</Title>
-                <Link to="/roles-list/add" className="btn btn-primary mb-4">
-                    Añadir Rol
-                </Link>
+                <Title variant="h2" className="mb-4">Listado de roles</Title>
+                <div className="d-flex gap-2">
+                          <Button
+                            variant="secondary"
+                            onClick={() => navigate('/home')}
+                          >
+                            <Icon variant="home" className="me-2" />
+                            Regresar
+                          </Button>
+                          <Button
+                            variant="primary"
+                            onClick={() => navigate('/roles-list/add')}
+                          >
+                            <Icon variant="add" className="me-2" />
+                            Nuevo Rol
+                          </Button>
+                        </div>
             </div>
             {loading ? (
                 <p>Cargando...</p>
