@@ -1,15 +1,30 @@
 export interface Characteristic {
-  characteristics_id: string;
-  characteristics_name: string;
-  characteristics_description: string;
+  characteristicsId: string;
+  characteristicsName: string;
+  characteristicsDescription: string;
+}
+
+export interface Course {
+  courseId: string;
+  courseCode: string;
+  courseCredits: number;
+  courseName: string;
+  courseDescription: string;
+  courseSemester: number;
+}
+
+export interface Curricula {
+  curriculaId: string;
+  courses?: Course[];
 }
 
 export interface Career {
-  career_id?: string; 
-  career_name: string;
-  career_description: string;
-  career_duration_years: number;
-  characteristicList?: Characteristic[];
+  careerId?: string;
+  careerName: string;
+  careerDescription: string;
+  careerDurationYears: number;
+  characteristics?: Characteristic[];
+  curricula?: Curricula;
 }
 
 // Tipo para la respuesta de la API

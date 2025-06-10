@@ -33,6 +33,9 @@ import { SimulationQuestionAddPage } from "../pages/SimulationQuestion/Simulatio
 import { SimulationQuestionEditPage } from "../pages/SimulationQuestion/SimulationQuestionEditPage";
 import { SimulationExamPage } from "../pages/SimulationQuestion/SimulationExamPage";
 import { SimulationExamStartPage } from "../pages/SimulationQuestion/SimulationExamStartPage";
+import { CourseListPage } from "../pages/career/CourseListPage";
+
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -55,6 +58,7 @@ export default function AppRoutes() {
       <Route path="/test-list/add" element={<RequireAuth><TestAddPage /></RequireAuth>} />
       <Route path="/careers/new" element={<RequireAuth><NewCareerPage /></RequireAuth>} />
       <Route path="/careers/edit/:id" element={<RequireAuth><EditCareerPage /></RequireAuth>} />
+      <Route path="/careers/:id/curricula" element={<RequireAuth><CourseListPage /></RequireAuth>} />
       <Route path="/usuarios/edit/:id" element={<RequireAuth><UserEditPage /></RequireAuth>} />
       <Route path="/usuarios" element={<RequireAuth><UserListPage /></RequireAuth>} /> 
       <Route path="/roles-list" element={<RequireAuth><RolesListPage /></RequireAuth>} />

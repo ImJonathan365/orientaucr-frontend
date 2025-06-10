@@ -9,16 +9,32 @@ import Swal from "sweetalert2";
 
 
 
+interface Characteristic{
+  characteristicsId: string;
+  characteristicsName: string;
+  characteristicsDescription: string;
+}
+
+interface Course {
+  courseId: string;
+  courseCode: string;
+  courseCredits: number;
+  courseName: string;
+  courseDescription: string;
+  courseSemester: number;
+}
+
+interface Curricula {
+  curriculaId: string;
+  courseList?: Course[];
+}
+
 interface Career {
-  career_id: string;
-  career_name: string;
-  career_description: string;
-  career_duration_years: number;
-  characteristics: Array<{
-    characteristics_id: string;
-    characteristics_name: string;
-    characteristics_description: string;
-  }>;
+  careerId: string;
+  careerName: string;
+  careerDescription: string;
+  careerDurationYears: number;
+  characteristics: Characteristic[];
 }
 
 export const CareerListPage = () => {
@@ -39,7 +55,7 @@ export const CareerListPage = () => {
     try {
       setLoading(true);
       const data = await getCareers();
-      (data as Career[]).sort((a: Career, b: Career) => a.career_name.localeCompare(b.career_name));
+      (data as Career[]).sort((a: Career, b: Career) => a.careerName.localeCompare(b.careerName));
       setCareers(data as Career[]);
     } catch (error) {
       console.error('Error fetching careers:', error);
@@ -49,13 +65,13 @@ export const CareerListPage = () => {
   };
 
   const handleEdit = (career: Career) => {
-    navigate(`/careers/edit/${career.career_id}`);
+    navigate(`/careers/edit/${career.careerId}`);
   };
 
   const handleDeleteClick = async (career: Career) => {
     const result = await Swal.fire({
       title: "¿Estás seguro?",
-      text: `Esta acción eliminará la carrera "${career.career_name}".`,
+      text: `Esta acción eliminará la carrera "${career.careerName}".`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Sí, eliminar",
@@ -63,7 +79,7 @@ export const CareerListPage = () => {
     });
 
     if (result.isConfirmed) {
-      handleConfirmDeleteWithId(career.career_id, career.career_name);
+      handleConfirmDeleteWithId(career.careerId, career.careerName);
     }
   };
 
@@ -81,20 +97,20 @@ export const CareerListPage = () => {
 
   const columns: TableColumn<Career>[] = [
     {
-      key: 'career_name',
+      key: 'careerName',
       label: 'Nombre',
       className: 'w-25'
     },
     {
-      key: 'career_description',
+      key: 'careerDescription',
       label: 'Descripción',
       className: 'w-40'
     },
     {
-      key: 'career_duration_years',
+      key: 'careerDurationYears',
       label: 'Duración (años)',
       className: 'text-center w-10',
-      render: (row) => `${row.career_duration_years}`
+      render: (row) => `${row.careerDurationYears}`
     },
     {
       key: 'characteristics',
@@ -102,11 +118,25 @@ export const CareerListPage = () => {
       render: (row) => (
         <div className="d-flex flex-wrap gap-1">
           {row.characteristics?.map(char => (
-            <span key={char.characteristics_id} className="badge bg-primary">
-              {char.characteristics_name}
+            <span key={char.characteristicsId} className="badge bg-primary">
+              {char.characteristicsName}
             </span>
           ))}
         </div>
+      )
+    },
+    {
+      key: 'curricula',
+      label: 'Maya Curricular',
+      className: 'btn',
+      render: (row) => (
+        <Button
+          variant="info"
+          size="small"
+          onClick={() => navigate(`/careers/${row.careerId}/curricula`)}
+        >
+          Ver Maya
+        </Button>
       )
     }
   ];

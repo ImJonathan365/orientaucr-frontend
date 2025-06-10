@@ -70,17 +70,17 @@ export const TestPage = () => {
                   <strong>{q.question_text}</strong>
                   <ul>
                     {q.characteristics.map((c) => (
-                      <li key={c.characteristics_id}>
+                      <li key={c.characteristicsId}>
                         <label>
                           <input
                             type="checkbox"
-                            value={c.characteristics_id}
-                            checked={answers[q.question_id]?.includes(c.characteristics_id) || false}
+                            value={c.characteristicsId}
+                            checked={answers[q.question_id]?.includes(c.characteristicsId) || false}
                             onChange={e =>
-                              handleOptionChange(q.question_id, c.characteristics_id, e.target.checked)
+                              handleOptionChange(q.question_id, c.characteristicsId, e.target.checked)
                             }
                           />
-                          {" "}{c.characteristics_name}
+                          {" "}{c.characteristicsName}
                         </label>
                       </li>
                     ))}

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Career } from '../types/CareerTypes';
+import { Career, Course } from '../types/careerTypes';
 const API_BASE_URL = 'http://localhost:9999/api/career'; 
 
 export const getCareers = async () => {
@@ -13,7 +13,12 @@ export const deleteCareer = async (id: string) => {
 
 export const getCareerById = async (id: string): Promise<Career> => {
   const response = await axios.get(`${API_BASE_URL}/searchCareer/${id}`);
-  return response.data as Career;
+  const career = response.data as Career;
+  if (career.curricula && career.curricula.curriculaId) {
+    const coursesResponse = await axios.get(`${API_BASE_URL}/listByCurricula/${career.curricula.curriculaId}`);
+    career.curricula.courses = coursesResponse.data as Course[];
+  }
+  return career;
 };
 
 export const addCareer = async (careerData: Career) => {

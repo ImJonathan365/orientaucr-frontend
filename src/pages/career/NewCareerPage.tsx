@@ -6,10 +6,10 @@ import { FormField } from '../../components/organisms/FormBar/GenericForm';
 import Swal from "sweetalert2";
 
 interface CareerFormValues {
-  career_id?: string;
-  career_name: string;
-  career_description: string;
-  career_duration_years: number;
+  careerId?: string;
+  careerName: string;
+  careerDescription: string;
+  careerDurationYears: number;
 }
 
 export const NewCareerPage = () => {
@@ -37,21 +37,21 @@ export const NewCareerPage = () => {
   const formFields: FormField[] = [
     
     {
-      name: 'career_name',
+      name: 'careerName',
       label: 'Nombre de la carrera',
       type: 'text',
       required: true,
       placeholder: 'Ingrese el nombre de la carrera'
     },
     {
-      name: 'career_description',
+      name: 'careerDescription',
       label: 'Descripción',
       type: 'textarea',
       required: true,
       placeholder: 'Describa los objetivos de la carrera'
     },
     {
-      name: 'career_duration_years',
+      name: 'careerDurationYears',
       label: 'Duración (años)',
       type: 'number',
       required: true,
@@ -67,10 +67,10 @@ export const NewCareerPage = () => {
         title="Nueva Carrera"
         icon="book"
         initialValues={{
-          career_id: '',
-          career_name: '',
-          career_description: '',
-          career_duration_years: 5
+          careerId: '',
+          careerName: '',
+          careerDescription: '',
+          careerDurationYears: 5
         }}
         fields={formFields}
         onSubmit={handleSubmit}
