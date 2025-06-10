@@ -48,7 +48,7 @@ export const TestListPage = () => {
             render: (row) => (
                 <select className="form-select">
                     {row.characteristics.map((c) => (
-                        <option key={c.characteristics_id}>{c.characteristics_name}</option>
+                        <option key={c.characteristicsId}>{c.characteristicsName}</option>
                     ))}
                 </select>
             ),

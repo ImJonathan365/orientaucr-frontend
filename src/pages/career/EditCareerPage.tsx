@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { GenericForm } from '../../components/organisms/FormBar/GenericForm';
 import { getCareerById, updateCareer } from '../../services/careerService';
 import { FormField } from '../../components/organisms/FormBar/GenericForm';
-import { Career } from '../../types/CareerTypes';
+import { Career } from '../../types/careerTypes';
 import { Alert, Spinner } from 'react-bootstrap';
 import Swal from "sweetalert2";
 
@@ -12,9 +12,9 @@ export const EditCareerPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [initialValues, setInitialValues] = useState<Partial<Career>>({
-        career_name: '',
-        career_description: '',
-        career_duration_years: 4
+        careerName: '',
+        careerDescription: '',
+        careerDurationYears: 4
     });
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export const EditCareerPage = () => {
             try {
                 setIsLoading(true);
                 const data = await getCareerById(id);
-                if (!data || !data.career_id) {
+                if (!data || !data.careerId) {
                     await Swal.fire({
                         title: 'No encontrado',
                         text: 'No se pudo encontrar la carrera solicitada.',
@@ -47,10 +47,10 @@ export const EditCareerPage = () => {
                     return;
                 }
                 setInitialValues({
-                    career_id: data.career_id,
-                    career_name: data.career_name,
-                    career_description: data.career_description,
-                    career_duration_years: data.career_duration_years
+                    careerId: data.careerId,
+                    careerName: data.careerName,
+                    careerDescription: data.careerDescription,
+                    careerDurationYears: data.careerDurationYears
                 });
             } catch (err: any) {
                 await Swal.fire({
@@ -100,21 +100,21 @@ export const EditCareerPage = () => {
     const formFields: FormField[] = [
 
         {
-            name: 'career_name',
+            name: 'careerName',
             label: 'Nombre de la carrera',
             type: 'text',
             required: true,
             placeholder: 'Ej: Ingeniería en Sistemas'
         },
         {
-            name: 'career_description',
+            name: 'careerDescription',
             label: 'Descripción',
             type: 'textarea',
             required: true,
             placeholder: 'Descripción detallada de la carrera'
         },
         {
-            name: 'career_duration_years',
+            name: 'careerDurationYears',
             label: 'Duración (años)',
             type: 'number',
             required: true,
@@ -124,7 +124,7 @@ export const EditCareerPage = () => {
         }
     ];
 
-    if (isLoading && !initialValues.career_name) {
+    if (isLoading && !initialValues.careerName) {
         return (
             <div className="d-flex justify-content-center mt-5">
                 <Spinner animation="border" variant="primary" />
