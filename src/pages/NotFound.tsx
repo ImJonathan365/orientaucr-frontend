@@ -11,6 +11,21 @@ export const NotFound = () => {
             setRedirecting(true);
             navigate("/career-list", { replace: true });
         }
+
+    }, [location, navigate]);
+      useEffect(() => {
+        if(location.pathname.startsWith("/roles/edit/")){
+            setRedirecting(true);
+            navigate("/roles-list", { replace: true });
+        }
+        
+    }, [location, navigate]);
+      useEffect(() => {
+        if(location.pathname.startsWith("/events/edit/")){
+            setRedirecting(true);
+            navigate("/events-list", { replace: true });
+        }
+        
     }, [location, navigate]);
     useEffect(() => {
         if(location.pathname.startsWith("/careers/curricula/")){

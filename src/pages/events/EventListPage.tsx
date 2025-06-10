@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { getAllEvents, deleteEvent } from "../../services/eventService";
 import { Event } from "../../types/EventTypes";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import { Title } from "../../components/atoms/Title/Ttile";
 import Swal from "sweetalert2";
+import { Icon } from "../../components/atoms/Icon/Icon";
+import { Button } from "../../components/atoms/Button/Button";
 
 export const EventsListPage = () => {
   const navigate = useNavigate();
@@ -28,7 +30,7 @@ export const EventsListPage = () => {
   const handleEdit = async (event: Event) => {
     const result = await Swal.fire({
       title: "¿Editar evento?",
-      text: `¿Deseas editar el evento: ${event.event_title}?`,
+      text: `¿Deseas editar el evento: ${event.eventTitle}?`,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Sí, editar",
@@ -36,14 +38,14 @@ export const EventsListPage = () => {
     });
 
     if (result.isConfirmed) {
-      navigate(`/events-list/edit/${event.event_id}`);
+      navigate(`/events-list/edit/${event.eventId}`);
     }
   };
 
   const handleDelete = async (event: Event) => {
     const result = await Swal.fire({
       title: "¿Eliminar evento?",
-      text: `¿Seguro que deseas eliminar el evento: ${event.event_title}?`,
+      text: `¿Seguro que deseas eliminar el evento: ${event.eventTitle}?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Sí, eliminar",
@@ -52,9 +54,13 @@ export const EventsListPage = () => {
 
     if (result.isConfirmed) {
       try {
-        await deleteEvent(event.event_id);
-        setEvents(events.filter((e) => e.event_id !== event.event_id));
-        Swal.fire("Eliminado", "El evento fue eliminado correctamente", "success");
+        await deleteEvent(event.eventId);
+        setEvents(events.filter((e) => e.eventId !== event.eventId));
+        Swal.fire(
+          "Eliminado",
+          "El evento fue eliminado correctamente",
+          "success"
+        );
       } catch {
         Swal.fire("Error", "No se pudo eliminar el evento", "error");
       }
@@ -65,33 +71,42 @@ export const EventsListPage = () => {
     {
       key: "event_title",
       label: "Título",
-      render: (row) => row.event_title,
+      render: (row) => row.eventTitle,
     },
     {
       key: "event_date",
       label: "Fecha",
-      render: (row) => new Date(row.event_date).toLocaleDateString(),
+      render: (row) => new Date(row.eventDate).toLocaleDateString(),
     },
     {
       key: "event_time",
       label: "Hora",
-      render: (row) => row.event_time,
+      render: (row) => row.eventTime?.slice(0, 5),
     },
     {
       key: "event_modality",
       label: "Modalidad",
       render: (row) =>
-        row.event_modality === "virtual" ? "Virtual" : "Presencial",
+        row.eventModality === "virtual" ? "Virtual" : "Presencial",
     },
   ];
 
   return (
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mt-4">
-        <Title variant="h2" className="mb-4">Eventos</Title>
-        <Link to="/events-list/add" className="btn btn-primary mb-4">
-          Añadir Evento
-        </Link>
+        <Title variant="h2" className="mb-4">
+          Listado de eventos
+        </Title>
+        <div className="d-flex gap-2">
+          <Button variant="secondary" onClick={() => navigate("/home")}>
+            <Icon variant="home" className="me-2" />
+            Regresar
+          </Button>
+          <Button variant="primary" onClick={() => navigate("/events-list/add")}>
+            <Icon variant="add" className="me-2" />
+            Nuevo Evento
+          </Button>
+        </div>
       </div>
       {loading ? (
         <p>Cargando...</p>

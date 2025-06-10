@@ -1,56 +1,97 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Input } from "../../components/atoms/Input/Input";
 import { Title } from "../../components/atoms/Title/Ttile";
+import { Button } from "../../components/atoms/Button/Button";
 import { useUser } from "../../contexts/UserContext";
 import { Event } from "../../types/EventTypes";
-import { addEvent } from "../../services/eventService";
+import { addEvent,getAllEvents } from "../../services/eventService";
 
 export const EventAddPage = () => {
   const navigate = useNavigate();
   const { user } = useUser();
-  const today = new Date().toISOString().split("T")[0]; // yyyy-mm-dd
+  const today = new Date().toISOString().split("T")[0];
 
   const [eventData, setEventData] = useState<Event>({
-    event_id: "",
-    event_title: "",
-    event_description: "",
-    event_date: "",
-    event_time: "",
-    event_modality: "in-person", // valor por defecto
-    event_image_path: null,
-    created_by: user?.userId || null,
-    campus_id: "1",
-    subcampus_id: "1",
+    eventId: "",
+    eventTitle: "",
+    eventDescription: "",
+    eventDate: "",
+    eventTime: "",
+    eventModality: "virtual",
+    eventImagePath: null,
+    createdBy: user?.userId,
+    campusId: "",
+    subcampusId: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const [campusError, setCampusError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Validar la selección de campus/subcampus cuando cambian
+    const campusSelected = !!eventData.campusId;
+    const subcampusSelected = !!eventData.subcampusId;
+    
+    if (campusSelected && subcampusSelected) {
+      setCampusError("Debe seleccionar únicamente un campus o un subcampus, pero no ambos.");
+    } else if (!campusSelected && !subcampusSelected) {
+      setCampusError("Debe seleccionar al menos un campus o subcampus.");
+    } else {
+      setCampusError(null);
+    }
+  }, [eventData.campusId, eventData.subcampusId]);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setEventData({ ...eventData, [name]: value });
+    
+    // Si se selecciona un campus, limpiar subcampus y viceversa
+    if (name === "campusId" && value) {
+      setEventData({ ...eventData, campusId: value, subcampusId: "" });
+    } else if (name === "subcampusId" && value) {
+      setEventData({ ...eventData, subcampusId: value, campusId: "" });
+    } else {
+      setEventData({ ...eventData, [name]: value });
+    }
   };
 
   const validateForm = (): string | null => {
-    const { event_title, event_description, event_date, event_time, event_modality } = eventData;
+    const {
+      eventTitle,
+      eventDescription,
+      eventDate,
+      eventTime,
+      eventModality,
+    } = eventData;
 
-    if (!event_title || event_title.length < 4 || event_title.length > 15) {
-      return "El título del evento debe tener entre 4 y 15 caracteres.";
+    if (!eventTitle || eventTitle.length < 4 || eventTitle.length > 25) {
+      return "El título del evento debe tener entre 4 y 25 caracteres.";
     }
 
-    if (!event_description || event_description.length < 4 || event_description.length > 50) {
+    if (
+      !eventDescription ||
+      eventDescription.length < 4 ||
+      eventDescription.length > 500
+    ) {
       return "La descripción debe tener entre 4 y 50 caracteres.";
     }
 
-    if (!event_date || event_date < today) {
+    if (!eventDate || eventDate < today) {
       return "La fecha no puede estar en el pasado.";
     }
 
-    if (!event_time) {
+    if (!eventTime) {
       return "La hora es obligatoria.";
     }
 
-    if (!event_modality) {
+    if (!eventModality) {
       return "Debes seleccionar una modalidad.";
+    }
+
+    if (campusError) {
+      return campusError;
     }
 
     return null;
@@ -58,16 +99,15 @@ export const EventAddPage = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     const error = validateForm();
+
     if (error) {
-      Swal.fire({
+      return Swal.fire({
         icon: "warning",
         title: "Validación",
         text: error,
         confirmButtonText: "Aceptar",
       });
-      return;
     }
 
     try {
@@ -79,126 +119,194 @@ export const EventAddPage = () => {
         confirmButtonText: "Aceptar",
       });
       navigate("/events-list");
-    } catch (error) {
+    } catch (error: any) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudo crear el evento. Inténtalo nuevamente.",
+        text: error.message || "No se pudo añadir el evento.",
       });
     }
   };
 
   return (
     <div className="container py-4">
-      <Title variant="h2" className="mb-4">Añadir Evento</Title>
+      <Title variant="h2" className="mb-4">
+        Añadir Evento
+      </Title>
       <form onSubmit={handleSubmit}>
         {/* Título */}
         <div className="mb-3">
-          <label htmlFor="event_title" className="form-label">Título del Evento</label>
+          <label htmlFor="eventTitle" className="form-label">
+            Título del Evento
+          </label>
           <Input
             type="text"
-            id="event_title"
-            name="event_title"
-            value={eventData.event_title}
+            className={`form-control ${
+              eventData.eventTitle.length > 0 &&
+              (eventData.eventTitle.length < 4 || eventData.eventTitle.length > 25)
+                ? "is-invalid"
+                : ""
+            }`}
+            id="eventTitle"
+            name="eventTitle"
+            value={eventData.eventTitle}
             onChange={handleChange}
-            required
-            minLength={4}
-            maxLength={15}
           />
+          {eventData.eventTitle.length > 0 &&
+            (eventData.eventTitle.length < 4 ||
+              eventData.eventTitle.length > 25) && (
+              <div className="invalid-feedback">
+                Debe tener entre 4 y 20 caracteres.
+              </div>
+            )}
         </div>
 
         {/* Descripción */}
         <div className="mb-3">
-          <label htmlFor="event_description" className="form-label">Descripción</label>
+          <label htmlFor="eventDescription" className="form-label">
+            Descripción
+          </label>
           <Input
             type="text"
-            id="event_description"
-            name="event_description"
-            value={eventData.event_description}
+            className={`form-control ${
+              eventData.eventDescription.length > 0 &&
+              (eventData.eventDescription.length < 4 ||
+                eventData.eventDescription.length > 500)
+                ? "is-invalid"
+                : ""
+            }`}
+            id="eventDescription"
+            name="eventDescription"
+            value={eventData.eventDescription}
             onChange={handleChange}
-            required
-            minLength={4}
-            maxLength={50}
           />
+          {eventData.eventDescription.length > 0 &&
+            (eventData.eventDescription.length < 4 ||
+              eventData.eventDescription.length > 500) && (
+              <div className="invalid-feedback">
+                Debe tener entre 4 y 500 caracteres.
+              </div>
+            )}
         </div>
 
         {/* Fecha */}
         <div className="mb-3">
-          <label htmlFor="event_date" className="form-label">Fecha</label>
+          <label htmlFor="eventDate" className="form-label">
+            Fecha del Evento
+          </label>
           <Input
             type="date"
-            id="event_date"
-            name="event_date"
-            value={eventData.event_date}
+            className="form-control"
+            id="eventDate"
+            name="eventDate"
+            value={eventData.eventDate}
             onChange={handleChange}
-            required
             min={today}
           />
         </div>
 
         {/* Hora */}
         <div className="mb-3">
-          <label htmlFor="event_time" className="form-label">Hora</label>
+          <label htmlFor="eventTime" className="form-label">
+            Hora del Evento
+          </label>
           <Input
             type="time"
-            id="event_time"
-            name="event_time"
-            value={eventData.event_time}
+            className="form-control"
+            id="eventTime"
+            name="eventTime"
+            value={eventData.eventTime}
             onChange={handleChange}
-            required
           />
         </div>
 
         {/* Modalidad */}
         <div className="mb-3">
-          <label htmlFor="event_modality" className="form-label">Modalidad</label>
+          <label htmlFor="eventModality" className="form-label">
+            Modalidad
+          </label>
           <select
-            id="event_modality"
-            name="event_modality"
             className="form-select"
-            value={eventData.event_modality}
+            id="eventModality"
+            name="eventModality"
+            value={eventData.eventModality}
             onChange={handleChange}
-            required
           >
-            <option value="in-person">Presencial</option>
+            <option value="inPerson">Presencial</option>
             <option value="virtual">Virtual</option>
           </select>
         </div>
 
         {/* Campus */}
         <div className="mb-3">
-          <label htmlFor="campus_id" className="form-label">Campus</label>
+          <label htmlFor="campusId" className="form-label">
+            Campus
+          </label>
           <select
-            id="campus_id"
-            name="campus_id"
-            className="form-select"
-            value={eventData.campus_id || ""}
+            id="campusId"
+            name="campusId"
+            className={`form-select ${campusError ? "is-invalid" : ""}`}
+            value={eventData.campusId || ""}
             onChange={handleChange}
-            required
+            disabled={!!eventData.subcampusId}
           >
-            <option value="1">Campus Central</option>
-            <option value="2">Campus Oeste</option>
+            <option value="">Seleccione un campus</option>
+            <option value="c2b6d8e1-1111-4abc-91f1-111111111111">
+              Campus Occidente
+            </option>
+            <option value="c3c7e9f2-2222-4abc-92f2-222222222222">
+              Campus Caribe
+            </option>
+            <option value="c4d8f0a3-3333-4abc-93f3-333333333333">
+              Campus Guanacaste
+            </option>
           </select>
         </div>
 
         {/* Subcampus */}
         <div className="mb-3">
-          <label htmlFor="subcampus_id" className="form-label">Subcampus</label>
+          <label htmlFor="subcampusId" className="form-label">
+            Subcampus
+          </label>
           <select
-            id="subcampus_id"
-            name="subcampus_id"
-            className="form-select"
-            value={eventData.subcampus_id || ""}
+            id="subcampusId"
+            name="subcampusId"
+            className={`form-select ${campusError ? "is-invalid" : ""}`}
+            value={eventData.subcampusId || ""}
             onChange={handleChange}
-            required
+            disabled={!!eventData.campusId}
           >
-            <option value="1">Sub-Campus Norte</option>
-            <option value="2">Sub-Campus Sur</option>
+            <option value="">Seleccione un subcampus</option>
+            <option value="s1e2f3g4-aaaa-4def-a8c9-aaaabbbbcccc">
+              Subcampus de Derecho
+            </option>
+            <option value="s2f3g4h5-bbbb-4def-a8c9-bbbbccccdddd">
+              Subcampus de Biología Marina
+            </option>
+            <option value="s3g4h5i6-cccc-4def-a8c9-ccccddddeeee">
+              Subcampus de Turismo
+            </option>
           </select>
+          {campusError && (
+            <div className="invalid-feedback">{campusError}</div>
+          )}
         </div>
 
-        {/* Botón */}
-        <button type="submit" className="btn btn-primary">Guardar Evento</button>
+        {/* Botones */}
+        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => navigate("/events-list")}
+          >
+            <i className="bi bi-x me-2"></i>
+            Cancelar
+          </Button>
+          <Button type="submit" variant="primary">
+            <i className="bi bi-check me-2"></i>
+            Guardar
+          </Button>
+        </div>
       </form>
     </div>
   );
