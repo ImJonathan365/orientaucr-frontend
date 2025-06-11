@@ -26,6 +26,7 @@ interface GenericFormProps<T = any> {
     submitText?: string;
     cancelText?: string;
     icon?: IconVariant;
+    renderExtraFields?: () => React.ReactNode; // <-- Agregado
 }
 
 export const GenericForm = <T extends Record<string, any>>({
@@ -36,7 +37,8 @@ export const GenericForm = <T extends Record<string, any>>({
     onCancel,
     submitText = 'Guardar',
     cancelText = 'Cancelar',
-    icon
+    icon,
+    renderExtraFields
 }: GenericFormProps<T>) => {
     const [formValues, setFormValues] = React.useState<T>(initialValues);
     const [filePreviews, setFilePreviews] = React.useState<Record<string, string>>({});
@@ -178,6 +180,9 @@ export const GenericForm = <T extends Record<string, any>>({
                             )}
                         </div>
                     ))}
+
+                    {/* Renderizar campos adicionales si se proporcionó la función renderExtraFields */}
+                    {typeof renderExtraFields === 'function' && renderExtraFields()}
 
                     <div className="d-flex justify-content-end gap-2 mt-4">
                         {onCancel && (

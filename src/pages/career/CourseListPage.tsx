@@ -7,7 +7,6 @@ import { getCareerById, deleteCourseFromCareer, getCoursesForCurricula, addCours
 import { Career, Course } from '../../types/careerTypes';
 import { Alert, Spinner, Form, Row, Col } from 'react-bootstrap';
 import Swal from "sweetalert2";
-import axios from 'axios';
 
 export const CourseListPage = () => {
   const { id } = useParams<{ id: string }>();
