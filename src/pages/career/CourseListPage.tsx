@@ -4,7 +4,7 @@ import { Table, TableColumn } from '../../components/organisms/Tables/Table';
 import { Button } from '../../components/atoms/Button/Button';
 import { Icon } from '../../components/atoms/Icon/Icon';
 import { getCareerById, deleteCourseFromCareer, getCoursesForCurricula, addCourseToCareer } from '../../services/careerService';
-import { Career, Course } from '../../types/careerTypes';
+import { Career, Course } from '../../types/carrerTypes';
 import { Alert, Spinner, Form, Row, Col } from 'react-bootstrap';
 import Swal from "sweetalert2";
 

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Characteristic } from '../types/careerTypes';
+import { Characteristic } from '../types/carrerTypes';
 const API_URL = 'http://localhost:9999/api/characteristic';
 
 export const getAllCharacteristics = async (): Promise<Characteristic[]> => {
