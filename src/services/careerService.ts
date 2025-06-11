@@ -39,7 +39,7 @@ export const getCoursesForCurricula = async (curricula_id: string) => {
   return response.data;
 }
 
-export const addCareer = async (careerData: Career) => {
+export const addCareer = async (careerData: any) => {
   const response = await axios.post(`${API_BASE_URL}/add`, careerData);
   return response.data;
 };
