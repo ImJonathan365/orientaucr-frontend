@@ -2,6 +2,10 @@ import axios from 'axios';
 import { Career, Course } from '../types/carrerTypes';
 const API_BASE_URL = 'http://localhost:9999/api/career'; 
 
+interface AddCareerResponse {
+  curriculaId: string;
+}
+
 export const getCareers = async () => {
   const response = await axios.get(`${API_BASE_URL}/list`);
   return response.data;
@@ -39,10 +43,10 @@ export const getCoursesForCurricula = async (curricula_id: string) => {
   return response.data;
 }
 
-export const addCareer = async (careerData: any) => {
-  const response = await axios.post(`${API_BASE_URL}/add`, careerData);
-  return response.data;
-};
+export const addCareer = async (careerData: any): Promise<string> => {
+  const response = await axios.post<AddCareerResponse>(`${API_BASE_URL}/addCareer`, careerData);
+  return response.data.curriculaId;
+}
 
 export const updateCareer = async (careerData: Career) => {
   const response = await axios.post(`${API_BASE_URL}/update`, careerData);
