@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GenericForm } from '../../components/organisms/FormBar/GenericForm';
-import { addCareer, getCoursesForCurricula } from '../../services/careerService';
+import { addCareer, getCoursesForCurricula, addCourseToCareer } from '../../services/careerService';
 import { getAllCharacteristics } from '../../services/characteristicService';
 import { FormField } from '../../components/organisms/FormBar/GenericForm';
 import Swal from "sweetalert2";
@@ -67,35 +67,49 @@ export const NewCareerPage = () => {
 
   const handleSubmit = async (values: CareerFormValues) => {
     try {
+      // Preparamos el payload para crear la carrera SIN cursos (los agregaremos después)
       const payload = {
         ...values,
         characteristics: selectedCharacteristics.map(id => {
           const characteristic = characteristics.find(c => c.characteristicsId === id);
           return characteristic
             ? {
-                characteristicsId: characteristic.characteristicsId,
-                characteristicsName: characteristic.characteristicsName,
-                characteristicsDescription: (characteristic as any).characteristicsDescription || ''
-              }
+              characteristicsId: characteristic.characteristicsId,
+              characteristicsName: characteristic.characteristicsName,
+              characteristicsDescription: (characteristic as any).characteristicsDescription || ''
+            }
             : { characteristicsId: id, characteristicsName: '', characteristicsDescription: '' };
         }),
-        curricula: {
-          courses: selectedCourses.map(c => ({
-            courseId: c.courseId,
-            courseSemester: c.semester
-          }))
-        }
+        // IMPORTANTE: No mandamos cursos en este payload porque los agregaremos luego uno a uno
+        curricula: {} // Lo dejamos vacío o como el backend espera
       };
-      await addCareer(payload);
+
+      // Paso 1: Crear la carrera y recibir el curriculaId
+      const curriculaId = await addCareer(payload);
+
+      // Paso 2: Agregar cursos a la malla uno por uno
+      for (const course of selectedCourses) {
+        await addCourseToCareer(curriculaId, course.courseId, course.semester);
+      }
+
+      // Confirmación al usuario
       Swal.fire({
         title: 'Éxito',
-        text: 'La carrera se ha creado correctamente.',
+        text: 'La carrera y sus cursos se han creado correctamente.',
         icon: 'success',
         confirmButtonText: 'Aceptar'
       });
+
+      // Navegar a la lista de carreras
       navigate('/career-list');
     } catch (error) {
       console.error('Error saving career:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'Hubo un problema al crear la carrera. Inténtalo de nuevo.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar'
+      });
     }
   };
 
@@ -190,7 +204,7 @@ export const NewCareerPage = () => {
                     value={selectedSemester}
                     onChange={e => setSelectedSemester(Number(e.target.value))}
                   >
-                    {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                       <option key={n} value={n}>{n}</option>
                     ))}
                   </Form.Select>
