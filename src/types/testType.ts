@@ -1,4 +1,4 @@
-import { Characteristic } from './careerTypes';
+import { Characteristic } from './carrerTypes';
 
 export interface Test {
   question_id: string;

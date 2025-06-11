@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Career, Course } from '../types/careerTypes';
+import { Career, Course } from '../types/carrerTypes';
 const API_BASE_URL = 'http://localhost:9999/api/career'; 
 
 export const getCareers = async () => {
