@@ -11,6 +11,10 @@ export const deleteCareer = async (id: string) => {
   await axios.delete(`${API_BASE_URL}/delete/${id}`);
 };
 
+export const deleteCourseFromCareer = async (curriculaId: string, courseId: string) => {
+  await axios.delete(`${API_BASE_URL}/deleteCourse/${curriculaId}/${courseId}`);
+}
+
 export const getCareerById = async (id: string): Promise<Career> => {
   const response = await axios.get(`${API_BASE_URL}/searchCareer/${id}`);
   const career = response.data as Career;

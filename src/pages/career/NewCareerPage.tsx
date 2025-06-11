@@ -6,7 +6,7 @@ import { FormField } from '../../components/organisms/FormBar/GenericForm';
 import Swal from "sweetalert2";
 
 interface CareerFormValues {
-  careerId?: string;
+  careerId: string;
   careerName: string;
   careerDescription: string;
   careerDurationYears: number;
