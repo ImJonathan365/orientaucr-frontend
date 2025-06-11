@@ -117,7 +117,7 @@ export const RolesEditPage = () => {
   const isValidRolName = (name: string): boolean => {
     const words = name.trim().split(/\s+/);
     if (words.length < 1 || words.length > 3) return false;
-    return words.every((word) => /^[A-Za-zÁÉÍÓÚáéíóúÑñ]{3,20}$/.test(word));
+    return words.every((word) => /^[A-Za-zÁÉÍÓÚáéíóúÑñ_]{3,25}$/.test(word));
   };
 
   const isDuplicateName = async (

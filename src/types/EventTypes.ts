@@ -9,7 +9,7 @@ export interface Event {
   eventDate: string;        
   eventTime: string;        
   eventModality: EventModality;
-  eventImagePath?: string | null;
+  eventImagePath?: string | File | null;
   createdBy?: string | null;
   campusId?: string | null;
   subcampusId?: string | null;
