@@ -19,7 +19,7 @@ export interface Curricula {
 }
 
 export interface Career {
-  careerId?: string;
+  careerId: string;
   careerName: string;
   careerDescription: string;
   careerDurationYears: number;

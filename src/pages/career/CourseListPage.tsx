@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Table, TableColumn } from '../../components/organisms/Tables/Table';
 import { Button } from '../../components/atoms/Button/Button';
 import { Icon } from '../../components/atoms/Icon/Icon';
-import { getCareerById } from '../../services/careerService';
+import { getCareerById, deleteCourseFromCareer } from '../../services/careerService';
 import { Career, Course } from '../../types/careerTypes';
 import { Alert, Spinner } from 'react-bootstrap';
 import Swal from "sweetalert2";
@@ -60,6 +60,41 @@ export const CourseListPage = () => {
     };
     fetchCareer();
   }, [id, navigate]);
+
+  // Manejar eliminar curso
+  const handleDeleteCourse = async (course: Course) => {
+    if (!career) return;
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: `Esta acción eliminará el curso "${course.courseName}".`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        if (!career.curricula) {
+          await Swal.fire("Error", "No se encontró la malla curricular para esta carrera.", "error");
+          return;
+        }
+        await deleteCourseFromCareer(career.curricula.curriculaId, course.courseId);
+        await Swal.fire("Eliminado", `El curso "${course.courseName}" fue eliminado correctamente.`, "success");
+        const updatedCareer = await getCareerById(career.careerId);
+        setCareer(updatedCareer);
+      } catch (error) {
+        await Swal.fire("Error", "Hubo un problema al eliminar el curso.", "error");
+        console.error('Error deleting course:', error);
+      }
+    }
+  };
+
+  // Manejar editar curso (por ahora solo muestra un alert)
+  const handleEditCourse = (course: Course) => {
+    // Aquí puedes implementar la navegación o lógica de edición en el futuro
+    Swal.fire("Editar", `Aquí iría la edición del curso "${course.courseName}".`, "info");
+  };
 
   const columns: TableColumn<Course>[] = [
     {
@@ -135,6 +170,8 @@ export const CourseListPage = () => {
       <Table
         columns={columns}
         data={career.curricula.courses}
+        onEdit={handleEditCourse}
+        onDelete={handleDeleteCourse}
       />
     </div>
   );
