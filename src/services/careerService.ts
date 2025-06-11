@@ -25,6 +25,20 @@ export const getCareerById = async (id: string): Promise<Career> => {
   return career;
 };
 
+export const addCourseToCareer = async (curriculaId: string, courseId: string, semester: number) => {
+  const response = await axios.post(`${API_BASE_URL}/addCourse`, {
+    curriculaId,
+    courseId,
+    semester
+  });
+  return response.data;
+}
+
+export const getCoursesForCurricula = async (curricula_id: string) => {
+  const response = await axios.get(`${API_BASE_URL}/listCoursesForCurricula/${curricula_id}`);
+  return response.data;
+}
+
 export const addCareer = async (careerData: Career) => {
   const response = await axios.post(`${API_BASE_URL}/add`, careerData);
   return response.data;

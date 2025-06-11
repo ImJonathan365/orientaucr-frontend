@@ -3,10 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Table, TableColumn } from '../../components/organisms/Tables/Table';
 import { Button } from '../../components/atoms/Button/Button';
 import { Icon } from '../../components/atoms/Icon/Icon';
-import { getCareerById, deleteCourseFromCareer } from '../../services/careerService';
+import { getCareerById, deleteCourseFromCareer, getCoursesForCurricula, addCourseToCareer } from '../../services/careerService';
 import { Career, Course } from '../../types/careerTypes';
-import { Alert, Spinner } from 'react-bootstrap';
+import { Alert, Spinner, Form, Row, Col } from 'react-bootstrap';
 import Swal from "sweetalert2";
+import axios from 'axios';
 
 export const CourseListPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +16,14 @@ export const CourseListPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Para agregar curso
+  const [showAdd, setShowAdd] = useState(false);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [selectedSemester, setSelectedSemester] = useState<number>(1);
+  const [adding, setAdding] = useState(false);
+
+  // Cargar carrera
   useEffect(() => {
     const fetchCareer = async () => {
       if (!id) {
@@ -61,7 +70,50 @@ export const CourseListPage = () => {
     fetchCareer();
   }, [id, navigate]);
 
-  // Manejar eliminar curso
+  // Cargar cursos disponibles para agregar
+  const fetchAvailableCourses = async () => {
+    if (career?.curricula?.curriculaId) {
+      const courses = await getCoursesForCurricula(career.curricula.curriculaId);
+      setAvailableCourses(courses as Course[]);
+      setSelectedCourseId('');
+      setSelectedSemester(1);
+    }
+  };
+
+  // Mostrar formulario al hacer clic en agregar
+  const handleShowAdd = async () => {
+    setShowAdd(!showAdd);
+    if (!showAdd && career?.curricula?.curriculaId) {
+      await fetchAvailableCourses();
+    }
+  };
+
+  const handleAddCourse = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!selectedCourseId || !career?.curricula?.curriculaId) return;
+  setAdding(true);
+  try {
+    // Llama al servicio centralizado
+    await addCourseToCareer(
+      career.curricula.curriculaId,
+      selectedCourseId,
+      selectedSemester
+    );
+    await Swal.fire("Agregado", "El curso fue agregado correctamente.", "success");
+    // Refrescar carrera y cursos disponibles
+    const updatedCareer = await getCareerById(career.careerId);
+    setCareer(updatedCareer);
+    await fetchAvailableCourses();
+    setSelectedCourseId('');
+    setSelectedSemester(1);
+  } catch (error) {
+    await Swal.fire("Error", "Hubo un problema al agregar el curso.", "error");
+  } finally {
+    setAdding(false);
+  }
+};
+
+  // Eliminar curso
   const handleDeleteCourse = async (course: Course) => {
     if (!career) return;
     const result = await Swal.fire({
@@ -83,17 +135,12 @@ export const CourseListPage = () => {
         await Swal.fire("Eliminado", `El curso "${course.courseName}" fue eliminado correctamente.`, "success");
         const updatedCareer = await getCareerById(career.careerId);
         setCareer(updatedCareer);
+        // Refrescar cursos disponibles
+        await fetchAvailableCourses();
       } catch (error) {
         await Swal.fire("Error", "Hubo un problema al eliminar el curso.", "error");
-        console.error('Error deleting course:', error);
       }
     }
-  };
-
-  // Manejar editar curso (por ahora solo muestra un alert)
-  const handleEditCourse = (course: Course) => {
-    // Aquí puedes implementar la navegación o lógica de edición en el futuro
-    Swal.fire("Editar", `Aquí iría la edición del curso "${course.courseName}".`, "info");
   };
 
   const columns: TableColumn<Course>[] = [
@@ -159,18 +206,74 @@ export const CourseListPage = () => {
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Malla Curricular de {career.careerName}</h2>
-        <Button
-          variant="secondary"
-          onClick={() => navigate('/career-list')}
-        >
-          <Icon variant="arrow-left" className="me-2" />
-          Regresar
-        </Button>
+        <div className="d-flex gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => navigate('/career-list')}
+          >
+            <Icon variant="arrow-left" className="me-2" />
+            Regresar
+          </Button>
+          <Button
+            variant={showAdd ? "danger" : "primary"}
+            onClick={handleShowAdd}
+          >
+            <Icon variant={showAdd ? "close" : "add"} className="me-2" />
+            {showAdd ? "Cancelar" : "Agregar curso"}
+          </Button>
+        </div>
       </div>
+
+      {showAdd && (
+        <Form onSubmit={handleAddCourse} className="mb-4 border rounded p-3 bg-light">
+          <Row className="align-items-end">
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>Curso</Form.Label>
+                <Form.Select
+                  value={selectedCourseId}
+                  onChange={e => setSelectedCourseId(e.target.value)}
+                  required
+                >
+                  <option value="">Seleccione un curso</option>
+                  {availableCourses.map(course => (
+                    <option key={course.courseId} value={course.courseId}>
+                      {course.courseCode} - {course.courseName}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={3}>
+              <Form.Group>
+                <Form.Label>Semestre</Form.Label>
+                <Form.Select
+                  value={selectedSemester}
+                  onChange={e => setSelectedSemester(Number(e.target.value))}
+                  required
+                >
+                  {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={3}>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={adding || !selectedCourseId}
+              >
+                {adding ? "Agregando..." : "Agregar"}
+              </Button>
+            </Col>
+          </Row>
+        </Form>
+      )}
+
       <Table
         columns={columns}
         data={career.curricula.courses}
-        onEdit={handleEditCourse}
         onDelete={handleDeleteCourse}
       />
     </div>
