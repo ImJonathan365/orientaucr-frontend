@@ -6,7 +6,7 @@ import { Title } from "../../components/atoms/Title/Ttile";
 import { Button } from "../../components/atoms/Button/Button";
 import { useUser } from "../../contexts/UserContext";
 import { Event } from "../../types/EventTypes";
-import { addEvent,getAllEvents } from "../../services/eventService";
+import { addEvent } from "../../services/eventService";
 
 export const EventAddPage = () => {
   const navigate = useNavigate();
@@ -21,20 +21,23 @@ export const EventAddPage = () => {
     eventTime: "",
     eventModality: "virtual",
     eventImagePath: null,
-    createdBy: user?.userId,
+    createdBy: user?.userId || "",
     campusId: "",
     subcampusId: "",
   });
 
   const [campusError, setCampusError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     // Validar la selección de campus/subcampus cuando cambian
     const campusSelected = !!eventData.campusId;
     const subcampusSelected = !!eventData.subcampusId;
-    
+
     if (campusSelected && subcampusSelected) {
-      setCampusError("Debe seleccionar únicamente un campus o un subcampus, pero no ambos.");
+      setCampusError(
+        "Debe seleccionar únicamente un campus o un subcampus, pero no ambos."
+      );
     } else if (!campusSelected && !subcampusSelected) {
       setCampusError("Debe seleccionar al menos un campus o subcampus.");
     } else {
@@ -46,7 +49,7 @@ export const EventAddPage = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    
+
     // Si se selecciona un campus, limpiar subcampus y viceversa
     if (name === "campusId" && value) {
       setEventData({ ...eventData, campusId: value, subcampusId: "" });
@@ -54,6 +57,12 @@ export const EventAddPage = () => {
       setEventData({ ...eventData, subcampusId: value, campusId: "" });
     } else {
       setEventData({ ...eventData, [name]: value });
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
     }
   };
 
@@ -75,7 +84,7 @@ export const EventAddPage = () => {
       eventDescription.length < 4 ||
       eventDescription.length > 500
     ) {
-      return "La descripción debe tener entre 4 y 50 caracteres.";
+      return "La descripción debe tener entre 4 y 500 caracteres.";
     }
 
     if (!eventDate || eventDate < today) {
@@ -99,8 +108,8 @@ export const EventAddPage = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const error = validateForm();
 
+    const error = validateForm();
     if (error) {
       return Swal.fire({
         icon: "warning",
@@ -111,13 +120,38 @@ export const EventAddPage = () => {
     }
 
     try {
-      await addEvent(eventData);
+      const formData = new FormData();
+      
+      // Agregar todos los campos del evento al FormData
+      formData.append("eventTitle", eventData.eventTitle);
+      formData.append("eventDescription", eventData.eventDescription);
+      formData.append("eventDate", eventData.eventDate);
+      formData.append("eventTime", eventData.eventTime);
+      formData.append("eventModality", eventData.eventModality);
+      formData.append("createdBy", eventData.createdBy || "");
+      
+      // Solo agregar campusId o subcampusId si tienen valor
+      if (eventData.campusId) {
+        formData.append("campusId", eventData.campusId);
+      }
+      if (eventData.subcampusId) {
+        formData.append("subcampusId", eventData.subcampusId);
+      }
+
+      // Agregar la imagen si existe
+      if (selectedFile) {
+        formData.append("image", selectedFile);
+      }
+
+      await addEvent(formData);
+
       await Swal.fire({
         icon: "success",
         title: "Evento creado",
         text: "El evento se añadió correctamente.",
         confirmButtonText: "Aceptar",
       });
+
       navigate("/events-list");
     } catch (error: any) {
       Swal.fire({
@@ -133,7 +167,7 @@ export const EventAddPage = () => {
       <Title variant="h2" className="mb-4">
         Añadir Evento
       </Title>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
         {/* Título */}
         <div className="mb-3">
           <label htmlFor="eventTitle" className="form-label">
@@ -143,7 +177,8 @@ export const EventAddPage = () => {
             type="text"
             className={`form-control ${
               eventData.eventTitle.length > 0 &&
-              (eventData.eventTitle.length < 4 || eventData.eventTitle.length > 25)
+              (eventData.eventTitle.length < 4 ||
+                eventData.eventTitle.length > 25)
                 ? "is-invalid"
                 : ""
             }`}
@@ -156,9 +191,24 @@ export const EventAddPage = () => {
             (eventData.eventTitle.length < 4 ||
               eventData.eventTitle.length > 25) && (
               <div className="invalid-feedback">
-                Debe tener entre 4 y 20 caracteres.
+                Debe tener entre 4 y 25 caracteres.
               </div>
             )}
+        </div>
+
+        {/* Imagen */}
+        <div className="mb-3">
+          <label htmlFor="image" className="form-label">
+            Imagen del evento
+          </label>
+          <input
+            type="file"
+            className="form-control"
+            id="image"
+            name="image"
+            onChange={handleFileChange}
+            accept="image/*"
+          />
         </div>
 
         {/* Descripción */}
@@ -232,7 +282,7 @@ export const EventAddPage = () => {
             value={eventData.eventModality}
             onChange={handleChange}
           >
-            <option value="inPerson">Presencial</option>
+            <option value="presencial">Presencial</option>
             <option value="virtual">Virtual</option>
           </select>
         </div>
@@ -287,9 +337,7 @@ export const EventAddPage = () => {
               Subcampus de Turismo
             </option>
           </select>
-          {campusError && (
-            <div className="invalid-feedback">{campusError}</div>
-          )}
+          {campusError && <div className="invalid-feedback">{campusError}</div>}
         </div>
 
         {/* Botones */}

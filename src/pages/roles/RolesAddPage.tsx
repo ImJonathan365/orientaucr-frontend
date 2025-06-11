@@ -80,7 +80,7 @@ export const RolesAddPage = () => {
     if (words.length < 1 || words.length > 3) return false;
 
     return words.every(
-      (word) => /^[A-Za-zÁÉÍÓÚáéíóúÑñ]{3,20}$/.test(word) // Letras con tildes, no símbolos ni números
+      (word) => /^[A-Za-zÁÉÍÓÚáéíóúÑñ_]{3,25}$/.test(word) // Letras con tildes, no símbolos ni números
     );
   };
 
@@ -91,7 +91,7 @@ export const RolesAddPage = () => {
       Swal.fire({
         icon: "warning",
         title: "Nombre de rol inválido",
-        text: "El nombre debe contener solo letras (máx. 3 palabras, sin caracteres especiales y debe tener minimo 3 a 20 caracteres).",
+        text: "El nombre debe contener solo letras (máx. 3 palabras, sin caracteres especiales y debe tener minimo 3 a 25 caracteres).",
       });
       return;
     }

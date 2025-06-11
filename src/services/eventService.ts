@@ -1,5 +1,3 @@
-
-
 import axios from 'axios';
 import { Event } from '../types/EventTypes';
 
@@ -15,10 +13,15 @@ export const getEventById = async (id: string): Promise<Event> => {
   return response.data;
 };
 
-export const addEvent = async (event: Event): Promise<string> => {
-  const response = await axios.post<string>(`${API_URL}/add`, event);
+export const addEvent = async (formData: FormData): Promise<string> => {
+  const response = await axios.post<string>(`${API_URL}/add`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
+
 
 export const updateEvent = async (event: Event): Promise<string> => {
   const response = await axios.put<string>(`${API_URL}/update`, event);

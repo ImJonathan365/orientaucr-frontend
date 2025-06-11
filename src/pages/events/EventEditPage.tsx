@@ -360,13 +360,13 @@ useEffect(() => {
             disabled={!!eventData.campusId}
           >
             <option value="">Seleccione un subcampus</option>
-            <option value="s1a2b3c4-d5e6-7f89-abcd-111111111111">
+            <option value="s1e2f3g4-aaaa-4def-a8c9-aaaabbbbcccc">
               Subcampus 1
             </option>
-            <option value="s2b3c4d5-e6f7-8a90-bcde-222222222222">
+            <option value="s2f3g4h5-bbbb-4def-a8c9-bbbbccccdddd">
               Subcampus 2
             </option>
-            <option value="s3c4d5e6-f7a8-9012-cdef-333333333333">
+            <option value="s3g4h5i6-cccc-4def-a8c9-ccccddddeeee">
               Subcampus 3
             </option>
           </select>
