@@ -28,7 +28,7 @@ export const EventAddPage = () => {
 
   const [campusError, setCampusError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
+ const [imagePreview, setImagePreview] = useState<string | null>(null);
   useEffect(() => {
     // Validar la selección de campus/subcampus cuando cambian
     const campusSelected = !!eventData.campusId;
@@ -60,9 +60,48 @@ export const EventAddPage = () => {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      
+      // Validar tipo de archivo
+      if (!validImageTypes.includes(file.type)) {
+        Swal.fire({
+          icon: "error",
+          title: "Tipo de archivo no válido",
+          text: "Por favor, sube solo imágenes (JPEG, PNG, GIF, WEBP).",
+          confirmButtonText: "Aceptar",
+        });
+        e.target.value = ""; // Limpiar el input
+        setImagePreview(null);
+        return;
+      }
+      
+      // Validar tamaño (5MB máximo)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        Swal.fire({
+          icon: "error",
+          title: "Archivo demasiado grande",
+          text: "La imagen no puede superar los 5MB.",
+          confirmButtonText: "Aceptar",
+        });
+        e.target.value = "";
+        setImagePreview(null);
+        return;
+      }
+      
+      setSelectedFile(file);
+      
+      // Crear vista previa
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target) {
+          setImagePreview(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -196,7 +235,7 @@ export const EventAddPage = () => {
             )}
         </div>
 
-        {/* Imagen */}
+         {/* Imagen */}
         <div className="mb-3">
           <label htmlFor="image" className="form-label">
             Imagen del evento
@@ -209,6 +248,19 @@ export const EventAddPage = () => {
             onChange={handleFileChange}
             accept="image/*"
           />
+          {imagePreview && (
+            <div className="mt-2">
+              <img 
+                src={imagePreview} 
+                alt="Vista previa" 
+                className="img-thumbnail" 
+                style={{ maxWidth: '200px', maxHeight: '200px' }}
+              />
+            </div>
+          )}
+          <div className="form-text">
+            Formatos aceptados: JPEG, PNG, GIF, WEBP. Tamaño máximo: 5MB.
+          </div>
         </div>
 
         {/* Descripción */}
@@ -282,7 +334,7 @@ export const EventAddPage = () => {
             value={eventData.eventModality}
             onChange={handleChange}
           >
-            <option value="presencial">Presencial</option>
+            <option value="inPerson">Presencial</option>
             <option value="virtual">Virtual</option>
           </select>
         </div>

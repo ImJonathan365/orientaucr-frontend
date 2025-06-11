@@ -27,32 +27,54 @@ export const EventsPage = () => {
         <SideBar />
         <main className="flex-grow-1 p-5 bg-light">
           <section className="mb-5 text-center">
-            <h1 className="display-4 fw-bold text-primary">Eventos Institucionales</h1>
+            <h1 className="display-4 fw-bold text-primary">
+              Eventos Institucionales
+            </h1>
             <p className="lead text-secondary">
-              Explora los próximos eventos, conferencias y talleres organizados por la universidad.
+              Explora los próximos eventos, conferencias y talleres organizados
+              por la universidad.
             </p>
           </section>
 
           <div className="row g-4">
             {events.length > 0 ? (
               events.map((event) => (
-                <div className="col-sm-12 col-md-6 col-lg-4" key={event.eventId}>
+                <div
+                  className="col-sm-12 col-md-6 col-lg-4"
+                  key={event.eventId}
+                >
                   <div className="card border-0 shadow-sm h-100 d-flex flex-column">
                     {event.eventImagePath && (
-                      <img
-                        src={event.eventImagePath.toString()}
+                     <img
+                        src={event.eventImagePath || undefined}
                         className="card-img-top rounded-top"
                         alt={event.eventTitle}
                         style={{ height: "180px", objectFit: "cover" }}
                       />
                     )}
                     <div className="card-body d-flex flex-column">
-                      <h5 className="card-title fw-semibold text-dark">{event.eventTitle}</h5>
-                      <p className="card-text text-muted flex-grow-1">{event.eventDescription}</p>
+                      <h5 className="card-title fw-semibold text-dark">
+                        {event.eventTitle}
+                      </h5>
+                      <p className="card-text text-muted flex-grow-1">
+                        {event.eventDescription}
+                      </p>
                       <ul className="list-unstyled mt-3 small text-secondary">
-                        <li><i className="bi bi-calendar3"></i> <strong>Fecha:</strong> {event.eventDate}</li>
-                        <li><i className="bi bi-clock"></i> <strong>Hora:</strong> {event.eventTime}</li>
-                        <li><i className="bi bi-globe"></i> <strong>Modalidad:</strong> {event.eventModality === "virtual" ? "Virtual" : "Presencial"}</li>
+                        <li>
+                          <i className="bi bi-calendar3"></i>{" "}
+                          <strong>Fecha:</strong> {event.eventDate}
+                        </li>
+                        <li>
+                          <i className="bi bi-clock"></i> <strong>Hora:</strong>{" "}
+                          {event.eventTime}
+                        </li>
+                        <li>
+                          <i className="bi bi-globe"></i>{" "}
+                          <strong>Modalidad:</strong>{" "}
+                          {event.eventModality === "virtual"
+                            ? "Virtual"
+                            : "Presencial"}
+                        </li>
                       </ul>
                       {/* Botón de Participar */}
                       <button className="btn btn-primary w-100 mt-3">
@@ -64,7 +86,9 @@ export const EventsPage = () => {
               ))
             ) : (
               <div className="text-center text-muted">
-                <p className="fs-5">No hay eventos disponibles actualmente. ¡Vuelve pronto!</p>
+                <p className="fs-5">
+                  No hay eventos disponibles actualmente. ¡Vuelve pronto!
+                </p>
               </div>
             )}
           </div>

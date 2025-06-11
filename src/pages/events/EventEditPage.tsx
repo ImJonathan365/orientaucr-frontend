@@ -13,44 +13,16 @@ export const EventsEditPage = () => {
   const today = new Date().toISOString().split("T")[0];
 
   const [eventData, setEventData] = useState<Event | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [campusError, setCampusError] = useState<string | null>(null);
-
+ const [imagePreview, setImagePreview] = useState<string | null>(null);
   useEffect(() => {
-    const fetchEvent = async () => {
-      try {
-        const data = await getEventById(id!);
-        setEventData(data);
-      } catch (error) {
-        console.error("Error al obtener el evento", error);
-        setEventData(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchEvent();
-  }, [id]);
-  
-useEffect(() => {
-  const fetchEventData = async () => {
-    if (!id) {
-      await Swal.fire({
-        title: "Error",
-        text: "No se proporcionó ID del evento.",
-        icon: "error",
-        confirmButtonText: "Aceptar",
-      });
-      navigate("/events-list"); // Ajusta la ruta según tu app
-      return;
-    }
-
-    try {
-      const event = await getEventById(id);
-
-      if (!event || !event.eventId) {
+    const fetchEventData = async () => {
+      if (!id) {
         await Swal.fire({
-          title: "No encontrado",
-          text: "No se pudo encontrar el evento solicitado.",
+          title: "Error",
+          text: "No se proporcionó ID del evento.",
           icon: "error",
           confirmButtonText: "Aceptar",
         });
@@ -58,22 +30,36 @@ useEffect(() => {
         return;
       }
 
-      setEventData(event);
-    } catch (error) {
-      await Swal.fire({
-        title: "Error",
-        text: "Hubo un problema al cargar los datos del evento.",
-        icon: "error",
-        confirmButtonText: "Aceptar",
-      });
-      navigate("/events-list");
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        const event = await getEventById(id);
 
-  fetchEventData();
-}, [id, navigate]);
+        if (!event || !event.eventId) {
+          await Swal.fire({
+            title: "No encontrado",
+            text: "No se pudo encontrar el evento solicitado.",
+            icon: "error",
+            confirmButtonText: "Aceptar",
+          });
+          navigate("/events-list");
+          return;
+        }
+
+        setEventData(event);
+      } catch (error) {
+        await Swal.fire({
+          title: "Error",
+          text: "Hubo un problema al cargar los datos del evento.",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
+        navigate("/events-list");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEventData();
+  }, [id, navigate]);
 
   // Validación campus/subcampus
   useEffect(() => {
@@ -100,7 +86,6 @@ useEffect(() => {
     if (!eventData) return;
     const { name, value } = e.target;
 
-    // Si se selecciona campus limpia subcampus y viceversa
     if (name === "campusId" && value) {
       setEventData({ ...eventData, campusId: value, subcampusId: "" });
     } else if (name === "subcampusId" && value) {
@@ -110,6 +95,50 @@ useEffect(() => {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files.length > 0) {
+        const file = e.target.files[0];
+        const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        
+        // Validar tipo de archivo
+        if (!validImageTypes.includes(file.type)) {
+          Swal.fire({
+            icon: "error",
+            title: "Tipo de archivo no válido",
+            text: "Por favor, sube solo imágenes (JPEG, PNG, GIF, WEBP).",
+            confirmButtonText: "Aceptar",
+          });
+          e.target.value = ""; // Limpiar el input
+          setImagePreview(null);
+          return;
+        }
+        
+        // Validar tamaño (5MB máximo)
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+          Swal.fire({
+            icon: "error",
+            title: "Archivo demasiado grande",
+            text: "La imagen no puede superar los 5MB.",
+            confirmButtonText: "Aceptar",
+          });
+          e.target.value = "";
+          setImagePreview(null);
+          return;
+        }
+        
+        setSelectedFile(file);
+        
+        // Crear vista previa
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target) {
+            setImagePreview(event.target.result as string);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
   const validateForm = (): string | null => {
     if (!eventData) return "Datos del evento no cargados.";
 
@@ -176,7 +205,24 @@ useEffect(() => {
 
     if (result.isConfirmed) {
       try {
-        await updateEvent(eventData);
+        const formData = new FormData();
+        formData.append("eventId", eventData.eventId);
+        formData.append("eventTitle", eventData.eventTitle);
+        formData.append("eventDescription", eventData.eventDescription);
+        formData.append("eventDate", eventData.eventDate);
+        formData.append("eventTime", eventData.eventTime);
+        formData.append("eventModality", eventData.eventModality);
+        formData.append("createdBy", eventData.createdBy || "");
+        if (eventData.campusId) formData.append("campusId", eventData.campusId);
+        if (eventData.subcampusId)
+          formData.append("subcampusId", eventData.subcampusId);
+
+        if (selectedFile) {
+          formData.append("image", selectedFile);
+        }
+
+        await updateEvent(formData);
+
         await Swal.fire({
           icon: "success",
           title: "Actualizado",
@@ -209,7 +255,6 @@ useEffect(() => {
       </div>
     );
   }
-
   return (
     <div className="container py-4">
       <Title variant="h2" className="mb-4">
@@ -319,6 +364,34 @@ useEffect(() => {
             <option value="virtual">Virtual</option>
           </select>
         </div>
+        
+       {/* Imagen */}
+        <div className="mb-3">
+          <label htmlFor="image" className="form-label">
+            Imagen del evento
+          </label>
+          <input
+            type="file"
+            className="form-control"
+            id="image"
+            name="image"
+            onChange={handleFileChange}
+            accept="image/*"
+          />
+          {imagePreview && (
+            <div className="mt-2">
+              <img 
+                src={imagePreview} 
+                alt="Vista previa" 
+                className="img-thumbnail" 
+                style={{ maxWidth: '200px', maxHeight: '200px' }}
+              />
+            </div>
+          )}
+          <div className="form-text">
+            Formatos aceptados: JPEG, PNG, GIF, WEBP. Tamaño máximo: 5MB.
+          </div>
+        </div>
 
         {/* Campus */}
         <div className="mb-3">
@@ -387,7 +460,7 @@ useEffect(() => {
             <i className="bi bi-check me-2"></i>
             Guardar cambios
           </Button>
-          </div>
+        </div>
       </form>
     </div>
   );
