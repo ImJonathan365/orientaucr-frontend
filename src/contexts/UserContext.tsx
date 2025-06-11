@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { User } from "../types/userType";
 import { useEffect } from "react";
-//import Swal from "sweetalert2";
+import Swal from "sweetalert2";
 
 interface UserContextType {
   user: User | null;
@@ -51,7 +51,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    const INACTIVITY_LIMIT = 10 * 60 * 1000;
+    const INACTIVITY_LIMIT = 60 * 60 * 1000;
 
     let alertShown = false;
 
@@ -59,7 +59,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const session = localStorage.getItem("user");
       if (session && !alertShown) {
         const data = JSON.parse(session);
-        /*if (Date.now() - data.lastActivity > INACTIVITY_LIMIT) {
+        if (Date.now() - data.lastActivity > INACTIVITY_LIMIT) {
           alertShown = true;
           Swal.fire({
             title: "Sesión expirada",
@@ -71,7 +71,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             setUser(null);
             alertShown = false;
           });
-        }*/
+        }
       }
     };
 
