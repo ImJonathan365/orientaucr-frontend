@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import { getAllUsers, deleteUser } from "../../services/userService";
 import { User } from "../../types/userType";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
-import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { getUserFromLocalStorage } from "../../utils/Auth";
+import { Button } from "../../components/atoms/Button/Button";
+import { Icon } from "../../components/atoms/Icon/Icon";
 
 type UserWithActions = User & { onDelete: (user: User) => void; onEdit: (user: User) => void };
 
@@ -15,33 +17,20 @@ const columns: TableColumn<UserWithActions>[] = [
   { key: "userBirthdate", label: "Fecha de nacimiento" },
   { key: "userAdmissionAverage", label: "Promedio de admisión" },
   {
-    key: "rolName",
-    label: "Rol",
-    render: (row) =>
-      row.userRoles && row.userRoles.length > 0
-        ? row.userRoles.map(r => r.rolName).join(", ")
-        : "Sin rol"
-  },
-  {
-    key: "acciones",
-    label: "Acciones",
+    key: "userRoles",
+    label: "Roles",
     render: (row) => (
-      <>
-        <button
-          className="btn btn-warning btn-sm me-2"
-          onClick={() => row.onEdit(row)}
-        >
-          Editar
-        </button>
-        <button
-          className="btn btn-danger btn-sm"
-          onClick={() => row.onDelete(row)}
-        >
-          Eliminar
-        </button>
-      </>
-    ),
-  },
+      <select className="form-select" >
+        {row.userRoles && row.userRoles.length > 0 ? (
+          row.userRoles.map((r, idx) => (
+            <option key={r.rolId || idx}>{r.rolName}</option>
+          ))
+        ) : (
+          <option>Sin roles</option>
+        )}
+      </select>
+    )
+  }
 ];
 
 const UserListPage: React.FC = () => {
@@ -57,27 +46,54 @@ const UserListPage: React.FC = () => {
     setLoading(true);
     getAllUsers(getUserFromLocalStorage()?.userId || "")
       .then(setUsers)
-      .catch(() => toast.error("Error al cargar usuarios"))
+      .catch(() =>
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Error al cargar usuarios",
+        })
+      )
       .finally(() => setLoading(false));
   };
 
   const handleDelete = async (user: User) => {
-    if (!window.confirm(`¿Seguro que deseas eliminar a ${user.userName}?`)) return;
+    const result = await Swal.fire({
+      title: `¿Seguro que deseas eliminar a ${user.userName}?`,
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+    if (!result.isConfirmed) return;
     try {
       await deleteUser(user.userId!);
-      toast.success("Usuario eliminado correctamente");
+      await Swal.fire({
+        icon: "success",
+        title: "Usuario eliminado correctamente",
+        timer: 1500,
+        showConfirmButton: false,
+      });
       cargarUsuarios();
     } catch {
-      toast.error("Error al eliminar usuario");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al eliminar usuario",
+      });
     }
   };
 
   const handleEdit = (user: User) => {
-    navigate(`/usuarios/edit/${user.userId}`);
+    navigate(`/users/edit/${user.userId}`);
   };
 
   const handleCreate = () => {
-    navigate("/usuarios/crear");
+    navigate("/users/add");
+  };
+
+  const handleBack = () => {
+    navigate("/home");
   };
 
   const usersWithActions: UserWithActions[] = users.map(u => ({
@@ -89,15 +105,27 @@ const UserListPage: React.FC = () => {
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
+        <Button
+          variant="secondary"
+          onClick={handleBack}
+        >
+          <Icon variant="home" className="me-2" />
+          Regresar
+        </Button>
         <h2>Lista de Usuarios</h2>
-        <button className="btn btn-primary" onClick={handleCreate}>
-          Crear Usuario
-        </button>
+        <Button className="btn btn-primary" onClick={handleCreate}>
+          <Icon variant="add" className="me-2" />
+          Nuevo Usuario
+        </Button>
       </div>
       {loading ? (
         <p>Cargando...</p>
       ) : (
-        <Table columns={columns} data={usersWithActions} />
+        <Table
+          columns={columns}
+          data={usersWithActions}
+          onEdit={handleEdit}
+          onDelete={handleDelete} />
       )}
     </div>
   );

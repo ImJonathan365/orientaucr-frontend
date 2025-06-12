@@ -43,8 +43,8 @@ export const TestPage = () => {
     setSubmitResult(null);
     try {
       const formattedAnswers: UserTestAnswer[] = testQuestions.map(q => ({
-        question_id: q.question_id,
-        selected_characteristics: answers[q.question_id] || []
+        questionId: q.questionId,
+        selectedCharacteristics: answers[q.questionId] || []
       }));
       const result = await submitTestAnswers(formattedAnswers);
       setSubmitResult(result);
@@ -66,8 +66,8 @@ export const TestPage = () => {
           <form onSubmit={handleSubmit}>
             <ul style={{ textAlign: "left", display: "inline-block" }}>
               {testQuestions.map((q) => (
-                <li key={q.question_id} style={{ marginBottom: "1.5rem" }}>
-                  <strong>{q.question_text}</strong>
+                <li key={q.questionId} style={{ marginBottom: "1.5rem" }}>
+                  <strong>{q.questionText}</strong>
                   <ul>
                     {q.characteristics.map((c) => (
                       <li key={c.characteristicsId}>
@@ -75,9 +75,9 @@ export const TestPage = () => {
                           <input
                             type="checkbox"
                             value={c.characteristicsId}
-                            checked={answers[q.question_id]?.includes(c.characteristicsId) || false}
+                            checked={answers[q.questionId]?.includes(c.characteristicsId) || false}
                             onChange={e =>
-                              handleOptionChange(q.question_id, c.characteristicsId, e.target.checked)
+                              handleOptionChange(q.questionId, c.characteristicsId, e.target.checked)
                             }
                           />
                           {" "}{c.characteristicsName}

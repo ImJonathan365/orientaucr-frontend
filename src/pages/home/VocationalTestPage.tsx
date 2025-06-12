@@ -4,22 +4,30 @@ import FooterBar from "../../components/organisms/FooterBar/FooterBar";
 import { Link } from "react-router-dom";
 import { Icon } from "../../components/atoms/Icon/Icon";
 import { getUserFromLocalStorage } from "../../utils/Auth";
+import { useState } from "react";
 
 export const VocationalTestPage = () => {
   const user = getUserFromLocalStorage();
+  const [sidebarVisible, setSidebarVisible] = useState(true);
 
   return (
     <>
       <HeaderBar />
       <div style={{ display: "flex", minHeight: "80vh" }}>
-        <SideBar />
-        <main style={{ flex: 1, padding: "1rem" }}>
+        <SideBar visible={sidebarVisible} setVisible={setSidebarVisible} />
+        <main
+          style={{
+            flex: 1,
+            padding: "1rem",
+            marginLeft: sidebarVisible ? 280 : 0,
+            transition: "margin-left 0.3s"
+          }}>
           <h1 className="text-center">Test Vocacional</h1>
           <p className="text-center">Lorem ipsum dolor sit amet consectetur adipisicing elit. Tenetur necessitatibus dolorem cupiditate omnis. Sunt incidunt ullam fugit beatae asperiores consectetur praesentium veritatis possimus temporibus, amet repudiandae, nemo cupiditate alias minus.</p>
           <center>
-            <Link 
-            style={{ backgroundColor: "#4bc0e1", color: "#fff", border: "none" }}
-            className="btn btn-success" to={user ? "/test" : "/register"}>
+            <Link
+              style={{ backgroundColor: "#4bc0e1", color: "#fff", border: "none" }}
+              className="btn btn-success" to={user ? "/test" : "/register"}>
               <Icon variant="play" size="xl" />
               Comenzar Test
             </Link>

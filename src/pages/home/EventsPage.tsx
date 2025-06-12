@@ -7,6 +7,7 @@ import SideBar from "../../components/organisms/SideBar/SideBar";
 
 export const EventsPage = () => {
   const [events, setEvents] = useState<Event[]>([]);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -24,8 +25,14 @@ export const EventsPage = () => {
     <>
       <HeaderBar />
       <div className="d-flex" style={{ minHeight: "100vh" }}>
-        <SideBar />
-        <main className="flex-grow-1 p-5 bg-light">
+        <SideBar visible={sidebarVisible} setVisible={setSidebarVisible} />
+        <main
+          style={{
+            flex: 1,
+            padding: "1rem",
+            marginLeft: sidebarVisible ? 280 : 0,
+            transition: "margin-left 0.3s"
+          }}>
           <section className="mb-5 text-center">
             <h1 className="display-4 fw-bold text-primary">
               Eventos Institucionales

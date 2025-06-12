@@ -17,6 +17,7 @@ import { TestEditPage } from "../pages/test/TestEditPage";
 import { TestAddPage } from "../pages/test/TestAddPage";
 import { NewCareerPage } from "../pages/career/NewCareerPage";
 import { UserEditPage } from "../pages/user/UserEditPage";
+import { UserCreatePage } from "../pages/user/UserCreatePage";
 import UserListPage from "../pages/user/UserListPage";
 import { RolesListPage } from "../pages/roles/RolesListPage";
 import { RolesEditPage } from "../pages/roles/RolesEditPage";
@@ -31,7 +32,7 @@ import { SimulationQuestionEditPage } from "../pages/SimulationQuestion/Simulati
 import { SimulationExamPage } from "../pages/SimulationQuestion/SimulationExamPage";
 import { SimulationExamStartPage } from "../pages/SimulationQuestion/SimulationExamStartPage";
 import { CourseListPage } from "../pages/career/CourseListPage";
-
+import { UserProfile } from "../pages/user/UserProfile";
 
 export default function AppRoutes() {
   return (
@@ -48,7 +49,6 @@ export default function AppRoutes() {
       <Route path="/vocational-test" element={<RequireAuth><VocationalTestPage /></RequireAuth>} />
       <Route path="/simulation-test" element={<RequireAuth><SimulationTestPage /></RequireAuth>} />
       <Route path="/career-list" element={<RequireAuth><CareerListPage /></RequireAuth>} />
-      <Route path="/profile" element={<RequireAuth><UserProfilesPages /></RequireAuth>} />
       <Route path="/test" element={<RequireAuth><TestPage /></RequireAuth>} />
       <Route path="/test-list" element={<RequireAuth><TestListPage /></RequireAuth>} />
       <Route path="/test-list/edit/:id" element={<RequireAuth><TestEditPage /></RequireAuth>} />
@@ -56,8 +56,10 @@ export default function AppRoutes() {
       <Route path="/careers/new" element={<RequireAuth><NewCareerPage /></RequireAuth>} />
       <Route path="/careers/edit/:id" element={<RequireAuth><EditCareerPage /></RequireAuth>} />
       <Route path="/careers/curricula/:id" element={<RequireAuth><CourseListPage /></RequireAuth>} />
-      <Route path="/usuarios/edit/:id" element={<RequireAuth><UserEditPage /></RequireAuth>} />
-      <Route path="/usuarios" element={<RequireAuth><UserListPage /></RequireAuth>} /> 
+      <Route path="/profile" element={<RequireAuth><UserProfile /></RequireAuth>} />
+      <Route path="/users/edit/:id" element={<RequireAuth><UserEditPage /></RequireAuth>} />
+      <Route path="/users" element={<RequireAuth><UserListPage /></RequireAuth>} /> 
+      <Route path="/users/add" element={<RequireAuth><UserCreatePage /></RequireAuth>} /> 
       <Route path="/roles-list" element={<RequireAuth><RolesListPage /></RequireAuth>} />
       <Route path="/roles-list/edit/:id" element={<RequireAuth><RolesEditPage /></RequireAuth>} />
       <Route path="/roles-list/add" element={<RequireAuth><RolesAddPage /></RequireAuth>} />
