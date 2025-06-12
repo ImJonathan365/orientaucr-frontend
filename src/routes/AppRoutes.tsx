@@ -35,6 +35,9 @@ import { CourseListPage } from "../pages/career/CourseListPage";
 import { NotificationListPage } from "../pages/notification/NotificationListPage";
 import { NotificationAddPage } from "../pages/notification/NotificationAddPage";
 import { NotificationEditPage } from "../pages/notification/NotificationEditPage";
+import { AllCourseListPage } from "../pages/course/AllCourseListPage";
+import { NewCoursesPage } from "../pages/course/NewCoursePage";
+import { EditCoursePage } from "../pages/course/EditCoursePage";
 
 
 export default function AppRoutes() {
@@ -78,6 +81,9 @@ export default function AppRoutes() {
       <Route path="/notifications" element={<RequireAuth><NotificationListPage /></RequireAuth>} />
       <Route path="/notifications/add" element={<RequireAuth><NotificationAddPage /></RequireAuth>} />
       <Route path="/notifications/edit/:id" element={<RequireAuth><NotificationEditPage /></RequireAuth>} />
+      <Route path="/course-list" element={<RequireAuth><AllCourseListPage /></RequireAuth>} />
+      <Route path="/courses/new" element={<RequireAuth><NewCoursesPage /></RequireAuth>} />
+      <Route path="/courses/edit/:id" element={<RequireAuth><EditCoursePage /></RequireAuth>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

@@ -11,6 +11,17 @@ export default function SideBar({ visible, setVisible }: SideBarProps) {
   const location = useLocation();
 
   const menuItems = [
+
+    { path: "/home", icon: "bi-house", label: "Home" },
+    { path: "/career-list", icon: "bi-book", label: "Careers" },
+    { path: "/course-list", icon: "bi-journal-bookmark", label: "Courses" },
+    { path: "/events-list", icon: "bi-calendar-event", label: "Events" },
+    { path: "/vocational-test", icon: "bi-clipboard-check", label: "Vocational Test" },
+    { path: "/simulation-test", icon: "bi-pencil-square", label: "Simulation Test" },
+    { path: "/usuarios", icon: "bi-people", label: "List User" },
+    { path: "/test-list", icon: "bi-question-circle", label: "Preguntas Test" },
+    { path: "/simulation-questions", icon: "bi-question-circle", label: "Preguntas prueba simulada" },
+    { path: "/simulation-exam-start", icon: "bi-clipboard-check", label:  "Prueba simulada" },
     { path: "/career-list", icon: "bi-book", label: "Carreras" },
     { path: "/events-list", icon: "bi-calendar-event", label: "Eventos" },
     { path: "/test-list", icon: "bi-clipboard-check", label: "Test vocacional" },
