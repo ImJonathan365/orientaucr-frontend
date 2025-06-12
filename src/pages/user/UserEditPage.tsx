@@ -5,6 +5,7 @@ import { User } from "../../types/userType";
 import { Roles } from "../../types/rolesType";
 import { Permission } from "../../types/permissionType";
 import { toast } from "react-toastify";
+import { getUserFromLocalStorage } from "../../utils/Auth";
 
 export const UserEditPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -23,17 +24,15 @@ export const UserEditPage = () => {
                 const userData = await getUserById(id!);
                 setUser(userData);
 
-                // Si el usuario tiene roles, toma el primero (ajusta según tu lógica)
                 let initialRoleId = "";
                 if (userData.userRoles && userData.userRoles.length > 0) {
                     initialRoleId = userData.userRoles[0].rolId;
                 }
                 setRoleId(initialRoleId);
 
-                // Cargar todos los roles (de la base de datos)
-                const allUsers = await getAllUsers();
-                // Extraer todos los roles únicos de todos los usuarios (o usa un endpoint específico si tienes)
+                const allUsers = await getAllUsers(getUserFromLocalStorage()?.userId || "");
                 const allRoles: Roles[] = [];
+                
                 allUsers.forEach(u => {
                     u.userRoles?.forEach(r => {
                         if (!allRoles.find(ar => ar.rolId === r.rolId)) {
@@ -43,11 +42,9 @@ export const UserEditPage = () => {
                 });
                 setRoles(allRoles);
 
-                // Cargar permisos del rol seleccionado
                 if (initialRoleId && userData.userRoles) {
                     const selectedRole = userData.userRoles.find(r => r.rolId === initialRoleId);
                     setRolePermissions(selectedRole?.permissions || []);
-                    // Solo los permisos que el usuario ya tiene deben estar checked
                     setUserPermissions(selectedRole?.permissions?.map(p => p.permissionId) || []);
                 }
             } catch (error) {
@@ -59,10 +56,8 @@ export const UserEditPage = () => {
         fetchData();
     }, [id]);
 
-    // Cuando cambia el rol, cargar los permisos del nuevo rol
     useEffect(() => {
         if (!roleId || !user) return;
-        // Buscar el rol seleccionado en los roles del usuario o en la lista de roles
         let selectedRole: Roles | undefined =
             user.userRoles?.find(r => r.rolId === roleId) ||
             roles.find(r => r.rolId === roleId);

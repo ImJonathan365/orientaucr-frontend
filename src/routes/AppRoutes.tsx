@@ -1,6 +1,4 @@
-import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useUser } from "../contexts/UserContext";
+import { Routes, Route } from "react-router-dom";
 import { Login } from "../pages/auth/LoginPage";
 import { RegisterPage } from "../pages/auth/RegisterPage";
 import PublicHomePage from "../pages/PublicHomePage";
@@ -20,7 +18,6 @@ import { TestAddPage } from "../pages/test/TestAddPage";
 import { NewCareerPage } from "../pages/career/NewCareerPage";
 import { UserEditPage } from "../pages/user/UserEditPage";
 import UserListPage from "../pages/user/UserListPage";
-
 import { RolesListPage } from "../pages/roles/RolesListPage";
 import { RolesEditPage } from "../pages/roles/RolesEditPage";
 import { RolesAddPage } from "../pages/roles/RolesAddPage";

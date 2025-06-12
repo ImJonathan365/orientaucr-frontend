@@ -1,9 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useUser } from '../../../contexts/UserContext';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { getUserFromLocalStorage } from '../../../utils/Auth';
 
 export default function SideBar() {
-  const { user } = useUser();
+  const user = getUserFromLocalStorage();
   const location = useLocation();
 
   const menuItems = [

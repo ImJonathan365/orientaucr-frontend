@@ -1,18 +1,17 @@
-import React, { JSX, ReactNode } from "react";
-import { useUser } from "../../contexts/UserContext";
+import { ReactNode } from "react";
+import { getUserFromLocalStorage } from "../../utils/Auth";
 import { Navigate } from "react-router-dom";
 
 interface RequireAuthProps {
   children: ReactNode;
 }
 
-export function RequireAuth({ children }: RequireAuthProps): JSX.Element {
-  const { user, loading } = useUser();
-  if (loading) {
-    return <div>Cargando...</div>;
-  }
+export function RequireAuth({ children }: RequireAuthProps) {
+  const user = getUserFromLocalStorage();
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
   return <>{children}</>;
 }

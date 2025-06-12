@@ -4,6 +4,7 @@ import { User } from "../../types/userType";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { getUserFromLocalStorage } from "../../utils/Auth";
 
 type UserWithActions = User & { onDelete: (user: User) => void; onEdit: (user: User) => void };
 
@@ -54,7 +55,7 @@ const UserListPage: React.FC = () => {
 
   const cargarUsuarios = () => {
     setLoading(true);
-    getAllUsers()
+    getAllUsers(getUserFromLocalStorage()?.userId || "")
       .then(setUsers)
       .catch(() => toast.error("Error al cargar usuarios"))
       .finally(() => setLoading(false));
