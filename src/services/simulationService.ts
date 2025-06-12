@@ -56,7 +56,7 @@ export const submitExamAttempt = async (attempt: {
   attemptScore: number;
   userId: string;
 }) => {
-  const res = await fetch("http://localhost:9999/api/questions/submit-exam", { // <-- aquí el cambio
+  const res = await fetch("http://localhost:9999/api/questions/submit-exam", { 
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(attempt),

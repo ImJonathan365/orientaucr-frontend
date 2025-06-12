@@ -5,11 +5,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { getAllEvents } from "../../services/eventService";
 import { getNotificationById, updateNotification } from "../../services/notificationService";
+import { Notification } from "../../types/Notification";
+import { Event } from "../../types/EventTypes";
 
 export const NotificationEditPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [form, setForm] = useState<any>(null);
-  const [events, setEvents] = useState<any[]>([]);
+  const [form, setForm] = useState<(Notification & { eventId: string }) | null>(null);
+  const [events, setEvents] = useState<Event[]>([]);
   const [files, setFiles] = useState<FileList | null>(null);
   const navigate = useNavigate();
 
@@ -17,52 +19,36 @@ export const NotificationEditPage = () => {
     getAllEvents().then(setEvents);
     if (id) {
       getNotificationById(id).then((data) => {
-        if (
-          data &&
-          typeof data === "object" &&
-          "notificationEvents" in data &&
-          Array.isArray((data as any).notificationEvents)
-        ) {
-          setForm({
-            ...data,
-            eventId: (data as any).notificationEvents?.[0]?.event?.eventId || ""
-          });
-        } else {
-          setForm({
-            eventId: ""
-          });
-        }
+        const notification = data as Notification;
+        setForm({
+          ...notification,
+          eventId: notification.notificationEvents?.[0]?.event?.eventId || ""
+        });
       });
     }
   }, [id]);
 
-  useEffect(() => {
-    if (form?.sent) {
-      Swal.fire("No permitido", "No se puede editar una notificación ya enviada.", "info");
-      navigate("/notifications");
-    }
-  }, [form, navigate]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, files: inputFiles } = e.target as any;
-    if (name === "attachments") {
-      setFiles(inputFiles);
+  
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    if (name === "attachments" && "files" in e.target) {
+      setFiles((e.target as HTMLInputElement).files);
     } else {
-      setForm((prev: any) => ({ ...prev, [name]: value }));
+      setForm((prev) => prev ? { ...prev, [name]: value } : prev);
     }
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form) return;
-    // Validación de fecha futura
     const now = new Date();
     const sendDate = new Date(form.notificationSendDate);
     if (sendDate <= now) {
       Swal.fire("Error", "La fecha y hora de envío debe ser posterior a la actual.", "warning");
       return;
     }
-    const notification = {
+    const notification: Notification = {
       notificationId: form.notificationId,
       notificationTitle: form.notificationTitle,
       notificationMessage: form.notificationMessage,
