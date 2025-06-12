@@ -47,6 +47,8 @@ export const GenericForm = <T extends Record<string, any>>({
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
 
+        const newValue = name === 'courseCode' ? value.toUpperCase() : value;
+
         // Manejo especial para inputs de tipo file
         if (type === 'file') {
             const fileInput = e.target as HTMLInputElement;
@@ -80,7 +82,7 @@ export const GenericForm = <T extends Record<string, any>>({
             // Manejo para todos los otros tipos de inputs
             setFormValues(prev => ({
                 ...prev,
-                [name]: value
+                [name]: newValue
             }));
         }
     };

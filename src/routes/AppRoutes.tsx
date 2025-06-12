@@ -31,6 +31,9 @@ import { SimulationQuestionEditPage } from "../pages/SimulationQuestion/Simulati
 import { SimulationExamPage } from "../pages/SimulationQuestion/SimulationExamPage";
 import { SimulationExamStartPage } from "../pages/SimulationQuestion/SimulationExamStartPage";
 import { CourseListPage } from "../pages/career/CourseListPage";
+import { AllCourseListPage } from "../pages/course/AllCourseListPage";
+import { NewCoursesPage } from "../pages/course/NewCoursePage";
+import { EditCoursePage } from "../pages/course/EditCoursePage";
 
 
 export default function AppRoutes() {
@@ -70,6 +73,9 @@ export default function AppRoutes() {
       <Route path="/simulation-questions/edit/:id" element={<RequireAuth><SimulationQuestionEditPage /></RequireAuth>} />
       <Route path="/simulation-exam" element={<RequireAuth><SimulationExamPage /></RequireAuth>} />
       <Route path="/simulation-exam-start" element={<RequireAuth><SimulationExamStartPage /></RequireAuth>} />
+      <Route path="/course-list" element={<RequireAuth><AllCourseListPage /></RequireAuth>} />
+      <Route path="/courses/new" element={<RequireAuth><NewCoursesPage /></RequireAuth>} />
+      <Route path="/courses/edit/:id" element={<RequireAuth><EditCoursePage /></RequireAuth>} />
       <Route path="*" element={<NotFound />} />
 
     </Routes>

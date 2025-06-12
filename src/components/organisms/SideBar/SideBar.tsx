@@ -9,6 +9,7 @@ export default function SideBar() {
   const menuItems = [
     { path: "/home", icon: "bi-house", label: "Home" },
     { path: "/career-list", icon: "bi-book", label: "Careers" },
+    { path: "/course-list", icon: "bi-journal-bookmark", label: "Courses" },
     { path: "/events-list", icon: "bi-calendar-event", label: "Events" },
     { path: "/vocational-test", icon: "bi-clipboard-check", label: "Vocational Test" },
     { path: "/simulation-test", icon: "bi-pencil-square", label: "Simulation Test" },
