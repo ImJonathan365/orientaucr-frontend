@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getAllEvents, deleteEvent } from "../../services/eventService";
 import { Event } from "../../types/EventTypes";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
-import { useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Title } from "../../components/atoms/Title/Ttile";
 import Swal from "sweetalert2";
 import { Icon } from "../../components/atoms/Icon/Icon";
@@ -17,7 +17,12 @@ export const EventsListPage = () => {
     const fetchEvents = async () => {
       try {
         const data = await getAllEvents();
-        setEvents(data);
+        const sorted = data.sort((a, b) => {
+          const dateA = new Date(`${a.eventDate}T${a.eventTime}`);
+      const dateB = new Date(`${b.eventDate}T${b.eventTime}`);
+      return dateA.getTime() - dateB.getTime();
+        });
+        setEvents(sorted);
       } catch {
         setEvents([]);
       } finally {
@@ -102,7 +107,10 @@ export const EventsListPage = () => {
             <Icon variant="home" className="me-2" />
             Regresar
           </Button>
-          <Button variant="primary" onClick={() => navigate("/events-list/add")}>
+          <Button
+            variant="primary"
+            onClick={() => navigate("/events-list/add")}
+          >
             <Icon variant="add" className="me-2" />
             Nuevo Evento
           </Button>
