@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Event } from "../../types/EventTypes";
-import { getAllEvents } from "../../services/eventService";
+import { getAllEvents, insertUserInterestedEvent } from "../../services/eventService";
 import FooterBar from "../../components/organisms/FooterBar/FooterBar";
 import { HeaderBar } from "../../components/organisms/HeaderBar/HeaderBar";
 import SideBar from "../../components/organisms/SideBar/SideBar";
+import { getUserFromLocalStorage } from "../../utils/Auth"; // Ajusta la ruta si está en otra carpeta
+import Swal from "sweetalert2";
 
 export const EventsPage = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -19,6 +21,48 @@ export const EventsPage = () => {
     };
     fetchEvents();
   }, []);
+
+  const handleParticipate = async (event: Event) => {
+    const user = getUserFromLocalStorage();
+    if (!user) {
+      Swal.fire({
+        icon: "warning",
+        title: "Debes iniciar sesión",
+        text: "Para participar en un evento debes estar autenticado.",
+      });
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: `¿Deseas participar en el evento "${event.eventTitle}"?`,
+      html: `<p><strong>Fecha:</strong> ${event.eventDate}</p>
+             <p><strong>Hora:</strong> ${event.eventTime}</p>`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, participar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await insertUserInterestedEvent(event.eventId, user.userId ?? "");
+        Swal.fire({
+          icon: "success",
+          title: "¡Te esperamos!",
+          html: `<p>Has registrado tu participación en el evento "<strong>${event.eventTitle}</strong>".</p>
+                 <p><strong>Fecha:</strong> ${event.eventDate}</p>
+                 <p><strong>Hora:</strong> ${event.eventTime}</p>`,
+        });
+      } catch (error) {
+        console.error("Error al registrar participación:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Ocurrió un error al registrar tu interés. Intenta más tarde.",
+        });
+      }
+    }
+  };
 
   return (
     <>
@@ -45,7 +89,7 @@ export const EventsPage = () => {
                 >
                   <div className="card border-0 shadow-sm h-100 d-flex flex-column">
                     {event.eventImagePath && (
-                     <img
+                      <img
                         src={event.eventImagePath || undefined}
                         className="card-img-top rounded-top"
                         alt={event.eventTitle}
@@ -65,8 +109,8 @@ export const EventsPage = () => {
                           <strong>Fecha:</strong> {event.eventDate}
                         </li>
                         <li>
-                          <i className="bi bi-clock"></i> <strong>Hora:</strong>{" "}
-                          {event.eventTime}
+                          <i className="bi bi-clock"></i>{" "}
+                          <strong>Hora:</strong> {event.eventTime}
                         </li>
                         <li>
                           <i className="bi bi-globe"></i>{" "}
@@ -76,8 +120,10 @@ export const EventsPage = () => {
                             : "Presencial"}
                         </li>
                       </ul>
-                      {/* Botón de Participar */}
-                      <button className="btn btn-primary w-100 mt-3">
+                      <button
+                        className="btn btn-primary w-100 mt-3"
+                        onClick={() => handleParticipate(event)}
+                      >
                         Participar
                       </button>
                     </div>

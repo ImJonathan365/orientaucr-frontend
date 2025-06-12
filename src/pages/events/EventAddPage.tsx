@@ -75,7 +75,7 @@ export const EventAddPage = () => {
   }, [eventData.campusId, eventData.subcampusId]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
 
@@ -276,33 +276,31 @@ export const EventAddPage = () => {
             </div>
           </div>
 
-          {/* Descripción */}
-          <div className="mb-3">
-            <label htmlFor="eventDescription" className="form-label">
-              Descripción
-            </label>
-            <Input
-              type="text"
-              className={`form-control ${
-                eventData.eventDescription.length > 0 &&
-                (eventData.eventDescription.length < 4 ||
-                  eventData.eventDescription.length > 500)
-                  ? "is-invalid"
-                  : ""
-              }`}
-              id="eventDescription"
-              name="eventDescription"
-              value={eventData.eventDescription}
-              onChange={handleChange}
-            />
-            {eventData.eventDescription.length > 0 &&
-              (eventData.eventDescription.length < 4 ||
-                eventData.eventDescription.length > 500) && (
-                <div className="invalid-feedback">
-                  Debe tener entre 4 y 500 caracteres.
-                </div>
-              )}
-          </div>
+            {/* Descripción */}
+        <div className="mb-3">
+          <label htmlFor="eventDescription" className="form-label">
+            Descripción
+          </label>
+          <textarea
+            className={`form-control ${
+              eventData.eventDescription.length < 4 ||
+              eventData.eventDescription.length > 500
+                ? "is-invalid"
+                : ""
+            }`}
+            id="eventDescription"
+            name="eventDescription"
+            rows={3}
+            value={eventData.eventDescription}
+            onChange={handleChange}
+          />
+          {(eventData.eventDescription.length < 4 ||
+            eventData.eventDescription.length > 500) && (
+            <div className="invalid-feedback">
+              Debe tener entre 4 y 500 caracteres.
+            </div>
+          )}
+        </div>
 
           {/* Fecha */}
           <div className="mb-3">

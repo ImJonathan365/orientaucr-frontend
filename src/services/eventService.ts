@@ -44,3 +44,12 @@ export const deleteEvent = async (id: string): Promise<string> => {
   const response = await axios.delete<string>(`${API_URL}/delete/${id}`);
   return response.data;
 };
+export const insertUserInterestedEvent = async (
+  eventId: string,
+  userId: string
+): Promise<string> => {
+  const response = await axios.post<string>(
+    `${API_URL}/interested/${eventId}/${userId}`
+  );
+  return response.data;
+};
