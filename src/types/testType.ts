@@ -1,12 +1,15 @@
 import { Characteristic } from './carrerTypes';
 
 export interface Test {
-  question_id: string;
-  question_text: string;
+  questionId: string;
+  questionText: string;
+  questionHelpText?: string;
+  isActive: boolean;
+  isMultipleSelection: boolean;
   characteristics: Characteristic[];
 }
 
 export interface UserTestAnswer {
-  question_id: string;
-  selected_characteristics: string[]; // IDs de las características seleccionadas
+  questionId: string;
+  selectedCharacteristics: string[];
 }

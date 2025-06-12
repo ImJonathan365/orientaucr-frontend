@@ -2,183 +2,362 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "../../types/userType";
 import { Roles } from "../../types/rolesType";
-import { Permission } from "../../types/permissionType";
 import { getAllRoles } from "../../services/rolesService";
-import { Alert } from "react-bootstrap";
+import Swal from "sweetalert2";
 import { addUser } from "../../services/userService";
+import { Button } from "../../components/atoms/Button/Button";
 
 export const UserCreatePage = () => {
   const navigate = useNavigate();
   const [roles, setRoles] = useState<Roles[]>([]);
-  const [roleId, setRoleId] = useState<string>("");
-  const [rolePermissions, setRolePermissions] = useState<Permission[]>([]);
-  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
-  const [form, setForm] = useState<User>({
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [form, setForm] = useState({
     userName: "",
     userLastname: "",
     userEmail: "",
     userBirthdate: "",
     userPassword: "",
-    userAdmissionAverage: null,
+    userAdmissionAverage: "",
     userAllowEmailNotification: true,
     userProfilePicture: "",
-    userRoles: []
   });
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     getAllRoles().then(setRoles);
   }, []);
 
-  useEffect(() => {
-    if (roleId) {
-      const role = roles.find(r => r.rolId === roleId);
-      setRolePermissions(role?.permissions || []);
-      setSelectedPermissions(role?.permissions?.map(p => p.permissionId) || []);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type, checked } = e.target as HTMLInputElement;
+    if (type === "checkbox") {
       setForm(prev => ({
         ...prev,
-        userRoles: [
-          {
-            ...role!,
-            permissions: role?.permissions || []
-          }
-        ]
+        [name]: checked
       }));
     } else {
-      setRolePermissions([]);
-      setSelectedPermissions([]);
       setForm(prev => ({
         ...prev,
-        userRoles: []
+        [name]: value
       }));
     }
-    // eslint-disable-next-line
-  }, [roleId, roles]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    let val: any = value;
-    if (type === "number") val = value === "" ? null : Number(value);
-    if (type === "checkbox") val = (e.target as HTMLInputElement).checked;
-    setForm(prev => ({
-      ...prev,
-      [name]: val
-    }));
   };
 
-  const handlePermissionChange = (permId: string, checked: boolean) => {
-    setSelectedPermissions(prev =>
-      checked ? [...prev, permId] : prev.filter(id => id !== permId)
-    );
-    setForm(prev => ({
-      ...prev,
-      userRoles: prev.userRoles && prev.userRoles.length > 0
-        ? [
-            {
-              ...prev.userRoles[0],
-              permissions: checked
-                ? [...(prev.userRoles[0].permissions || []), rolePermissions.find(p => p.permissionId === permId)!]
-                : (prev.userRoles[0].permissions || []).filter(p => p.permissionId !== permId)
-            }
-          ]
-        : []
-    }));
+  const handleRoleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value && !selectedRoleIds.includes(value)) {
+      setSelectedRoleIds(prev => [...prev, value]);
+    }
+  };
+
+  const handleRemoveRole = (rolId: string) => {
+    setSelectedRoleIds(prev => prev.filter(id => id !== rolId));
+  };
+
+  const handleShowPermissions = (rolId: string) => {
+    const role = roles.find(r => r.rolId === rolId);
+    if (role) {
+      const perms = role.permissions.map(p => p.permissionName).join(' - ');
+      Swal.fire({
+        title: `Permisos de ${role.rolName}`,
+        text: perms || "Sin permisos",
+        icon: "info",
+        confirmButtonText: "Cerrar"
+      });
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      if (!["image/png", "image/jpeg"].includes(file.type)) {
+        Swal.fire({
+          icon: "error",
+          title: "Archivo no válido",
+          text: "Solo se permiten imágenes PNG o JPG",
+          confirmButtonText: "Aceptar"
+        });
+        e.target.value = "";
+        setImageFile(null);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire({
+          icon: "error",
+          title: "Archivo muy grande",
+          text: "La imagen debe pesar menos de 2MB",
+        });
+        e.target.value = "";
+        setImageFile(null);
+        return;
+      }
+      setImageFile(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setIsLoading(true);
     try {
-      // El objeto user ya tiene el arreglo de roles y permisos correcto
-      await addUser(form);
-      navigate('/usuarios');
+      const selectedRoles = roles.filter(r => selectedRoleIds.includes(r.rolId));
+      const user: User = {
+        userName: form.userName,
+        userLastname: form.userLastname,
+        userEmail: form.userEmail,
+        userBirthdate: form.userBirthdate,
+        userPassword: form.userPassword,
+        userAdmissionAverage: form.userAdmissionAverage === "" ? null : Number(form.userAdmissionAverage),
+        userAllowEmailNotification: form.userAllowEmailNotification,
+        userProfilePicture: "",
+        userRoles: selectedRoles.map(role => ({
+          rolId: role.rolId,
+          rolName: role.rolName,
+          permissions: role.permissions
+        }))
+      };
+
+      if (!form.userName.trim()) {
+        Swal.fire({ icon: "error", title: "Nombre requerido", text: "El nombre no puede estar vacío o solo espacios." });
+        setIsLoading(false);
+        return;
+      }
+
+      const avg = form.userAdmissionAverage === "" ? null : Number(form.userAdmissionAverage);
+      if (avg !== null && (avg < 0 || avg > 800)) {
+        Swal.fire({ icon: "error", title: "Promedio inválido", text: "El promedio debe estar entre 0 y 800." });
+        setIsLoading(false);
+        return;
+      }
+
+      if (form.userBirthdate && isFutureDate(form.userBirthdate)) {
+        Swal.fire({
+          icon: "error",
+          title: "Fecha inválida",
+          text: "La fecha de nacimiento no puede ser futura.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (form.userPassword.length < 8) {
+        Swal.fire({
+          icon: "error",
+          title: "Contraseña inválida",
+          text: "Debe tener al menos 8 caracteres.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      await addUser(user, imageFile || undefined);
+      await Swal.fire({
+        icon: "success",
+        title: "Usuario creado correctamente",
+        confirmButtonText: "Aceptar"
+      });
+      navigate('/users');
     } catch (err: any) {
-      setError(err.message || "Error al crear usuario");
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.message || "Error al crear usuario",
+        confirmButtonText: "Aceptar"
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    navigate('/usuarios');
+  const allowedNameKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const allowed = /^[A-Za-z0-9áéíóúÁÉÍÓÚñÑ ]$/;
+    if (
+      e.key.length === 1 &&
+      !allowed.test(e.key) &&
+      !['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete', 'Home', 'End'].includes(e.key)
+    ) {
+      e.preventDefault();
+    }
+  };
+
+  const isFutureDate = (dateStr: string) => {
+    const today = new Date().toISOString().split("T")[0];
+    return dateStr > today;
   };
 
   return (
     <div className="container py-4">
       <h2 className="mb-4">Nuevo Usuario</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label className="form-label">Nombre</label>
-          <input className="form-control" name="userName" value={form.userName} onChange={handleInputChange} required />
+          <input
+            type="text"
+            className="form-control"
+            name="userName"
+            value={form.userName}
+            onChange={handleChange}
+            onKeyDown={allowedNameKey}
+            min={1}
+            maxLength={100}
+            pattern="^[A-Za-z0-9áéíóúÁÉÍÓÚñÑ ]{1,100}$"
+            title="Solo letras y números, máximo 100 caracteres"
+            required
+            placeholder="Ejm: Juan"
+          />
         </div>
         <div className="mb-3">
           <label className="form-label">Apellido</label>
-          <input className="form-control" name="userLastname" value={form.userLastname} onChange={handleInputChange} required />
+          <input
+            type="text"
+            className="form-control"
+            name="userLastname"
+            value={form.userLastname}
+            onChange={handleChange}
+            onKeyDown={allowedNameKey}
+            min={1}
+            maxLength={100}
+            pattern="^[A-Za-z0-9áéíóúÁÉÍÓÚñÑ ]{1,100}$"
+            title="Solo letras y números, máximo 100 caracteres"
+            placeholder="Ejm: Pérez"
+          />
         </div>
         <div className="mb-3">
           <label className="form-label">Correo electrónico</label>
-          <input className="form-control" name="userEmail" value={form.userEmail} onChange={handleInputChange} required />
+          <input
+            type="email"
+            className="form-control"
+            name="userEmail"
+            value={form.userEmail}
+            onChange={handleChange}
+            maxLength={255}
+            pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+            title="Debe ser un correo electrónico válido"
+            required
+            placeholder="ejemplo@correo.com"
+          />
         </div>
         <div className="mb-3">
           <label className="form-label">Fecha de nacimiento</label>
-          <input className="form-control" name="userBirthdate" type="date" value={form.userBirthdate ?? ""} onChange={handleInputChange} />
+          <input
+            type="date"
+            className="form-control"
+            name="userBirthdate"
+            value={form.userBirthdate}
+            onChange={handleChange}
+            onKeyDown={e => e.preventDefault()}
+          />
         </div>
         <div className="mb-3">
           <label className="form-label">Contraseña</label>
-          <input className="form-control" name="userPassword" type="password" value={form.userPassword} onChange={handleInputChange} required />
+          <input
+            type="password"
+            className="form-control"
+            name="userPassword"
+            value={form.userPassword}
+            onChange={handleChange}
+            min={8}
+            maxLength={255}
+            title="Debe tener al menos 8 carácteres"
+            required
+          />
         </div>
         <div className="mb-3">
           <label className="form-label">Promedio de admisión</label>
-          <input className="form-control" name="userAdmissionAverage" type="number" value={form.userAdmissionAverage ?? ""} onChange={handleInputChange} />
+          <input
+            type="number"
+            className="form-control"
+            name="userAdmissionAverage"
+            value={form.userAdmissionAverage}
+            onChange={handleChange}
+            min={0}
+            max={800}
+            step={0.01}
+            title="Debe ser un número entre 0 y 800"
+          />
+        </div>
+        <div className="mb-3 form-check">
+          <input
+            type="checkbox"
+            className="form-check-input"
+            id="userAllowEmailNotification"
+            name="userAllowEmailNotification"
+            checked={form.userAllowEmailNotification}
+            onChange={handleChange}
+          />
+          <label className="form-check-label" htmlFor="userAllowEmailNotification">
+            Permitir notificaciones por correo
+          </label>
         </div>
         <div className="mb-3">
-          <label className="form-label">Permitir notificaciones por correo</label>
-          <select className="form-select" name="userAllowEmailNotification" value={form.userAllowEmailNotification ? "true" : "false"} onChange={e => setForm(prev => ({ ...prev, userAllowEmailNotification: e.target.value === "true" }))}>
-            <option value="true">Sí</option>
-            <option value="false">No</option>
-          </select>
+          <label className="form-label">Imagen de perfil</label>
+          <input
+            type="file"
+            className="form-control"
+            name="userProfilePicture"
+            accept="image/png, image/jpeg"
+            onChange={handleFileChange}
+          />
         </div>
         <div className="mb-3">
-          <label className="form-label">Rol</label>
-          <select className="form-select" name="roleId" value={roleId} onChange={e => setRoleId(e.target.value)} required>
-            <option value="">Seleccione un rol</option>
-            {roles.map(role => (
-              <option key={role.rolId} value={role.rolId}>
-                {role.rolName}
-              </option>
-            ))}
-          </select>
-        </div>
-        {rolePermissions.length > 0 && (
-          <div className="mb-3">
-            <label className="form-label">Permisos</label>
-            <div>
-              {rolePermissions.map(perm => (
-                <div key={perm.permissionId} className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id={perm.permissionId}
-                    checked={selectedPermissions.includes(perm.permissionId)}
-                    onChange={e => handlePermissionChange(perm.permissionId, e.target.checked)}
-                  />
-                  <label className="form-check-label" htmlFor={perm.permissionId}>
-                    {perm.permissionName}
-                  </label>
-                </div>
+          <label className="form-label">Agregar rol</label>
+          <select
+            className="form-select"
+            onChange={handleRoleSelect}
+            value=""
+          >
+            <option value="" disabled>
+              Selecciona un rol
+            </option>
+            {roles
+              .filter(role => !selectedRoleIds.includes(role.rolId))
+              .map(role => (
+                <option key={role.rolId} value={role.rolId}>
+                  {role.rolName}
+                </option>
               ))}
-            </div>
+          </select>
+        </div>
+        {selectedRoleIds.length > 0 && (
+          <div className="mb-3">
+            <label className="form-label">Roles seleccionados:</label>
+            <ul className="list-group mb-3">
+              {selectedRoleIds.map(rolId => {
+                const role = roles.find(r => r.rolId === rolId);
+                return (
+                  <li key={rolId} className="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{role?.rolName || rolId}</span>
+                    <div>
+                      <Button
+                        type="button"
+                        variant="info"
+                        className="me-2"
+                        onClick={() => handleShowPermissions(rolId)}
+                      >
+                        Ver permisos
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="danger"
+                        onClick={() => handleRemoveRole(rolId)}
+                      >
+                        Eliminar
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         )}
-        <button className="btn btn-primary" type="submit" disabled={isLoading}>
-          {isLoading ? "Guardando..." : "Guardar"}
-        </button>
-        <button className="btn btn-secondary ms-2" type="button" onClick={handleCancel}>
-          Cancelar
-        </button>
+        <div className="d-flex gap-2">
+          <Button type="submit" variant="primary" disabled={isLoading}>
+            {isLoading ? "Guardando..." : "Guardar"}
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => navigate('/users')}>
+            Cancelar
+          </Button>
+        </div>
       </form>
     </div>
   );
