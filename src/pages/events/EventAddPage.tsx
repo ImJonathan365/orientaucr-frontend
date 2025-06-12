@@ -4,13 +4,13 @@ import Swal from "sweetalert2";
 import { Input } from "../../components/atoms/Input/Input";
 import { Title } from "../../components/atoms/Title/Ttile";
 import { Button } from "../../components/atoms/Button/Button";
-import { useUser } from "../../contexts/UserContext";
 import { Event } from "../../types/EventTypes";
 import { addEvent } from "../../services/eventService";
+import { getUserFromLocalStorage } from "../../utils/Auth";
 
 export const EventAddPage = () => {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const user = getUserFromLocalStorage();
   const today = new Date().toISOString().split("T")[0];
 
   const [eventData, setEventData] = useState<Event>({

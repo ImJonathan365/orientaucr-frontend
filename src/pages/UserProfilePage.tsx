@@ -3,7 +3,7 @@ import { getAllUsers, updateUser } from '../services/userService';
 import { UserProfileCard } from '../components/organisms/LoginSection/UserProfileCardProps';
 import { User } from '../types/userType';
 import { Permission } from '../types/permissionType';
-import axios from 'axios';
+import { getUserFromLocalStorage } from '../utils/Auth';
 
 const UserProfilesPages: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -13,13 +13,13 @@ const UserProfilesPages: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [userRoleName, setUserRoleName] = useState<string>('');
+  //const [userRoleName, setUserRoleName] = useState<string>('');
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userList = await getAllUsers();
+        const userList = await getAllUsers(getUserFromLocalStorage()?.userId || '');
         if (userList && userList.length > 0) {
           setUsers(userList);
           setSelectedUserId(userList[0].userId || null);
@@ -42,17 +42,17 @@ const UserProfilesPages: React.FC = () => {
         // Busca el usuario seleccionado y su rol
         const user = users.find(u => u.userId === selectedUserId);
         if (user && user.userRoles && user.userRoles.length > 0) {
-          setUserRoleName(user.userRoles[0].rolName);
+          //setUserRoleName(user.userRoles[0].rolName);
           setPermissions(user.userRoles[0].permissions || []);
           setSelectedPermissions(user.userRoles[0].permissions?.map(p => p.permissionId) || []);
         } else {
-          setUserRoleName('No asignado');
+          //setUserRoleName('No asignado');
           setPermissions([]);
           setSelectedPermissions([]);
         }
       } catch (err) {
         setPermissions([]);
-        setUserRoleName('Error al cargar rol');
+        //setUserRoleName('Error al cargar rol');
       }
     };
     fetchUserDetails();

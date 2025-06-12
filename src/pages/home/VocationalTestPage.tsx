@@ -1,12 +1,12 @@
 import SideBar from "../../components/organisms/SideBar/SideBar";
 import { HeaderBar } from "../../components/organisms/HeaderBar/HeaderBar";
 import FooterBar from "../../components/organisms/FooterBar/FooterBar";
-import { useUser } from "../../contexts/UserContext";
 import { Link } from "react-router-dom";
 import { Icon } from "../../components/atoms/Icon/Icon";
+import { getUserFromLocalStorage } from "../../utils/Auth";
 
 export const VocationalTestPage = () => {
-  const { user } = useUser();
+  const user = getUserFromLocalStorage();
 
   return (
     <>

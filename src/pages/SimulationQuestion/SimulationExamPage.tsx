@@ -2,8 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { getSimulationExam, submitExamAttempt } from "../../services/simulationService";
 import { SimulationQuestion } from "../../types/SimulationQuestion";
 import Swal from "sweetalert2";
-import { useUser } from "../../contexts/UserContext";
 import { useNavigate } from "react-router-dom";
+import { getUserFromLocalStorage } from "../../utils/Auth";
 
 const EXAM_TIME = 2 * 60 * 60; 
 
@@ -14,7 +14,6 @@ export const SimulationExamPage = () => {
   const [answers, setAnswers] = useState<{ [questionId: string]: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [timeUp, setTimeUp] = useState(false);
-  const { user } = useUser();
   const navigate = useNavigate();
   const examSentRef = useRef(false);
 
@@ -67,7 +66,7 @@ export const SimulationExamPage = () => {
       }
     });
     const score = (correctCount / questions.length) * 100;
-    const userId = user?.userId || "";
+    const userId = getUserFromLocalStorage()?.userId || "";
 
     try {
       await submitExamAttempt({
