@@ -1,12 +1,11 @@
-import React from 'react';
-import { Image } from '../../atoms/Image/Image';
+import React, { useRef } from 'react';
 import { Input } from '../../atoms/Input/Input';
 import { Button } from '../../atoms/Button/Button';
 import { Title } from '../../atoms/Title/Ttile';
 import { User } from '../../../types/userType';
-import { Permission } from '../../../types/permissionType';
+import { useNavigate } from 'react-router-dom';
 
-type EditableFields = 'profile' | 'personal_info' | 'notifications' | 'role_permissions';
+type EditableFields = 'profile' | 'personal_info' | 'notifications';
 
 interface UserProfileCardProps {
   user: User;
@@ -17,26 +16,23 @@ interface UserProfileCardProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   isLoading?: boolean;
   isSaving?: boolean;
-  permissions: Permission[];
-  selectedPermissions: string[];
-  onPermissionCheckboxChange: (permissionId: string) => void;
-  onDeletePermissions: () => void;
+  onProfilePictureChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const UserProfileCard: React.FC<UserProfileCardProps> = ({
   user,
   isEditing,
-  editableFields = ['profile', 'personal_info', 'notifications', 'role_permissions'],
+  editableFields = ['profile', 'personal_info', 'notifications'],
   onEditToggle,
   onSave,
   onInputChange,
   isLoading = false,
   isSaving = false,
-  permissions = [],
-  selectedPermissions = [],
-  onPermissionCheckboxChange,
-  onDeletePermissions,
+  onProfilePictureChange,
 }) => {
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const canEdit = (fieldType: EditableFields) => editableFields.includes(fieldType) && isEditing;
 
   const formatDate = (dateString?: string | null) => {
@@ -50,57 +46,49 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
 
   return (
     <div className="row">
+      {/* Mi Perfil: Imagen y botón editar */}
       <div className="col-md-4">
         <div className="card mb-4">
           <div className="card-body text-center">
-            <Image
-              src={user.userProfilePicture || 'https://via.placeholder.com/150'}
+            <img
+              src={
+                user.userProfilePicture
+                  ? `http://localhost:9999/users/${user.userProfilePicture}`
+                  : 'https://via.placeholder.com/150'
+              }
               alt="Profile"
               className="rounded-circle img-fluid mb-3"
-              style={{ width: '150px' }}
+              style={{ width: '150px', objectFit: 'cover', cursor: isEditing ? 'pointer' : 'default' }}
+              onClick={() => {
+                if (isEditing && fileInputRef.current) fileInputRef.current.click();
+              }}
+              title={isEditing ? "Cambiar foto de perfil" : ""}
             />
-
-            {canEdit('profile') ? (
-              <>
-                <div className="mb-3">
-                  <Input
-                    type="text"
-                    className="form-control text-center"
-                    name="userName"
-                    value={user.userName}
-                    onChange={onInputChange}
-                  />
-                </div>
-                <div className="mb-3">
-                  <Input
-                    type="text"
-                    className="form-control text-center"
-                    name="userLastname"
-                    value={user.userLastname || ''}
-                    onChange={onInputChange}
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                <h5 className="card-title">{user.userName} {user.userLastname}</h5>
-                <p className="text-muted mb-1">{user.userEmail}</p>
-              </>
+            {isEditing && (
+              <div>
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  style={{ display: "none" }}
+                  ref={fileInputRef}
+                  onChange={onProfilePictureChange}
+                  disabled={isSaving}
+                />
+                <small className="text-muted d-block mb-2">Haz clic en la imagen para cambiarla</small>
+              </div>
             )}
-
+            <h5 className="card-title">{user.userName} {user.userLastname}</h5>
             <div className="d-flex justify-content-center mb-2">
-              {editableFields.length > 0 && (
-                <Button
-                  className="btn btn-primary me-2"
-                  onClick={onEditToggle}
-                  disabled={isLoading || isSaving}
-                >
-                  {isEditing ? 'Cancelar' : 'Editar Perfil'}
-                </Button>
-              )}
+              <Button
+                className="btn btn-primary"
+                onClick={onEditToggle}
+                disabled={isLoading || isSaving}
+              >
+                {isEditing ? 'Cancelar' : 'Editar Perfil'}
+              </Button>
               {isEditing && (
                 <Button
-                  className="btn btn-success"
+                  className="btn btn-success ms-2"
                   onClick={onSave}
                   disabled={isLoading || isSaving}
                 >
@@ -108,18 +96,64 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                 </Button>
               )}
             </div>
+            <Button
+              className="btn btn-secondary mt-2"
+              onClick={() => navigate("/home")}
+            >
+              Volver
+            </Button>
           </div>
         </div>
       </div>
 
+      {/* Información Personal */}
       <div className="col-md-8">
         <div className="card mb-4">
           <div className="card-body">
             <Title variant="h5" className="card-title">Información Personal</Title>
 
+            {/* Nombre */}
+            <div className="row">
+              <div className="col-sm-4"><p className="mb-0">Nombre</p></div>
+              <div className="col-sm-8">
+                {canEdit('personal_info') ? (
+                  <Input
+                    type="text"
+                    className="form-control"
+                    name="userName"
+                    value={user.userName}
+                    onChange={onInputChange}
+                    disabled={isSaving}
+                  />
+                ) : (
+                  <p className="text-muted mb-0">{user.userName}</p>
+                )}
+              </div>
+            </div>
+            <hr />
+
+            {/* Apellido */}
+            <div className="row">
+              <div className="col-sm-4"><p className="mb-0">Apellido</p></div>
+              <div className="col-sm-8">
+                {canEdit('personal_info') ? (
+                  <Input
+                    type="text"
+                    className="form-control"
+                    name="userLastname"
+                    value={user.userLastname || ''}
+                    onChange={onInputChange}
+                    disabled={isSaving}
+                  />
+                ) : (
+                  <p className="text-muted mb-0">{user.userLastname ? user.userLastname : 'No proporcionado'}</p>
+                )}
+              </div>
+            </div>
+            <hr />
             {/* Email */}
             <div className="row">
-              <div className="col-sm-4"><p className="mb-0">Email</p></div>
+              <div className="col-sm-4"><p className="mb-0">Correo</p></div>
               <div className="col-sm-8">
                 {canEdit('personal_info') ? (
                   <Input
@@ -135,12 +169,11 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                 )}
               </div>
             </div>
-
             <hr />
 
             {/* Cumpleaños */}
             <div className="row">
-              <div className="col-sm-4"><p className="mb-0">Cumpleaños</p></div>
+              <div className="col-sm-4"><p className="mb-0">Fecha de nacimiento</p></div>
               <div className="col-sm-8">
                 {canEdit('personal_info') ? (
                   <Input
@@ -156,7 +189,6 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                 )}
               </div>
             </div>
-
             <hr />
 
             {/* Promedio */}
@@ -172,7 +204,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                     onChange={onInputChange}
                     step="0.01"
                     min="0"
-                    max="100"
+                    max="800"
                     disabled={isSaving}
                   />
                 ) : (
@@ -180,97 +212,28 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                 )}
               </div>
             </div>
-
-            <hr />
-
-            {/* Rol */}
-            <div className="row">
-              <div className="col-sm-4"><p className="mb-0">Rol</p></div>
-              <div className="col-sm-8">
-                <p className="text-muted mb-0">
-                  {user.userRoles && user.userRoles.length > 0
-                    ? user.userRoles.map(r => r.rolName).join(', ')
-                    : 'No asignado'}
-                </p>
-              </div>
-            </div>
-
-            <hr />
-
-            {/* Permisos */}
-            <div className="row">
-              <div className="col-sm-4"><p className="mb-0">Permisos</p></div>
-              <div className="col-sm-8">
-                {canEdit('role_permissions') ? (
-                  <div className="form-group">
-                    {permissions.length > 0 ? (
-                      <>
-                        {permissions.map(permission => (
-                          <div key={permission.permissionId} className="form-check">
-                            <Input
-                              className="form-check-input"
-                              type="checkbox"
-                              checked={selectedPermissions.includes(permission.permissionId)}
-                              onChange={() => onPermissionCheckboxChange(permission.permissionId)}
-                              disabled={isSaving}
-                            />
-                            <label className="form-check-label">
-                              {permission.permissionName} - {permission.permissionDescription}
-                            </label>
-                          </div>
-                        ))}
-                        <Button
-                          className="btn btn-danger mt-3"
-                          onClick={onDeletePermissions}
-                          disabled={isSaving || selectedPermissions.length === 0}
-                        >
-                          {isSaving ? 'Eliminando...' : 'Eliminar Permisos Seleccionados'}
-                        </Button>
-                      </>
-                    ) : (
-                      <p className="text-muted">No hay permisos disponibles</p>
-                    )}
-                  </div>
-                ) : (
-                  permissions.length > 0 ? (
-                    <ul className="list-unstyled">
-                      {permissions.map(permission => (
-                        <li key={permission.permissionId}>
-                          <strong>{permission.permissionName}</strong>: {permission.permissionDescription}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-muted mb-0">No tiene permisos asignados</p>
-                  )
-                )}
-              </div>
-            </div>
-
             <hr />
 
             {/* Notificaciones */}
             <div className="row">
-              <div className="col-sm-4"><p className="mb-0">Notificaciones</p></div>
+              <div className="col-sm-4"><p className="mb-0">Recibe correos</p></div>
               <div className="col-sm-8">
                 {canEdit('notifications') ? (
-                  <>
-                    <div className="form-check">
-                      <Input
-                        className="form-check-input"
-                        type="checkbox"
-                        name="userAllowEmailNotification"
-                        checked={user.userAllowEmailNotification || false}
-                        onChange={onInputChange}
-                        disabled={isSaving}
-                      />
-                      <label className="form-check-label">Notificaciones por Email</label>
-                    </div>
-                  </>
+                  <div className="form-check">
+                    <Input
+                      className="form-check-input"
+                      type="checkbox"
+                      name="userAllowEmailNotification"
+                      checked={user.userAllowEmailNotification || false}
+                      onChange={onInputChange}
+                      disabled={isSaving}
+                    />
+                    <label className="form-check-label">Notificaciones por Email</label>
+                  </div>
                 ) : (
-                  <ul className="list-unstyled mb-0">
-                    <li>Email: {user.userAllowEmailNotification ? 'Sí' : 'No'}</li>
-                  </ul>
+                  <span className="text-muted mb-0">
+                    {user.userAllowEmailNotification ? 'Sí' : 'No'}
+                  </span>
                 )}
               </div>
             </div>
