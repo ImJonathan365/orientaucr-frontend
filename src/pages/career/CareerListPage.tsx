@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 
 
 
-interface Characteristic{
+interface Characteristic {
   characteristicsId: string;
   characteristicsName: string;
   characteristicsDescription: string;
@@ -117,11 +117,14 @@ export const CareerListPage = () => {
       label: 'Características',
       render: (row) => (
         <div className="d-flex flex-wrap gap-1">
-          {row.characteristics?.map(char => (
-            <span key={char.characteristicsId} className="badge bg-primary">
-              {char.characteristicsName}
-            </span>
-          ))}
+          {row.characteristics
+            ?.slice()
+            .sort((a, b) => a.characteristicsName.localeCompare(b.characteristicsName))
+            .map(char => (
+              <span key={char.characteristicsId} className="badge bg-primary">
+                {char.characteristicsName}
+              </span>
+            ))}
         </div>
       )
     },

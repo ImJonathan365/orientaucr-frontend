@@ -1,4 +1,3 @@
-import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getUserFromLocalStorage } from "../../../utils/Auth";
 
@@ -18,6 +17,7 @@ export default function SideBar({ visible, setVisible }: SideBarProps) {
     { path: "/users", icon: "bi-people", label: "Usuarios" },
     { path: "/simulation-questions", icon: "bi-pencil-square", label: "Prueba simulada" },
     { path: "/roles-list", icon: "bi-shield-check", label: "Roles" },
+    { path: "/notifications", icon: "bi-bell", label: "Notificaciones" }
   ];
 
   if (!visible) {

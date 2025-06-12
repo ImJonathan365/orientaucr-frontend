@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GenericForm } from '../../components/organisms/FormBar/GenericForm';
-import { addCareer, getCoursesForCurricula, addCourseToCareer } from '../../services/careerService';
+import { addCareer, getCoursesForCurricula, addCourseToCareer, getCareers } from '../../services/careerService';
 import { getAllCharacteristics } from '../../services/characteristicService';
 import { FormField } from '../../components/organisms/FormBar/GenericForm';
 import Swal from "sweetalert2";
@@ -36,7 +36,6 @@ export const NewCareerPage = () => {
   const navigate = useNavigate();
   const [characteristics, setCharacteristics] = useState<Characteristic[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [selectedCharacteristics, setSelectedCharacteristics] = useState<string[]>([]);
   const [selectedCourses, setSelectedCourses] = useState<SelectedCourse[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [selectedSemester, setSelectedSemester] = useState<number>(1);
@@ -65,12 +64,46 @@ export const NewCareerPage = () => {
     setSelectedCourses(selectedCourses.filter(c => c.courseId !== courseId));
   };
 
+  function normalizeString(str: string) {
+    return str
+      .normalize('NFD')               // Descompone letras con tilde en letra + tilde
+      .replace(/[\u0300-\u036f]/g, '') // Elimina los caracteres de tilde
+      .replace(/\s+/g, ' ')            // Reemplaza múltiples espacios por uno solo
+      .trim()                         // Elimina espacios al inicio y fin
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]/g, '')     // Elimina caracteres no alfanuméricos;
+      .replace(/\s+/g, '')
+      .replace(/[^a-zA-Z0-9 ]/g, '')
+  }
+
   const handleSubmit = async (values: CareerFormValues) => {
     try {
-      // Preparamos el payload para crear la carrera SIN cursos (los agregaremos después)
+      const existingCareers = await getCareers();
+      const existingNames = existingCareers.map(c => normalizeString(c.careerName));
+      const newCareerName = normalizeString(values.careerName);
+
+      const hasSpecialChars = /[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s]/.test(values.careerName);
+      if (hasSpecialChars) {
+        Swal.fire({
+          title: 'Caracteres no permitidos',
+          text: 'El nombre no debe contener caracteres especiales. Solo letras, números y espacios.',
+          icon: 'error',
+          confirmButtonText: 'Aceptar'
+        });
+        return;
+      }
+      if (existingNames.includes(newCareerName)) {
+        Swal.fire({
+          title: 'Nombre ya existe',
+          text: 'Ya existe una carrera con ese nombre. Por favor, elige otro.',
+          icon: 'warning',
+          confirmButtonText: 'Aceptar'
+        });
+        return;
+      }
       const payload = {
         ...values,
-        characteristics: selectedCharacteristics.map(id => {
+        characteristics: values.characteristics.map(id => {
           const characteristic = characteristics.find(c => c.characteristicsId === id);
           return characteristic
             ? {
@@ -80,19 +113,16 @@ export const NewCareerPage = () => {
             }
             : { characteristicsId: id, characteristicsName: '', characteristicsDescription: '' };
         }),
-        // IMPORTANTE: No mandamos cursos en este payload porque los agregaremos luego uno a uno
-        curricula: {} // Lo dejamos vacío o como el backend espera
+
+        curricula: {}
       };
 
-      // Paso 1: Crear la carrera y recibir el curriculaId
       const curriculaId = await addCareer(payload);
 
-      // Paso 2: Agregar cursos a la malla uno por uno
       for (const course of selectedCourses) {
         await addCourseToCareer(curriculaId, course.courseId, course.semester);
       }
 
-      // Confirmación al usuario
       Swal.fire({
         title: 'Éxito',
         text: 'La carrera y sus cursos se han creado correctamente.',
@@ -100,7 +130,6 @@ export const NewCareerPage = () => {
         confirmButtonText: 'Aceptar'
       });
 
-      // Navegar a la lista de carreras
       navigate('/career-list');
     } catch (error) {
       console.error('Error saving career:', error);
@@ -140,6 +169,18 @@ export const NewCareerPage = () => {
       min: 1,
       max: 10,
       placeholder: 'Ingrese la duración en años'
+    },
+    {
+      name: 'characteristics',
+      label: 'Características',
+      type: 'checkbox-group',
+      required: true,
+      options: characteristics
+        .sort((a, b) => a.characteristicsName.localeCompare(b.characteristicsName))
+        .map(c => ({
+          value: c.characteristicsId,
+          label: c.characteristicsName,
+        }))
     }
   ];
 
@@ -163,24 +204,6 @@ export const NewCareerPage = () => {
         submitText="Crear Carrera"
         renderExtraFields={() => (
           <>
-            {/* Características */}
-            <Form.Group className="mb-3">
-              <Form.Label>Características</Form.Label>
-              <Form.Select
-                multiple
-                value={selectedCharacteristics}
-                onChange={e => {
-                  const options = Array.from(e.target.selectedOptions).map(opt => opt.value);
-                  setSelectedCharacteristics(options);
-                }}
-              >
-                {Array.isArray(characteristics) && characteristics.map(c => (
-                  <option key={c.characteristicsId} value={c.characteristicsId}>
-                    {c.characteristicsName}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
 
             {/* Cursos */}
             <Form.Group className="mb-3">
@@ -192,11 +215,13 @@ export const NewCareerPage = () => {
                     onChange={e => setSelectedCourseId(e.target.value)}
                   >
                     <option value="">Seleccione un curso</option>
-                    {courses.map(course => (
-                      <option key={course.courseId} value={course.courseId}>
-                        {course.courseCode} - {course.courseName}
-                      </option>
-                    ))}
+                    {courses
+                      .filter(course => !selectedCourses.some(sc => sc.courseId === course.courseId))
+                      .map(course => (
+                        <option key={course.courseId} value={course.courseId}>
+                          {course.courseCode} - {course.courseName}
+                        </option>
+                      ))}
                   </Form.Select>
                 </Col>
                 <Col md={3}>

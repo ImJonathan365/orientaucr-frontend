@@ -2,7 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { getEventById, updateEvent } from "../../services/eventService";
+import { getAllCampus } from "../../services/campusService";
+import { getAllSubcampus } from "../../services/subcampusService";
 import { Event } from "../../types/EventTypes";
+import { Campus } from "../../types/campusType";
+import { Subcampus } from "../../types/subcampusType";
 import { Title } from "../../components/atoms/Title/Ttile";
 import { Input } from "../../components/atoms/Input/Input";
 import { Button } from "../../components/atoms/Button/Button";
@@ -13,55 +17,41 @@ export const EventsEditPage = () => {
   const today = new Date().toISOString().split("T")[0];
 
   const [eventData, setEventData] = useState<Event | null>(null);
+  const [campuses, setCampuses] = useState<Campus[]>([]);
+  const [subcampuses, setSubcampuses] = useState<Subcampus[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [campusError, setCampusError] = useState<string | null>(null);
- const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   useEffect(() => {
-    const fetchEventData = async () => {
-      if (!id) {
-        await Swal.fire({
-          title: "Error",
-          text: "No se proporcionó ID del evento.",
-          icon: "error",
-          confirmButtonText: "Aceptar",
-        });
-        navigate("/events-list");
-        return;
-      }
-
+    const fetchData = async () => {
       try {
-        const event = await getEventById(id);
+        const [event, campusesData, subcampusesData] = await Promise.all([
+          getEventById(id!),
+          getAllCampus(),
+          getAllSubcampus(),
+        ]);
 
-        if (!event || !event.eventId) {
-          await Swal.fire({
-            title: "No encontrado",
-            text: "No se pudo encontrar el evento solicitado.",
-            icon: "error",
-            confirmButtonText: "Aceptar",
-          });
+        if (!event) {
+          Swal.fire("Error", "No se pudo cargar el evento.", "error");
           navigate("/events-list");
           return;
         }
 
         setEventData(event);
+        setCampuses(campusesData);
+        setSubcampuses(subcampusesData);
       } catch (error) {
-        await Swal.fire({
-          title: "Error",
-          text: "Hubo un problema al cargar los datos del evento.",
-          icon: "error",
-          confirmButtonText: "Aceptar",
-        });
+        Swal.fire("Error", "No se pudo cargar la información.", "error");
         navigate("/events-list");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchEventData();
+    fetchData();
   }, [id, navigate]);
 
-  // Validación campus/subcampus
   useEffect(() => {
     if (!eventData) return;
     const campusSelected = !!eventData.campusId;
@@ -96,52 +86,41 @@ export const EventsEditPage = () => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files && e.target.files.length > 0) {
-        const file = e.target.files[0];
-        const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        
-        // Validar tipo de archivo
-        if (!validImageTypes.includes(file.type)) {
-          Swal.fire({
-            icon: "error",
-            title: "Tipo de archivo no válido",
-            text: "Por favor, sube solo imágenes (JPEG, PNG, GIF, WEBP).",
-            confirmButtonText: "Aceptar",
-          });
-          e.target.value = ""; // Limpiar el input
-          setImagePreview(null);
-          return;
-        }
-        
-        // Validar tamaño (5MB máximo)
-        const maxSize = 5 * 1024 * 1024;
-        if (file.size > maxSize) {
-          Swal.fire({
-            icon: "error",
-            title: "Archivo demasiado grande",
-            text: "La imagen no puede superar los 5MB.",
-            confirmButtonText: "Aceptar",
-          });
-          e.target.value = "";
-          setImagePreview(null);
-          return;
-        }
-        
-        setSelectedFile(file);
-        
-        // Crear vista previa
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target) {
-            setImagePreview(event.target.result as string);
-          }
-        };
-        reader.readAsDataURL(file);
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const validImageTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+      ];
+      if (!validImageTypes.includes(file.type)) {
+        Swal.fire(
+          "Error",
+          "Solo se permiten imágenes JPEG, PNG, GIF o WEBP.",
+          "error"
+        );
+        e.target.value = "";
+        setImagePreview(null);
+        return;
       }
-    };
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire("Error", "El tamaño máximo es 5MB.", "error");
+        e.target.value = "";
+        setImagePreview(null);
+        return;
+      }
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target) setImagePreview(event.target.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const validateForm = (): string | null => {
     if (!eventData) return "Datos del evento no cargados.";
-
     const {
       eventTitle,
       eventDescription,
@@ -150,34 +129,19 @@ export const EventsEditPage = () => {
       eventModality,
     } = eventData;
 
-    if (!eventTitle || eventTitle.length < 4 || eventTitle.length > 25) {
-      return "El título del evento debe tener entre 4 y 25 caracteres.";
-    }
-
+    if (!eventTitle || eventTitle.length < 4 || eventTitle.length > 25)
+      return "El título debe tener entre 4 y 25 caracteres.";
     if (
       !eventDescription ||
       eventDescription.length < 4 ||
       eventDescription.length > 500
-    ) {
+    )
       return "La descripción debe tener entre 4 y 500 caracteres.";
-    }
-
-    if (!eventDate || eventDate < today) {
+    if (!eventDate || eventDate < today)
       return "La fecha no puede estar en el pasado.";
-    }
-
-    if (!eventTime) {
-      return "La hora es obligatoria.";
-    }
-
-    if (!eventModality) {
-      return "Debes seleccionar una modalidad.";
-    }
-
-    if (campusError) {
-      return campusError;
-    }
-
+    if (!eventTime) return "La hora es obligatoria.";
+    if (!eventModality) return "Debes seleccionar una modalidad.";
+    if (campusError) return campusError;
     return null;
   };
 
@@ -187,188 +151,90 @@ export const EventsEditPage = () => {
 
     const error = validateForm();
     if (error) {
-      return Swal.fire({
-        icon: "warning",
-        title: "Validación",
-        text: error,
-        confirmButtonText: "Aceptar",
-      });
+      Swal.fire("Validación", error, "warning");
+      return;
     }
 
-    const result = await Swal.fire({
-      title: "¿Deseas guardar los cambios?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Guardar",
-      cancelButtonText: "Cancelar",
-    });
+    try {
+      const formData = new FormData();
+      formData.append("eventId", eventData.eventId);
+      formData.append("eventTitle", eventData.eventTitle);
+      formData.append("eventDescription", eventData.eventDescription);
+      formData.append("eventDate", eventData.eventDate);
+      formData.append("eventTime", eventData.eventTime);
+      formData.append("eventModality", eventData.eventModality);
+      formData.append("createdBy", eventData.createdBy || "");
 
-    if (result.isConfirmed) {
-      try {
-        const formData = new FormData();
-        formData.append("eventId", eventData.eventId);
-        formData.append("eventTitle", eventData.eventTitle);
-        formData.append("eventDescription", eventData.eventDescription);
-        formData.append("eventDate", eventData.eventDate);
-        formData.append("eventTime", eventData.eventTime);
-        formData.append("eventModality", eventData.eventModality);
-        formData.append("createdBy", eventData.createdBy || "");
-        if (eventData.campusId) formData.append("campusId", eventData.campusId);
-        if (eventData.subcampusId)
-          formData.append("subcampusId", eventData.subcampusId);
+      if (eventData.campusId) formData.append("campusId", eventData.campusId);
+      if (eventData.subcampusId)
+        formData.append("subcampusId", eventData.subcampusId);
+      if (selectedFile) formData.append("image", selectedFile);
 
-        if (selectedFile) {
-          formData.append("image", selectedFile);
-        }
-
-        await updateEvent(formData);
-
-        await Swal.fire({
-          icon: "success",
-          title: "Actualizado",
-          text: "Evento actualizado correctamente.",
-          confirmButtonText: "Aceptar",
-        });
-        navigate("/events-list");
-      } catch (error: any) {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: error.message || "Hubo un problema al actualizar el evento.",
-        });
-      }
+      await updateEvent(formData);
+      await Swal.fire(
+        "Actualizado",
+        "Evento actualizado correctamente.",
+        "success"
+      );
+      navigate("/events-list");
+    } catch (err: any) {
+      Swal.fire(
+        "Error",
+        err.message || "No se pudo actualizar el evento.",
+        "error"
+      );
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
       <div className="container py-4">
-        <p>Cargando evento...</p>
+        <p>Cargando...</p>
       </div>
     );
-  }
+  if (!eventData)
+    return (
+      <div className="container py-4">
+        <p>Evento no encontrado.</p>
+      </div>
+    );
 
-  if (!eventData) {
-    return (
-      <div className="container py-4">
-        <p>No se encontró el evento.</p>
-      </div>
-    );
-  }
   return (
     <div className="container py-4">
       <Title variant="h2" className="mb-4">
         Editar Evento
       </Title>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
         {/* Título */}
         <div className="mb-3">
           <label htmlFor="eventTitle" className="form-label">
-            Título del Evento
+            Título
           </label>
           <Input
             type="text"
             id="eventTitle"
             name="eventTitle"
-            className={`form-control ${
-              eventData.eventTitle.length > 0 &&
-              (eventData.eventTitle.length < 4 ||
-                eventData.eventTitle.length > 25)
-                ? "is-invalid"
-                : ""
-            }`}
             value={eventData.eventTitle}
             onChange={handleChange}
-          />
-          {eventData.eventTitle.length > 0 &&
-            (eventData.eventTitle.length < 4 ||
-              eventData.eventTitle.length > 25) && (
-              <div className="invalid-feedback">
-                Debe tener entre 4 y 25 caracteres.
-              </div>
-            )}
-        </div>
-
-        {/* Descripción */}
-        <div className="mb-3">
-          <label htmlFor="eventDescription" className="form-label">
-            Descripción
-          </label>
-          <textarea
-            id="eventDescription"
-            name="eventDescription"
             className={`form-control ${
-              eventData.eventDescription.length > 0 &&
-              (eventData.eventDescription.length < 4 ||
-                eventData.eventDescription.length > 500)
+              eventData.eventTitle.length < 4 ||
+              eventData.eventTitle.length > 25
                 ? "is-invalid"
                 : ""
             }`}
-            rows={4}
-            value={eventData.eventDescription}
-            onChange={handleChange}
           />
-          {eventData.eventDescription.length > 0 &&
-            (eventData.eventDescription.length < 4 ||
-              eventData.eventDescription.length > 500) && (
-              <div className="invalid-feedback">
-                Debe tener entre 4 y 500 caracteres.
-              </div>
-            )}
+          {(eventData.eventTitle.length < 4 ||
+            eventData.eventTitle.length > 25) && (
+            <div className="invalid-feedback">
+              Debe tener entre 4 y 25 caracteres.
+            </div>
+          )}
         </div>
 
-        {/* Fecha */}
-        <div className="mb-3">
-          <label htmlFor="eventDate" className="form-label">
-            Fecha del Evento
-          </label>
-          <Input
-            type="date"
-            id="eventDate"
-            name="eventDate"
-            className="form-control"
-            value={eventData.eventDate}
-            onChange={handleChange}
-            min={today}
-          />
-        </div>
-
-        {/* Hora */}
-        <div className="mb-3">
-          <label htmlFor="eventTime" className="form-label">
-            Hora del Evento
-          </label>
-          <Input
-            type="time"
-            id="eventTime"
-            name="eventTime"
-            className="form-control"
-            value={eventData.eventTime}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* Modalidad */}
-        <div className="mb-3">
-          <label htmlFor="eventModality" className="form-label">
-            Modalidad
-          </label>
-          <select
-            id="eventModality"
-            name="eventModality"
-            className="form-select"
-            value={eventData.eventModality}
-            onChange={handleChange}
-          >
-            <option value="inPerson">Presencial</option>
-            <option value="virtual">Virtual</option>
-          </select>
-        </div>
-        
-       {/* Imagen */}
+        {/* Imagen */}
         <div className="mb-3">
           <label htmlFor="image" className="form-label">
-            Imagen del evento
+            Imagen
           </label>
           <input
             type="file"
@@ -380,17 +246,92 @@ export const EventsEditPage = () => {
           />
           {imagePreview && (
             <div className="mt-2">
-              <img 
-                src={imagePreview} 
-                alt="Vista previa" 
-                className="img-thumbnail" 
-                style={{ maxWidth: '200px', maxHeight: '200px' }}
+              <img
+                src={imagePreview}
+                alt="Vista previa"
+                className="img-thumbnail"
+                style={{ maxWidth: "200px", maxHeight: "200px" }}
               />
             </div>
           )}
           <div className="form-text">
-            Formatos aceptados: JPEG, PNG, GIF, WEBP. Tamaño máximo: 5MB.
+            Formatos permitidos: JPEG, PNG, GIF, WEBP. Máx 5MB.
           </div>
+        </div>
+
+        {/* Descripción */}
+        <div className="mb-3">
+          <label htmlFor="eventDescription" className="form-label">
+            Descripción
+          </label>
+          <textarea
+            className={`form-control ${
+              eventData.eventDescription.length < 4 ||
+              eventData.eventDescription.length > 500
+                ? "is-invalid"
+                : ""
+            }`}
+            id="eventDescription"
+            name="eventDescription"
+            rows={3}
+            value={eventData.eventDescription}
+            onChange={handleChange}
+          />
+          {(eventData.eventDescription.length < 4 ||
+            eventData.eventDescription.length > 500) && (
+            <div className="invalid-feedback">
+              Debe tener entre 4 y 500 caracteres.
+            </div>
+          )}
+        </div>
+
+        {/* Fecha */}
+        <div className="mb-3">
+          <label htmlFor="eventDate" className="form-label">
+            Fecha
+          </label>
+          <Input
+            type="date"
+            className="form-control"
+            id="eventDate"
+            name="eventDate"
+            value={eventData.eventDate}
+            onChange={handleChange}
+            min={today}
+          />
+        </div>
+
+        {/* Hora */}
+        <div className="mb-3">
+          <label htmlFor="eventTime" className="form-label">
+            Hora
+          </label>
+          <Input
+            type="time"
+            className="form-control"
+            id="eventTime"
+            name="eventTime"
+            value={eventData.eventTime}
+            onChange={handleChange}
+          />
+        </div>
+
+        {/* Modalidad */}
+        <div className="mb-3">
+          <label htmlFor="eventModality" className="form-label">
+            Modalidad
+          </label>
+          <select
+            className="form-select"
+            id="eventModality"
+            name="eventModality"
+            value={eventData.eventModality}
+            onChange={handleChange}
+          >
+            <option value="">Selecciona la modalidad</option>
+            <option value="Presencial">Presencial</option>
+            <option value="Virtual">Virtual</option>
+          </select>
         </div>
 
         {/* Campus */}
@@ -399,23 +340,19 @@ export const EventsEditPage = () => {
             Campus
           </label>
           <select
+            className="form-select"
             id="campusId"
             name="campusId"
-            className={`form-select ${campusError ? "is-invalid" : ""}`}
             value={eventData.campusId || ""}
             onChange={handleChange}
-            disabled={!!eventData.subcampusId}
+              disabled={!!eventData.subcampusId} 
           >
-            <option value="">Seleccione un campus</option>
-            <option value="c2b6d8e1-1111-4abc-91f1-111111111111">
-              Campus Occidente
-            </option>
-            <option value="c3c7e9f2-2222-4abc-92f2-222222222222">
-              Campus Caribe
-            </option>
-            <option value="c4d8f0a3-3333-4abc-93f3-333333333333">
-              Campus Central
-            </option>
+            <option value="">Selecciona un campus</option>
+            {campuses.map((campus) => (
+              <option key={campus.campusId} value={campus.campusId}>
+                {campus.campusName}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -425,40 +362,32 @@ export const EventsEditPage = () => {
             Subcampus
           </label>
           <select
+            className="form-select"
             id="subcampusId"
             name="subcampusId"
-            className={`form-select ${campusError ? "is-invalid" : ""}`}
             value={eventData.subcampusId || ""}
             onChange={handleChange}
-            disabled={!!eventData.campusId}
+             disabled={!!eventData.campusId} 
           >
-            <option value="">Seleccione un subcampus</option>
-            <option value="s1e2f3g4-aaaa-4def-a8c9-aaaabbbbcccc">
-              Subcampus 1
-            </option>
-            <option value="s2f3g4h5-bbbb-4def-a8c9-bbbbccccdddd">
-              Subcampus 2
-            </option>
-            <option value="s3g4h5i6-cccc-4def-a8c9-ccccddddeeee">
-              Subcampus 3
-            </option>
+            <option value="">Selecciona un subcampus</option>
+            {subcampuses.map((subcampus) => (
+              <option key={subcampus.subcampusId} value={subcampus.subcampusId}>
+                {subcampus.subcampusName}
+              </option>
+            ))}
           </select>
-          {campusError && (
-            <div className="invalid-feedback d-block">{campusError}</div>
-          )}
         </div>
+
         <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
           <Button
             type="button"
             variant="secondary"
             onClick={() => navigate("/events-list")}
           >
-            <i className="bi bi-x me-2"></i>
-            Cancelar
+            <i className="bi bi-x me-2"></i> Cancelar
           </Button>
           <Button type="submit" variant="primary">
-            <i className="bi bi-check me-2"></i>
-            Guardar cambios
+            <i className="bi bi-check me-2"></i> Guardar
           </Button>
         </div>
       </form>
