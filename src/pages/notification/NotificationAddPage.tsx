@@ -5,15 +5,18 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { getAllEvents } from "../../services/eventService";
 import { createNotification } from "../../services/notificationService";
+import { Notification } from "../../types/Notification";
+import { Event } from "../../types/EventTypes";
 
 export const NotificationAddPage = () => {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<Omit<Notification, "notificationId" | "attachments"> & { eventId: string }>({
     notificationTitle: "",
     notificationMessage: "",
     notificationSendDate: "",
+    notificationEvents: [],
     eventId: "",
   });
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const navigate = useNavigate();
 
@@ -21,13 +24,16 @@ export const NotificationAddPage = () => {
     getAllEvents().then(setEvents);
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, files: inputFiles } = e.target as any;
-    if (name === "file") {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    if (name === "file" && "files" in e.target) {
+      const inputFiles = (e.target as HTMLInputElement).files;
       const file = inputFiles && inputFiles.length > 0 ? inputFiles[0] : null;
-      if (file && file.size > 200 * 1024 * 1024) { // 200 MB
+      if (file && file.size > 200 * 1024 * 1024) {
         Swal.fire("Error", "El archivo no puede superar los 200 MB.", "warning");
-        e.target.value = "";
+        (e.target as HTMLInputElement).value = "";
         setFile(null);
         return;
       }
@@ -39,14 +45,13 @@ export const NotificationAddPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validación de fecha futura
     const now = new Date();
     const sendDate = new Date(form.notificationSendDate);
     if (sendDate <= now) {
       Swal.fire("Error", "La fecha y hora de envío debe ser posterior a la actual.", "warning");
       return;
     }
-    const notification = {
+    const notification: Omit<Notification, "notificationId" | "attachments"> = {
       notificationTitle: form.notificationTitle,
       notificationMessage: form.notificationMessage,
       notificationSendDate: form.notificationSendDate,
