@@ -7,7 +7,7 @@ import { IconVariant } from '../../atoms/Icon/Icon';
 export interface FormField {
     name: string;
     label: string;
-    type: 'text' | 'number' | 'textarea' | 'select' | 'date' | 'file';
+    type: 'text' | 'number' | 'textarea' | 'select' | 'date' | 'file' | 'checkbox-group';
     required?: boolean;
     options?: Array<{ value: string | number; label: string }>;
     placeholder?: string;
@@ -43,10 +43,6 @@ export const GenericForm = <T extends Record<string, any>>({
     const [formValues, setFormValues] = React.useState<T>(initialValues);
     const [filePreviews, setFilePreviews] = React.useState<Record<string, string>>({});
 
-    // Sincroniza formValues cuando initialValues cambia
-    React.useEffect(() => {
-        setFormValues(initialValues);
-    }, [initialValues]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -110,8 +106,39 @@ export const GenericForm = <T extends Record<string, any>>({
                             <label htmlFor={field.name} className="form-label">
                                 {field.label} {field.required && <span className="text-danger">*</span>}
                             </label>
+                            {field.type === 'checkbox-group' ? (
+                                <div className="d-flex flex-column">
+                                    {field.options?.map(option => (
+                                        <div key={option.value} className="form-check">
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                id={`${field.name}-${option.value}`}
+                                                value={option.value}
+                                                checked={(formValues[field.name] || []).includes(option.value)}
+                                                onChange={(e) => {
+                                                    const checked = e.target.checked;
+                                                    setFormValues(prev => {
+                                                        const prevValues = prev[field.name] || [];
+                                                        const updatedValues = checked
+                                                            ? [...prevValues, option.value]
+                                                            : prevValues.filter((v: any) => v !== option.value);
 
-                            {field.type === 'textarea' ? (
+                                                        return {
+                                                            ...prev,
+                                                            [field.name]: updatedValues,
+                                                        };
+                                                    });
+                                                }}
+                                                disabled={field.disabled}
+                                            />
+                                            <label className="form-check-label" htmlFor={`${field.name}-${option.value}`}>
+                                                {option.label}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : field.type === 'textarea' ? (
                                 <textarea
                                     id={field.name}
                                     name={field.name}
@@ -177,7 +204,8 @@ export const GenericForm = <T extends Record<string, any>>({
                                     max={field.max}
                                     disabled={field.disabled}
                                 />
-                            )}
+                            )
+                            }
                         </div>
                     ))}
 

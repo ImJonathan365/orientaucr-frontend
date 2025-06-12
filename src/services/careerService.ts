@@ -6,9 +6,10 @@ interface AddCareerResponse {
   curriculaId: string;
 }
 
-export const getCareers = async () => {
+export const getCareers = async (): Promise<Career[]> => {
   const response = await axios.get(`${API_BASE_URL}/list`);
-  return response.data;
+  const careers = response.data as Career[];
+  return careers;
 };
 
 export const deleteCareer = async (id: string) => {
