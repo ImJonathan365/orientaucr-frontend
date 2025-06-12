@@ -119,7 +119,7 @@ export const EditCoursePage = () => {
                 .filter(c => c.courseId !== id)
                 .map(c => normalizeCode(c.courseCode));
 
-            // No permitir espacios
+           
             if (/\s/.test(code)) {
                 await Swal.fire({
                     icon: 'warning',
@@ -130,7 +130,7 @@ export const EditCoursePage = () => {
                 return;
             }
 
-            // No permitir más de 6 caracteres
+            
             if (code.length > 7) {
                 await Swal.fire({
                     icon: 'warning',
@@ -141,7 +141,6 @@ export const EditCoursePage = () => {
                 return;
             }
 
-            // Validar formato (ejemplo: dos letras al inicio)
             const courseCodeRegex = /^[A-Z]{2}[A-Z0-9-]*$/;
             if (!courseCodeRegex.test(code)) {
                 await Swal.fire({
@@ -153,7 +152,6 @@ export const EditCoursePage = () => {
                 return;
             }
 
-            // Validar código duplicado (ignorando guiones)
             if (existingCodes.includes(normalizedCode)) {
                 await Swal.fire({
                     icon: 'warning',
@@ -164,7 +162,6 @@ export const EditCoursePage = () => {
                 return;
             }
 
-            // Validar créditos sin ceros a la izquierda y mayor a 0
             const creditsStr = String(values.courseCredits);
             if (!/^[1-9][0-9]*$/.test(creditsStr)) {
                 await Swal.fire({
@@ -183,7 +180,7 @@ export const EditCoursePage = () => {
                 courseDescription: values.courseDescription.trim(),
                 courseCredits: values.courseCredits,
                 prerequisites: values.prerequisites,
-                courseSemester: 0 // o el valor que corresponda
+                courseSemester: 0
             });
 
             await Swal.fire({

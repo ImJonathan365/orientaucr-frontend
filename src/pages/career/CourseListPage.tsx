@@ -52,7 +52,7 @@ export const CourseListPage = () => {
           return;
         }
         setCareer(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError('No se pudo encontrar la carrera solicitada.');
         Swal.fire({
           title: 'Error',

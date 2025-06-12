@@ -15,7 +15,7 @@ interface NewCourseFormValues {
     courseName: string;
     courseDescription: string;
     credits: number;
-    prerequisites: string[]; // courseId[]
+    prerequisites: string[];
 }
 
 function normalizeCode(code: string) {
@@ -84,13 +84,11 @@ export const NewCoursesPage = () => {
 
     const handleSubmit = async (values: NewCourseFormValues) => {
         try {
-            // Normaliza el código eliminando guiones y pasando a mayúsculas
 
             const code = values.courseCode.trim().toUpperCase();
             const normalizedCode = normalizeCode(code);
             const existingCodes = courses.map(c => normalizeCode(c.courseCode));
 
-            // No permitir espacios
             if (/\s/.test(code)) {
                 await Swal.fire({
                     icon: 'warning',
@@ -101,7 +99,6 @@ export const NewCoursesPage = () => {
                 return;
             }
 
-            // No permitir más de 6 caracteres
             if (code.length > 7) {
                 await Swal.fire({
                     icon: 'warning',
@@ -112,7 +109,6 @@ export const NewCoursesPage = () => {
                 return;
             }
 
-            // Validar formato
             const courseCodeRegex = /^[A-Z]{2}[A-Z0-9-]*$/;
             if (!courseCodeRegex.test(code)) {
                 await Swal.fire({
@@ -124,7 +120,6 @@ export const NewCoursesPage = () => {
                 return;
             }
 
-            // Validación: código no repetido (ignorando guiones)
             if (existingCodes.includes(normalizedCode)) {
                 await Swal.fire({
                     icon: 'warning',
@@ -135,7 +130,6 @@ export const NewCoursesPage = () => {
                 return;
             }
 
-            // Validar que los créditos no tengan ceros a la izquierda y sean mayor a 0
             const creditsStr = String(values.credits);
             if (!/^[1-9][0-9]*$/.test(creditsStr)) {
                 await Swal.fire({
@@ -147,7 +141,6 @@ export const NewCoursesPage = () => {
                 return;
             }
 
-            // Payload para enviar al backend
             const payload = {
                 courseCode: values.courseCode.trim(),
                 courseName: values.courseName.trim(),
@@ -190,7 +183,7 @@ export const NewCoursesPage = () => {
                     courseCode: '',
                     courseName: '',
                     courseDescription: '',
-                    credits: 3, // <--- aquí
+                    credits: 3, 
                     prerequisites: []
                 }}
                 fields={formFields}
