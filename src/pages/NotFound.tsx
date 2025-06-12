@@ -13,6 +13,13 @@ export const NotFound = () => {
         }
 
     }, [location, navigate]);
+    useEffect(() => {
+        if(location.pathname.startsWith("/")){
+            setRedirecting(true);
+            navigate("/home", { replace: true });
+        }
+
+    }, [location, navigate]);
       useEffect(() => {
         if(location.pathname.startsWith("/roles/edit/")){
             setRedirecting(true);
@@ -31,6 +38,18 @@ export const NotFound = () => {
         if(location.pathname.startsWith("/careers/curricula/")){
             setRedirecting(true);
             navigate("/career-list", { replace: true });
+        }
+    }, [location, navigate]);
+    useEffect(() => {
+        if(location.pathname.startsWith("/careers/")){
+            setRedirecting(true);
+            navigate("/career-list", { replace: true });
+        }
+    }, [location, navigate]);
+    useEffect(() => {
+        if(location.pathname.startsWith("/courses/")){
+            setRedirecting(true);
+            navigate("/course-list", { replace: true });
         }
     }, [location, navigate]);
     useEffect(() => {

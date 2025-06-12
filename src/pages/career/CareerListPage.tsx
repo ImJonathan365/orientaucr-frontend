@@ -110,7 +110,9 @@ export const CareerListPage = () => {
       key: 'careerDurationYears',
       label: 'Duración (años)',
       className: 'text-center w-10',
-      render: (row) => `${row.careerDurationYears}`
+      render: (row) => (
+        <div className="text-center">{row.careerDurationYears}</div>
+      )
     },
     {
       key: 'characteristics',
