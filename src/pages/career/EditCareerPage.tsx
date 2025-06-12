@@ -26,7 +26,7 @@ export const EditCareerPage = () => {
     useEffect(() => {
         const fetchCharacteristics = async () => {
             try {
-                const data = await getAllCharacteristics(); // Este servicio debe darte todas las opciones
+                const data = await getAllCharacteristics(); 
                 setAllCharacteristics(data);
             } catch (error) {
                 console.error('Error al cargar características:', error);
@@ -90,10 +90,10 @@ export const EditCareerPage = () => {
 
     function normalizeString(str: string): string {
         return str
-            .normalize('NFD') // separa acentos
-            .replace(/[\u0300-\u036f]/g, '') // elimina acentos
-            .replace(/\s+/g, '') // elimina todos los espacios
-            .toLowerCase(); // todo a minúsculas
+            .normalize('NFD') 
+            .replace(/[\u0300-\u036f]/g, '') 
+            .replace(/\s+/g, '') 
+            .toLowerCase();
     }
 
     const handleSubmit = async (formData: Partial<Career>) => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GenericForm } from '../../components/organisms/FormBar/GenericForm';
-import { addCareer, getCoursesForCurricula, addCourseToCareer, getCareers } from '../../services/careerService';
+import { addCareer, getCoursesForCurricula, addCourseToCareer, getCareers, AddCareerPayload} from '../../services/careerService';
 import { getAllCharacteristics } from '../../services/characteristicService';
 import { FormField } from '../../components/organisms/FormBar/GenericForm';
 import Swal from "sweetalert2";
@@ -10,6 +10,7 @@ import { Form, Row, Col, Button } from 'react-bootstrap';
 interface Characteristic {
   characteristicsId: string;
   characteristicsName: string;
+  characteristicsDescription?: string;
 }
 
 interface Course {
@@ -28,7 +29,7 @@ interface CareerFormValues {
   careerName: string;
   careerDescription: string;
   careerDurationYears: number;
-  characteristics: string[]; // IDs
+  characteristics: string[]; 
   courses: SelectedCourse[];
 }
 
@@ -66,12 +67,12 @@ export const NewCareerPage = () => {
 
   function normalizeString(str: string) {
     return str
-      .normalize('NFD')               // Descompone letras con tilde en letra + tilde
-      .replace(/[\u0300-\u036f]/g, '') // Elimina los caracteres de tilde
-      .replace(/\s+/g, ' ')            // Reemplaza múltiples espacios por uno solo
-      .trim()                         // Elimina espacios al inicio y fin
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
       .toLowerCase()
-      .replace(/[^a-z0-9 ]/g, '')     // Elimina caracteres no alfanuméricos;
+      .replace(/[^a-z0-9 ]/g, '')
       .replace(/\s+/g, '')
       .replace(/[^a-zA-Z0-9 ]/g, '')
   }
@@ -101,16 +102,26 @@ export const NewCareerPage = () => {
         });
         return;
       }
-      const payload = {
+      const creditsStr = String(values.careerDurationYears);
+      if (!/^[1-9][0-9]*$/.test(creditsStr)) {
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Duración inválida',
+          text: 'La cantidad de años debe ser un número entero positivo sin ceros a la izquierda.',
+          confirmButtonText: 'Aceptar'
+        });
+        return;
+      }
+      const payload: AddCareerPayload = {
         ...values,
         characteristics: values.characteristics.map(id => {
           const characteristic = characteristics.find(c => c.characteristicsId === id);
           return characteristic
             ? {
-              characteristicsId: characteristic.characteristicsId,
-              characteristicsName: characteristic.characteristicsName,
-              characteristicsDescription: (characteristic as any).characteristicsDescription || ''
-            }
+                characteristicsId: characteristic.characteristicsId,
+                characteristicsName: characteristic.characteristicsName,
+                characteristicsDescription: characteristic.characteristicsDescription || ''
+              }
             : { characteristicsId: id, characteristicsName: '', characteristicsDescription: '' };
         }),
 

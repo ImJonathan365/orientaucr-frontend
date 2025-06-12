@@ -6,6 +6,19 @@ interface AddCareerResponse {
   curriculaId: string;
 }
 
+export interface AddCareerPayload {
+  careerId?: string;
+  careerName: string;
+  careerDescription: string;
+  careerDurationYears: number;
+  characteristics: {
+    characteristicsId: string;
+    characteristicsName: string;
+    characteristicsDescription?: string;
+  }[];
+  curricula: {};
+}
+
 export const getCareers = async (): Promise<Career[]> => {
   const response = await axios.get(`${API_BASE_URL}/list`);
   const careers = response.data as Career[];
@@ -44,7 +57,7 @@ export const getCoursesForCurricula = async (curricula_id: string) => {
   return response.data;
 }
 
-export const addCareer = async (careerData: any): Promise<string> => {
+export const addCareer = async (careerData: AddCareerPayload): Promise<string> => {
   const response = await axios.post<AddCareerResponse>(`${API_BASE_URL}/addCareer`, careerData);
   return response.data.curriculaId;
 }
