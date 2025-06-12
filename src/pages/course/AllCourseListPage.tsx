@@ -105,7 +105,7 @@ export const AllCourseListPage = () => {
     {
       key: 'courseCode',
       label: 'Código',
-      className: 'w-15',
+      className: 'w-25',
     },
     {
       key: 'courseName',
@@ -115,13 +115,15 @@ export const AllCourseListPage = () => {
     {
       key: 'courseDescription',
       label: 'Descripción',
-      className: 'w-30',
+      className: 'w-50',
     },
     {
       key: 'courseCredits',
       label: 'Créditos',
       className: 'text-center w-10',
-      render: (row) => `${row.courseCredits}`
+      render: (row) => (
+        <div className="text-center">{row.courseCredits}</div>
+      )
     },
     {
       key: 'prerequisites',
