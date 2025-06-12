@@ -6,30 +6,27 @@ interface SideBarProps {
   setVisible: (v: boolean) => void;
 }
 
+const menuItems = [
+  { path: "/career-list", icon: "bi-book", label: "Carreras", permission: "VER CARRERAS" },
+  { path: "/course-list", icon: "bi-journal-bookmark", label: "Cursos", permission: "VER CURSOS" },
+  { path: "/events-list", icon: "bi-calendar-event", label: "Eventos", permission: "VER EVENTOS" },
+  { path: "/test-list", icon: "bi-clipboard-check", label: "Test vocacional", permission: "VER TEST VOCACIONAL" },
+  { path: "/simulation-questions", icon: "bi-pencil-square", label: "Prueba simulada", permission: "VER PRUEBAS SIMULADAS" },
+  { path: "/users", icon: "bi-people", label: "Usuarios", permission: "VER USUARIOS" },
+  { path: "/roles-list", icon: "bi-shield-check", label: "Roles", permission: "VER ROLES" },
+  { path: "/notifications", icon: "bi-bell", label: "Notificaciones", permission: "VER NOTIFICACIONES" }
+];
+
 export default function SideBar({ visible, setVisible }: SideBarProps) {
   const user = getUserFromLocalStorage();
   const location = useLocation();
 
-  const menuItems = [
+  const userPermissions: string[] =
+    user?.userRoles?.[0]?.permissions?.map((p: any) => p.permissionName) || [];
 
-    { path: "/home", icon: "bi-house", label: "Home" },
-    { path: "/career-list", icon: "bi-book", label: "Carreras" },
-    { path: "/course-list", icon: "bi-journal-bookmark", label: "Cursos" },
-    { path: "/events-list", icon: "bi-calendar-event", label: "Events" },
-    { path: "/vocational-test", icon: "bi-clipboard-check", label: "Vocational Test" },
-    { path: "/simulation-test", icon: "bi-pencil-square", label: "Simulation Test" },
-    { path: "/usuarios", icon: "bi-people", label: "List User" },
-    { path: "/test-list", icon: "bi-question-circle", label: "Preguntas Test" },
-    { path: "/simulation-questions", icon: "bi-question-circle", label: "Preguntas prueba simulada" },
-    { path: "/simulation-exam-start", icon: "bi-clipboard-check", label:  "Prueba simulada" },
-    { path: "/career-list", icon: "bi-book", label: "Carreras" },
-    { path: "/events-list", icon: "bi-calendar-event", label: "Eventos" },
-    { path: "/test-list", icon: "bi-clipboard-check", label: "Test vocacional" },
-    { path: "/users", icon: "bi-people", label: "Usuarios" },
-    { path: "/simulation-questions", icon: "bi-pencil-square", label: "Prueba simulada" },
-    { path: "/roles-list", icon: "bi-shield-check", label: "Roles" },
-    { path: "/notifications", icon: "bi-bell", label: "Notificaciones" }
-  ];
+  const filteredMenuItems = menuItems.filter(item =>
+    userPermissions.includes(item.permission)
+  );
 
   if (!visible) {
     return (
@@ -67,7 +64,7 @@ export default function SideBar({ visible, setVisible }: SideBarProps) {
       </button>
       <hr />
       <ul className="nav nav-pills flex-column mb-auto">
-        {menuItems.map((item) => (
+        {filteredMenuItems.map((item) => (
           <li key={item.path} className="nav-item">
             <Link
               to={item.path}
