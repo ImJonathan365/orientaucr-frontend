@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 import { Title } from "../../components/atoms/Title/Ttile";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";
-
+ 
 function normalizeQuestionText(text: string) {
   return text
     .trim()
