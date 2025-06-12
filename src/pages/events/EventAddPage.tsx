@@ -6,14 +6,11 @@ import { Title } from "../../components/atoms/Title/Ttile";
 import { Button } from "../../components/atoms/Button/Button";
 import { Event } from "../../types/EventTypes";
 import { addEvent } from "../../services/eventService";
-<<<<<<< HEAD
 import { getUserFromLocalStorage } from "../../utils/Auth";
-=======
 import { getAllCampus } from "../../services/campusService";
 import { Campus } from "../../types/campusType";
 import { Subcampus } from "../../types/subcampusType";
 import { getAllSubcampus } from "../../services/subcampusService";
->>>>>>> Carlos
 
 export const EventAddPage = () => {
   const navigate = useNavigate();
