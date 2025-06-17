@@ -46,15 +46,20 @@ export const NotificationAddPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const now = new Date();
-    const sendDate = new Date(form.notificationSendDate);
-    if (sendDate <= now) {
+    const sendDateLocal = new Date(form.notificationSendDate);
+
+    if (sendDateLocal <= now) {
       Swal.fire("Error", "La fecha y hora de envío debe ser posterior a la actual.", "warning");
       return;
     }
+
+    // Convertir la fecha local a UTC ISO string
+    const notificationSendDateUTC = sendDateLocal.toISOString();
+
     const notification: Omit<Notification, "notificationId" | "attachments"> = {
       notificationTitle: form.notificationTitle,
       notificationMessage: form.notificationMessage,
-      notificationSendDate: form.notificationSendDate,
+      notificationSendDate: notificationSendDateUTC,
       notificationEvents: [
         {
           event: { eventId: form.eventId }

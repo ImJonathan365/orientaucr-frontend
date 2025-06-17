@@ -41,6 +41,8 @@ export const SimulationQuestionListPage = () => {
     setLoading(true);
     try {
       const data = await getAllQuestions();
+      // Ordenar alfabéticamente por el texto de la pregunta
+      data.sort((a, b) => a.questionText.localeCompare(b.questionText));
       setQuestions(data);
     } catch {
       setQuestions([]);
@@ -164,5 +166,4 @@ export const SimulationQuestionListPage = () => {
         data={questions}
       />
     </div>
-  );
-};
+  );}
