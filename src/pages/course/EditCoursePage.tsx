@@ -179,6 +179,8 @@ export const EditCoursePage = () => {
                 courseName: values.courseName.trim(),
                 courseDescription: values.courseDescription.trim(),
                 courseCredits: values.courseCredits,
+                courseIsShared: false,
+                courseIsAsigned: false,
                 prerequisites: values.prerequisites,
                 courseSemester: 0
             });

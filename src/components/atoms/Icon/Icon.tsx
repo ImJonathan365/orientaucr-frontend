@@ -11,7 +11,8 @@ export type IconVariant =
   | 'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'youtube' | 'tiktok'
   // Iconos adicionales útiles
   | 'calendar' | 'envelope' | 'phone' | 'map' | 'download' | 'upload'
-  | 'heart' | 'star' | 'share' | 'filter' | 'grid' | 'list';
+  | 'heart' | 'star' | 'share' | 'filter' | 'grid' | 'list'
+  | 'chevron-down' | 'chevron-right';
 
 type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number | string;
 type IconWidth = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number | string;
@@ -79,7 +80,9 @@ export const Icon: React.FC<IconProps> = ({
     'share': 'share',
     'filter': 'filter',
     'grid': 'grid',
-    'list': 'list'
+    'list': 'list',
+    'chevron-down': 'chevron-down',
+    'chevron-right': 'chevron-right'
   };
 
   // Tamaños predefinidos
