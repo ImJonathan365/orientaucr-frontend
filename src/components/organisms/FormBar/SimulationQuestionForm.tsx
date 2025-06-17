@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { SimulationQuestion, SimulationOption, Difficulty } from "../../../types/SimulationQuestion";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 interface Props {
     initial?: SimulationQuestion;
@@ -14,6 +15,24 @@ const defaultOptions: SimulationOption[] = [
     { optionId: "", optionText: "", isCorrect: false },
     { optionId: "", optionText: "", isCorrect: false },
 ];
+
+// Normaliza el texto para comparar opciones
+function normalizeOptionText(text: string) {
+    return text
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/^[¿?]+/, "")
+        .replace(/[¿?]+$/, "")
+        .replace(/\s+/g, " ");
+}
+
+// Valida que la opción no sea solo espacios ni solo símbolos
+const isValidOption = (text: string) => {
+    const trimmed = text.trim();
+    return trimmed.length > 0 && /[a-zA-Z0-9]/.test(trimmed);
+};
 
 export const SimulationQuestionForm: React.FC<Props> = ({ initial, onSubmit, loading }) => {
     const [questionText, setQuestionText] = useState(initial?.questionText ?? "");
@@ -47,11 +66,40 @@ export const SimulationQuestionForm: React.FC<Props> = ({ initial, onSubmit, loa
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validar opciones
+        for (let i = 0; i < options.length; i++) {
+            if (!isValidOption(options[i].optionText)) {
+                Swal.fire("Error", `La opción ${i + 1} debe contener al menos una letra o número y no puede estar vacía ni ser solo símbolos.`, "warning");
+                return;
+            }
+        }
+
+        // Validar opciones repetidas
+        const normalizedOptions = options.map(opt => normalizeOptionText(opt.optionText));
+        const uniqueOptions = new Set(normalizedOptions);
+        if (uniqueOptions.size !== normalizedOptions.length) {
+            Swal.fire("Error", "No puede haber opciones repetidas.", "warning");
+            return;
+        }
+
+        // Validar cantidad de opciones
+        if (options.length !== 4) {
+            Swal.fire("Error", "Deben ser 4 opciones.", "warning");
+            return;
+        }
+
+        // Validar opción correcta
+        if (!options.some(opt => opt.isCorrect)) {
+            Swal.fire("Error", "Debe marcar una opción como correcta.", "warning");
+            return;
+        }
+
         onSubmit({
             questionId: initial?.questionId || "",
             questionText,
             questionCategory,
-            difficulty, // <-- Nuevo campo
+            difficulty,
             options,
         });
     };
