@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
-import { getUserFromLocalStorage } from "../../utils/Auth";
 import { User } from "../../types/userType";
-import { updateUser } from "../../services/userService";
+import { updateUser, getCurrentUser } from "../../services/userService";
 import Swal from "sweetalert2";
 import { Input } from "../../components/atoms/Input/Input";
 import { Button } from "../../components/atoms/Button/Button";
@@ -9,8 +8,7 @@ import { Title } from "../../components/atoms/Title/Ttile";
 import { useNavigate } from "react-router-dom";
 
 export const UserProfile = () => {
-  const userLocal = getUserFromLocalStorage() as User | null;
-  const [user, setUser] = useState<User | null>(userLocal);
+  const [user, setUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);

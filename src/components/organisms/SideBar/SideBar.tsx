@@ -1,5 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { getUserFromLocalStorage } from "../../../utils/Auth";
+import { getCurrentUser } from "../../../services/userService";
+import { User } from "../../../types/userType";
+import { useEffect, useState } from "react";
 
 interface SideBarProps {
   visible: boolean;
@@ -10,19 +12,31 @@ const menuItems = [
   { path: "/career-list", icon: "bi-book", label: "Carreras", permission: "VER CARRERAS" },
   { path: "/course-list", icon: "bi-journal-bookmark", label: "Cursos", permission: "VER CURSOS" },
   { path: "/events-list", icon: "bi-calendar-event", label: "Eventos", permission: "VER EVENTOS" },
-  { path: "/test-list", icon: "bi-clipboard-check", label: "Test vocacional", permission: "VER TEST VOCACIONAL" },
-  { path: "/simulation-questions", icon: "bi-pencil-square", label: "Prueba simulada", permission: "VER PRUEBAS SIMULADAS" },
+  { path: "/test-list", icon: "bi-clipboard-check", label: "Test vocacional", permission: "VER PREGUNTAS TEST" },
+  { path: "/simulation-questions", icon: "bi-pencil-square", label: "Prueba simulada", permission: "VER PREGUNTAS SIMULADAS" },
   { path: "/users", icon: "bi-people", label: "Usuarios", permission: "VER USUARIOS" },
   { path: "/roles-list", icon: "bi-shield-check", label: "Roles", permission: "VER ROLES" },
   { path: "/notifications", icon: "bi-bell", label: "Notificaciones", permission: "VER NOTIFICACIONES" }
 ];
 
 export default function SideBar({ visible, setVisible }: SideBarProps) {
-  const user = getUserFromLocalStorage();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const location = useLocation();
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+    fetchUser();
+  }, []);
+
   const userPermissions: string[] =
-    user?.userRoles?.[0]?.permissions?.map((p: any) => p.permissionName) || [];
+    currentUser?.userRoles?.[0]?.permissions?.map((p: any) => p.permissionName) || [];
 
   const filteredMenuItems = menuItems.filter(item =>
     userPermissions.includes(item.permission)

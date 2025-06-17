@@ -1,13 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import { getSimulationExam, submitExamAttempt } from "../../services/simulationService";
 import { SimulationQuestion } from "../../types/SimulationQuestion";
-import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
-import { getUserFromLocalStorage } from "../../utils/Auth";
+import { getCurrentUser } from "../../services/userService";
+import { User } from "../../types/userType";
+import Swal from "sweetalert2";
 
-const EXAM_TIME = 2 * 60 * 60; 
+const EXAM_TIME = 2 * 60 * 60;
 
 export const SimulationExamPage = () => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [questions, setQuestions] = useState<SimulationQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
@@ -16,6 +18,18 @@ export const SimulationExamPage = () => {
   const [timeUp, setTimeUp] = useState(false);
   const navigate = useNavigate();
   const examSentRef = useRef(false);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     getSimulationExam().then(qs => {
@@ -66,8 +80,7 @@ export const SimulationExamPage = () => {
       }
     });
     const score = (correctCount / questions.length) * 100;
-    const userId = getUserFromLocalStorage()?.userId || "";
-
+    const userId = currentUser?.userId || "";
     try {
       await submitExamAttempt({
         attemptScore: score,

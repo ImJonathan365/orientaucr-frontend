@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import { Login } from "../pages/auth/LoginPage";
+import LoginPage from "../pages/auth/LoginPage";
 import { RegisterPage } from "../pages/auth/RegisterPage";
 import PublicHomePage from "../pages/PublicHomePage";
 import { HomePage } from "../pages/home/HomePage";
@@ -45,7 +45,7 @@ export default function AppRoutes() {
     <Routes>
       {/* Rutas públicas */}
       <Route path="/" element={<PublicHomePage />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
       {/* Rutas privadas */}

@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getAllUsers, deleteUser } from "../../services/userService";
+import { getAllUsers, deleteUser, getCurrentUser } from "../../services/userService";
 import { User } from "../../types/userType";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
-import { getUserFromLocalStorage } from "../../utils/Auth";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";
 
@@ -42,18 +41,22 @@ const UserListPage: React.FC = () => {
     cargarUsuarios();
   }, []);
 
-  const cargarUsuarios = () => {
+  const cargarUsuarios = async () => {
     setLoading(true);
-    getAllUsers(getUserFromLocalStorage()?.userId || "")
-      .then(setUsers)
-      .catch(() =>
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Error al cargar usuarios",
-        })
-      )
-      .finally(() => setLoading(false));
+    try {
+      const currentUser = await getCurrentUser();
+      const userId = currentUser?.userId || "";
+      const users = await getAllUsers(userId);
+      setUsers(users);
+    } catch {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error al cargar usuarios",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (user: User) => {
