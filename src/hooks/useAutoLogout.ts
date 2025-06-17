@@ -1,17 +1,16 @@
 import { useEffect } from "react";
-import { getUserFromLocalStorage, logoutUser, saveUserToLocalStorage } from "../utils/Auth";
+import { getToken, removeToken, updateTokenActivity, getTokenLastActivity } from "../utils/Auth";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 
 export function useAutoLogout(inactivityLimit: number) {
   const navigate = useNavigate();
 
+  
   useEffect(() => {
     const updateActivity = () => {
-      const user = getUserFromLocalStorage();
-      if (user) {
-        user.lastActivity = Date.now();
-        saveUserToLocalStorage(user);
+      if (getToken()) {
+        updateTokenActivity();
       }
     };
 
@@ -19,9 +18,9 @@ export function useAutoLogout(inactivityLimit: number) {
     window.addEventListener("keydown", updateActivity);
 
     const interval = setInterval(() => {
-      const user = getUserFromLocalStorage();
-      if (user && user.lastActivity && Date.now() - user.lastActivity > inactivityLimit) {
-        logoutUser();
+      const lastActivity = getTokenLastActivity();
+      if (getToken() && lastActivity && Date.now() - lastActivity > inactivityLimit) {
+        removeToken();
         Swal.fire({
           title: "Sesión expirada",
           text: "Su sesión ha expirado por inactividad. Por favor, inicie sesión nuevamente.",

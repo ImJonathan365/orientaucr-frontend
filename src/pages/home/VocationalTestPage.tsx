@@ -3,12 +3,26 @@ import { HeaderBar } from "../../components/organisms/HeaderBar/HeaderBar";
 import FooterBar from "../../components/organisms/FooterBar/FooterBar";
 import { Link } from "react-router-dom";
 import { Icon } from "../../components/atoms/Icon/Icon";
-import { getUserFromLocalStorage } from "../../utils/Auth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { User } from "../../types/userType";
+import { getCurrentUser } from "../../services/userService";
 
 export const VocationalTestPage = () => {
-  const user = getUserFromLocalStorage();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [sidebarVisible, setSidebarVisible] = useState(true);
+
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+    fetchUser();
+  }, []);
 
   return (
     <>
@@ -27,7 +41,7 @@ export const VocationalTestPage = () => {
           <center>
             <Link
               style={{ backgroundColor: "#4bc0e1", color: "#fff", border: "none" }}
-              className="btn btn-success" to={user ? "/test" : "/register"}>
+              className="btn btn-success" to={currentUser ? "/test" : "/register"}>
               <Icon variant="play" size="xl" />
               Comenzar Test
             </Link>

@@ -4,12 +4,26 @@ import { getAllEvents, insertUserInterestedEvent } from "../../services/eventSer
 import FooterBar from "../../components/organisms/FooterBar/FooterBar";
 import { HeaderBar } from "../../components/organisms/HeaderBar/HeaderBar";
 import SideBar from "../../components/organisms/SideBar/SideBar";
-import { getUserFromLocalStorage } from "../../utils/Auth"; // Ajusta la ruta si está en otra carpeta
 import Swal from "sweetalert2";
+import { getCurrentUser } from "../../services/userService";
+import { User } from "../../types/userType";
 
 export const EventsPage = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -24,8 +38,7 @@ export const EventsPage = () => {
   }, []);
 
   const handleParticipate = async (event: Event) => {
-    const user = getUserFromLocalStorage();
-    if (!user) {
+    if (!currentUser || !currentUser.userId) {
       Swal.fire({
         icon: "warning",
         title: "Debes iniciar sesión",
@@ -46,7 +59,7 @@ export const EventsPage = () => {
 
     if (result.isConfirmed) {
       try {
-        await insertUserInterestedEvent(event.eventId, user.userId ?? "");
+        await insertUserInterestedEvent(event.eventId, currentUser.userId ?? "");
         Swal.fire({
           icon: "success",
           title: "¡Te esperamos!",

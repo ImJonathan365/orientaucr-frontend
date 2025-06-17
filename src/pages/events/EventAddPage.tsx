@@ -6,16 +6,28 @@ import { Title } from "../../components/atoms/Title/Ttile";
 import { Button } from "../../components/atoms/Button/Button";
 import { Event } from "../../types/EventTypes";
 import { addEvent } from "../../services/eventService";
-import { getUserFromLocalStorage } from "../../utils/Auth";
 import { getAllCampus } from "../../services/campusService";
 import { Campus } from "../../types/campusType";
 import { Subcampus } from "../../types/subcampusType";
 import { getAllSubcampus } from "../../services/subcampusService";
-
+import { getCurrentUser } from "../../services/userService";
+import { User } from "../../types/userType";
 export const EventAddPage = () => {
   const navigate = useNavigate();
-  const user = getUserFromLocalStorage();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const today = new Date().toISOString().split("T")[0];
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const [eventData, setEventData] = useState<Event>({
     eventId: "",
@@ -25,7 +37,7 @@ export const EventAddPage = () => {
     eventTime: "",
     eventModality: "virtual",
     eventImagePath: null,
-    createdBy: user?.userId || "",
+    createdBy: currentUser?.userId || "",
     campusId: "",
     subcampusId: "",
   });
