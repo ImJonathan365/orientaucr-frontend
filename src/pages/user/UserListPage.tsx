@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { getAllUsers, deleteUser, getCurrentUser } from "../../services/userService";
+import React, { useEffect, useState, useCallback } from "react";
+import { getAllUsers, deleteUser } from "../../services/userService";
 import { User } from "../../types/userType";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";
+import { useUser } from "../../contexts/UserContext";
 
 type UserWithActions = User & { onDelete: (user: User) => void; onEdit: (user: User) => void };
 
@@ -33,21 +34,18 @@ const columns: TableColumn<UserWithActions>[] = [
 ];
 
 const UserListPage: React.FC = () => {
+  const { user: currentUser } = useUser();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    cargarUsuarios();
-  }, []);
-
-  const cargarUsuarios = async () => {
+  const cargarUsuarios = useCallback(async () => {
     setLoading(true);
     try {
-      const currentUser = await getCurrentUser();
-      const userId = currentUser?.userId || "";
-      const users = await getAllUsers(userId);
-      setUsers(users);
+      if (currentUser?.userId) {
+        const usersList = await getAllUsers(currentUser.userId);
+        setUsers(usersList);
+      }
     } catch {
       Swal.fire({
         icon: "error",
@@ -57,7 +55,11 @@ const UserListPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser]);
+
+  useEffect(() => {
+    cargarUsuarios();
+  }, [cargarUsuarios]);
 
   const handleDelete = async (user: User) => {
     const result = await Swal.fire({
@@ -71,13 +73,13 @@ const UserListPage: React.FC = () => {
     if (!result.isConfirmed) return;
     try {
       await deleteUser(user.userId!);
+      await cargarUsuarios();
       await Swal.fire({
         icon: "success",
         title: "Usuario eliminado correctamente",
         timer: 1500,
         showConfirmButton: false,
       });
-      cargarUsuarios();
     } catch {
       Swal.fire({
         icon: "error",
@@ -106,31 +108,33 @@ const UserListPage: React.FC = () => {
   }));
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <Button
-          variant="secondary"
-          onClick={handleBack}
-        >
-          <Icon variant="home" className="me-2" />
-          Regresar
-        </Button>
-        <h2>Lista de Usuarios</h2>
-        <Button className="btn btn-primary" onClick={handleCreate}>
-          <Icon variant="add" className="me-2" />
-          Nuevo Usuario
-        </Button>
+    <>
+      <div className="container mt-4">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <Button
+            variant="secondary"
+            onClick={handleBack}
+          >
+            <Icon variant="home" className="me-2" />
+            Regresar
+          </Button>
+          <h2>Lista de Usuarios</h2>
+          <Button className="btn btn-primary" onClick={handleCreate}>
+            <Icon variant="add" className="me-2" />
+            Nuevo Usuario
+          </Button>
+        </div>
+        {loading ? (
+          <p>Cargando...</p>
+        ) : (
+          <Table
+            columns={columns}
+            data={usersWithActions}
+            onEdit={handleEdit}
+            onDelete={handleDelete} />
+        )}
       </div>
-      {loading ? (
-        <p>Cargando...</p>
-      ) : (
-        <Table
-          columns={columns}
-          data={usersWithActions}
-          onEdit={handleEdit}
-          onDelete={handleDelete} />
-      )}
-    </div>
+    </>
   );
 };
 

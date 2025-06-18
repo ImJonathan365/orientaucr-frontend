@@ -1,6 +1,3 @@
-import { getCurrentUser } from "../services/userService";
-import { User } from "../types/userType";
-
 const TOKEN_KEY = 'jwt_token_with_activity';
 
 type TokenWithActivity = {
