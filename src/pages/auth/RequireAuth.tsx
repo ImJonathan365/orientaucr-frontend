@@ -13,9 +13,14 @@ export function RequireAuth({ children }: RequireAuthProps) {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await getCurrentUser();
-      setCurrentUser(user);
-      setLoading(false);
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch (error) {
+        setCurrentUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchUser();
   }, []);
