@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import { Event } from "../../types/EventTypes";
-import { getAllEvents, insertUserInterestedEvent, removeUserInterestedEvent } from "../../services/eventService";
+import {
+  getAllEvents,
+  insertUserInterestedEvent,
+  removeUserInterestedEvent,
+  getImage,
+  getUserInterestedEvents
+} from "../../services/eventService";
 import Swal from "sweetalert2";
 import { getCurrentUser } from "../../services/userService";
 import { User } from "../../types/userType";
 
 export const EventsPage = () => {
   const [events, setEvents] = useState<Event[]>([]);
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userInterestedEvents, setUserInterestedEvents] = useState<Set<string>>(new Set());
 
@@ -33,25 +40,41 @@ export const EventsPage = () => {
   };
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndInterests = async () => {
       try {
         const user = await getCurrentUser();
         setCurrentUser(user);
-        setUserInterestedEvents(new Set());
-      } catch {
+
+        const interested = await getUserInterestedEvents(user.userId ?? "");
+        setUserInterestedEvents(new Set(interested));
+      } catch (error) {
+        console.error("Error al cargar usuario o eventos interesados", error);
         setCurrentUser(null);
         setUserInterestedEvents(new Set());
       }
     };
-    fetchUser();
+
+    fetchUserAndInterests();
   }, []);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const data = await getAllEvents();
-        // Ya no se filtran eventos por fecha/hora
         setEvents(data);
+
+        // Obtener imágenes para cada evento que tenga eventImagePath
+        data.forEach(async (event) => {
+          if (event.eventImagePath) {
+            try {
+              const url = await getImage(event.eventImagePath);
+              setImageUrls(prev => ({ ...prev, [event.eventId]: url }));
+            } catch (error) {
+              console.error(`Error cargando imagen para evento ${event.eventId}:`, error);
+            }
+          }
+        });
+
       } catch (error) {
         console.error("Error fetching events:", error);
         Swal.fire({
@@ -61,6 +84,7 @@ export const EventsPage = () => {
         });
       }
     };
+
     fetchEvents();
   }, []);
 
@@ -124,7 +148,7 @@ export const EventsPage = () => {
       Swal.fire({
         icon: "warning",
         title: "Debes iniciar sesión",
-        text: "Para participar en un evento debes estar autenticado.",
+        text: "Para cancelar tu participación, primero debes iniciar sesión.",
       });
       return;
     }
@@ -196,13 +220,15 @@ export const EventsPage = () => {
             return (
               <div className="col-sm-12 col-md-6 col-lg-4" key={event.eventId}>
                 <div className="card border-0 shadow-sm h-100 d-flex flex-column">
-                  {event.eventImagePath && (
+                  {imageUrls[event.eventId] ? (
                     <img
-                      src={event.eventImagePath || undefined}
+                      src={imageUrls[event.eventId]}
                       className="card-img-top rounded-top"
                       alt={event.eventTitle}
                       style={{ height: "180px", objectFit: "cover" }}
                     />
+                  ) : (
+                    <div style={{ height: "180px", backgroundColor: "#ddd" }} />
                   )}
                   <div className="card-body d-flex flex-column">
                     <h5 className="card-title fw-semibold text-dark">
@@ -248,7 +274,7 @@ export const EventsPage = () => {
             </p>
           </div>
         )}
-      </div >
+      </div>
     </>
   );
 };
