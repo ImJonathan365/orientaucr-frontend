@@ -6,17 +6,19 @@ import { Outlet } from "react-router-dom";
 
 export default function MainLayout() {
   const [sidebarVisible, setSidebarVisible] = useState(true);
-
+ 
   return (
     <>
-      <HeaderBar />
-      <div style={{ display: "flex", minHeight: "calc(100vh - 70px)" }}>
-        <SideBar visible={sidebarVisible} setVisible={setSidebarVisible} />
-        <main style={{ flex: 1, marginLeft: sidebarVisible ? 280 : 0, transition: "margin-left 0.3s" }}>
-          <Outlet />
-        </main>
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <HeaderBar />
+        <div style={{ display: "flex", flex: 1 }}>
+          <SideBar visible={sidebarVisible} setVisible={setSidebarVisible} />
+          <main style={{ flex: 1, transition: "margin-left 0.3s" }}>
+            <Outlet />
+          </main>
+        </div>
+        <FooterBar />
       </div>
-      <FooterBar />
     </>
   );
 }
