@@ -7,7 +7,7 @@ import { IconVariant } from '../../atoms/Icon/Icon';
 export interface FormField {
     name: string;
     label: string;
-    type: 'text' | 'number' | 'textarea' | 'select' | 'date' | 'file' | 'checkbox-group';
+    type: 'text' | 'number' | 'textarea' | 'select' | 'date' | 'file' | 'checkbox-group' | 'checkbox';
     required?: boolean;
     options?: Array<{ value: string | number; label: string }>;
     placeholder?: string;
@@ -108,7 +108,24 @@ export const GenericForm = <T extends Record<string, any>>({
                             <label htmlFor={field.name} className="form-label">
                                 {field.label} {field.required && <span className="text-danger">*</span>}
                             </label>
-                            {field.type === 'checkbox-group' ? (
+                            {field.type === 'checkbox' ? (
+                                <div className="form-check">
+                                    <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        id={field.name}
+                                        name={field.name}
+                                        checked={!!formValues[field.name]}
+                                        onChange={e => {
+                                            setFormValues(prev => ({
+                                                ...prev,
+                                                [field.name]: e.target.checked
+                                            }));
+                                        }}
+                                        disabled={field.disabled}
+                                    />
+                                </div>
+                            ) : field.type === 'checkbox-group' ? (
                                 <div className="d-flex flex-column">
                                     {field.options?.map(option => (
                                         <div key={option.value} className="form-check">
