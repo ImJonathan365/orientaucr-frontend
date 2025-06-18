@@ -1,7 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { getCurrentUser } from "../../../services/userService";
-import { User } from "../../../types/userType";
-import { useEffect, useState } from "react";
+import { useUser } from "../../../contexts/UserContext";
 
 interface SideBarProps {
   visible: boolean;
@@ -20,23 +18,32 @@ const menuItems = [
 ];
 
 export default function SideBar({ visible, setVisible }: SideBarProps) {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const { user: currentUser, loading } = useUser();
   const location = useLocation();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = await getCurrentUser();
-        setCurrentUser(user);
-      } catch {
-        setCurrentUser(null);
-      }
-    };
-    fetchUser();
-  }, []);
+  if (loading && !currentUser) {
+    return (
+      <div
+        className="d-flex flex-column flex-shrink-0 p-3 bg-light"
+        style={{
+          width: "280px",
+          height: "calc(100vh - 70px)",
+          position: "sticky",
+          left: 0,
+          top: 56,
+          zIndex: 1040,
+          transition: "left 0.3s"
+        }}
+      >
+        <div className="text-center mt-5">Cargando menú...</div>
+      </div>
+    );
+  }
+
+  if (!currentUser) return null;
 
   const userPermissions: string[] =
-    currentUser?.userRoles?.[0]?.permissions?.map((p: any) => p.permissionName) || [];
+    currentUser.userRoles?.flatMap(r => r.permissions.map(p => p.permissionName)) || [];
 
   const filteredMenuItems = menuItems.filter(item =>
     userPermissions.includes(item.permission)
@@ -46,7 +53,7 @@ export default function SideBar({ visible, setVisible }: SideBarProps) {
     return (
       <button
         className="btn btn-light shadow"
-        style={{ position: "fixed", zIndex: 1050, left: 10, top: 70, borderRadius: "50%", width: 48, height: 48, padding: 0 }}
+        style={{ position: "fixed", zIndex: 1050, left: 10, borderRadius: "50%", width: 48, height: 48, padding: 0}}
         onClick={() => setVisible(true)}
         aria-label="Mostrar menú"
       >
@@ -60,9 +67,8 @@ export default function SideBar({ visible, setVisible }: SideBarProps) {
       className="d-flex flex-column flex-shrink-0 p-3 bg-light"
       style={{
         width: "280px",
-        height: "100vh",
-        position: "fixed",
-        left: 0,
+        height: "calc(100vh - 70px)",
+        position: "sticky",
         top: 56,
         zIndex: 1040,
         transition: "left 0.3s"
