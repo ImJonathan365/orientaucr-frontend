@@ -7,6 +7,7 @@ import { getCareerById, deleteCourseFromCareer, getCoursesForCurricula, addCours
 import { Career, Course } from '../../types/carrerTypes';
 import { Alert, Spinner, Form, Row, Col } from 'react-bootstrap';
 import Swal from "sweetalert2";
+import { updateCourse } from '../../services/courseService';
 
 export const CourseListPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -98,6 +99,15 @@ export const CourseListPage = () => {
       selectedCourseId,
       selectedSemester
     );
+    
+    const addedCourse = availableCourses.find(c => c.courseId === selectedCourseId);
+    if (addedCourse && !addedCourse.courseIsShared) {
+      await updateCourse({
+        ...addedCourse,
+        courseIsAsigned: true
+      });
+    }
+
     await Swal.fire("Agregado", "El curso fue agregado correctamente.", "success");
     // Refrescar carrera y cursos disponibles
     const updatedCareer = await getCareerById(career.careerId);
@@ -131,6 +141,14 @@ export const CourseListPage = () => {
           return;
         }
         await deleteCourseFromCareer(career.curricula.curriculaId, course.courseId);
+
+        if (!course.courseIsShared) {
+          await updateCourse({
+            ...course,
+            courseIsAsigned: false
+          });
+        };
+
         await Swal.fire("Eliminado", `El curso "${course.courseName}" fue eliminado correctamente.`, "success");
         const updatedCareer = await getCareerById(career.careerId);
         setCareer(updatedCareer);
