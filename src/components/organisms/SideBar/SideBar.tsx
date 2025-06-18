@@ -21,19 +21,18 @@ export default function SideBar({ visible, setVisible }: SideBarProps) {
   const { user: currentUser, loading } = useUser();
   const location = useLocation();
 
+  const sidebarStyle = {
+    width: "280px",
+    zIndex: 1040,
+    transition: "left 0.3s",
+    backgroundColor: "#73bbf0"
+  };
+
   if (loading && !currentUser) {
     return (
       <div
         className="d-flex flex-column flex-shrink-0 p-3 bg-light"
-        style={{
-          width: "280px",
-          height: "calc(100vh - 70px)",
-          position: "sticky",
-          left: 0,
-          top: 56,
-          zIndex: 1040,
-          transition: "left 0.3s"
-        }}
+        style={sidebarStyle}
       >
         <div className="text-center mt-5">Cargando menú...</div>
       </div>
@@ -53,7 +52,7 @@ export default function SideBar({ visible, setVisible }: SideBarProps) {
     return (
       <button
         className="btn btn-light shadow"
-        style={{ position: "fixed", zIndex: 1050, left: 10, borderRadius: "50%", width: 48, height: 48, padding: 0}}
+        style={{ position: "fixed", zIndex: 1050, left: 10, borderRadius: "50%", width: 48, height: 48, padding: 0 }}
         onClick={() => setVisible(true)}
         aria-label="Mostrar menú"
       >
@@ -65,14 +64,7 @@ export default function SideBar({ visible, setVisible }: SideBarProps) {
   return (
     <div
       className="d-flex flex-column flex-shrink-0 p-3 bg-light"
-      style={{
-        width: "280px",
-        height: "calc(100vh - 70px)",
-        position: "sticky",
-        top: 56,
-        zIndex: 1040,
-        transition: "left 0.3s"
-      }}
+      style={sidebarStyle}
     >
       <button
         className="btn btn-light mb-3 align-self-end"
