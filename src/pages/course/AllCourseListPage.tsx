@@ -11,10 +11,13 @@ interface Course {
   courseId: string;
   courseCode: string;
   courseCredits: number;
+  courseIsShared: boolean;
+  courseIsAsigned: boolean;
   courseName: string;
   courseDescription: string;
   courseSemester: number;
   prerequisites: string[];
+  corequisites: string[];
 }
 
 export const AllCourseListPage = () => {
@@ -52,6 +55,38 @@ export const AllCourseListPage = () => {
         {prereqs.map(p => (
           <span key={p.courseId} className="badge bg-primary">
             {p.courseCode}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  const CorequisitesList = ({ prereqIds }: { prereqIds: string[] }) => {
+    const [coreqs, setCoreqs] = useState<Course[]>([]);
+
+    useEffect(() => {
+      const fetchCoreqs = async () => {
+        try {
+          const promises = prereqIds.map(id => getCourseById(id));
+          const results = await Promise.all(promises);
+          setCoreqs(results);
+        } catch (error) {
+          console.error("Error fetching corequisites", error);
+        }
+      };
+
+      if (prereqIds.length > 0) {
+        fetchCoreqs();
+      } else {
+        setCoreqs([]);
+      }
+    }, [prereqIds]);
+
+    return (
+      <div className="d-flex flex-wrap gap-1">
+        {coreqs.map(c => (
+          <span key={c.courseId} className="badge bg-secondary">
+            {c.courseCode}
           </span>
         ))}
       </div>
@@ -126,9 +161,27 @@ export const AllCourseListPage = () => {
       )
     },
     {
+      key: 'courseIsShared',
+      label: 'Compartido',
+      className: 'text-center w-10',
+      render: (row) => (
+        <div className="text-center">
+          {row.courseIsShared
+            ? <Icon variant="check" className="text-success" />
+            : <Icon variant="close" className="text-danger" />}
+        </div>
+      )
+    },
+    {
       key: 'prerequisites',
       label: 'Prerrequisitos',
       render: (row) => <PrerequisitesList prereqIds={row.prerequisites} />,
+      className: 'w-20',
+    },
+    {
+      key: 'corequisites',
+      label: 'Correquisitos',
+      render: (row) => <CorequisitesList prereqIds={row.corequisites} />,
       className: 'w-20',
     }
   ];

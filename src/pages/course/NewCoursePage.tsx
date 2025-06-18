@@ -17,6 +17,7 @@ interface NewCourseFormValues {
     credits: number;
     courseIsShared: boolean;
     prerequisites: string[];
+    corequisites: string[];
 }
 
 function normalizeCode(code: string) {
@@ -80,6 +81,16 @@ export const NewCoursesPage = () => {
         {
             name: 'prerequisites',
             label: 'Prerrequisitos',
+            type: 'checkbox-group',
+            required: false,
+            options: courses.map(c => ({
+                value: c.courseId,
+                label: `${c.courseCode} - ${c.courseName}`
+            }))
+        },
+        {
+            name: 'corequisites',
+            label: 'Correquisitos',
             type: 'checkbox-group',
             required: false,
             options: courses.map(c => ({
@@ -154,7 +165,8 @@ export const NewCoursesPage = () => {
                 courseDescription: values.courseDescription.trim(),
                 courseCredits: values.credits,
                 courseIsShared: values.courseIsShared || false,
-                prerequisites: values.prerequisites
+                prerequisites: values.prerequisites,
+                corequisites: values.corequisites 
             };
 
             await addCourse(payload);
@@ -193,7 +205,8 @@ export const NewCoursesPage = () => {
                     courseDescription: '',
                     credits: 3,
                     courseIsShared: false, 
-                    prerequisites: []
+                    prerequisites: [],
+                    corequisites: []
                 }}
                 fields={formFields}
                 onSubmit={handleSubmit}
