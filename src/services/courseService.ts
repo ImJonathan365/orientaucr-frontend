@@ -8,6 +8,7 @@ export interface CourseCreate {
   courseDescription: string;
   courseCredits: number;
   prerequisites: string[];
+  corequisites: string[];
 }
 
 export const getCourses = async (): Promise<Course[]> => {

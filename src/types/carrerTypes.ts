@@ -14,6 +14,7 @@ export interface Course {
   courseDescription: string;
   courseSemester: number;
   prerequisites: string[];
+  corequisites: string[];
 }
 
 export interface Curricula {
