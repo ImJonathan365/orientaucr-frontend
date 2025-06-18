@@ -1,15 +1,17 @@
+import React, { useState, useRef, useEffect } from "react";
 import { Text } from "../../atoms/Text/Text";
 import { Icon } from "../../atoms/Icon/Icon";
 import { Button } from "../../atoms/Button/Button";
-import React, { useState, useRef, useEffect } from "react";
 import { Image } from "../../atoms/Image/Image";
 import { Link } from "react-router-dom";
 import { ProfileDropdown } from "../../molecules/ProfileDropdown/ProfileDropdown";
+import { useUser } from "../../../contexts/UserContext";
 
 export const HeaderBar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const { user } = useUser();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -49,7 +51,7 @@ export const HeaderBar: React.FC = () => {
             className="img-fluid"
             style={{ maxWidth: 100 }}
           />
-          <Link className="navbar-brand d-flex align-items-center ms-2" to="/home">
+          <Link className="navbar-brand d-flex align-items-center ms-2" to={user ? "/home" : "/"}>
             <Text variant="subtitle" weight="bold" className="text-success">
               OrientaUCR
             </Text>
@@ -69,35 +71,59 @@ export const HeaderBar: React.FC = () => {
           style={isMenuOpen ? { zIndex: 1050, right: 16 } : {}}
         >
           <ul className={`navbar-nav ${isMenuOpen ? "" : "flex-lg-row ms-auto align-items-center"}`}>
-            {navLinks.map((link) => (
-              <li className={`nav-item ${isMenuOpen ? "mb-2" : "me-lg-3"}`} key={link.to}>
-                <Link
-                  className="nav-link"
-                  to={link.to}
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    setProfileMenuOpen(false);
-                  }}
-                >
-                  <Text variant="body" className="text-secondary">
-                    {link.label}
-                  </Text>
-                </Link>
+            {user &&
+              navLinks.map((link) => (
+                <li className={`nav-item ${isMenuOpen ? "mb-2" : "me-lg-3"}`} key={link.to}>
+                  <Link
+                    className="nav-link"
+                    to={link.to}
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      setProfileMenuOpen(false);
+                    }}
+                  >
+                    <Text variant="body" className="text-secondary">
+                      {link.label}
+                    </Text>
+                  </Link>
+                </li>
+              ))}
+            {user ? (
+              <li className={`nav-item position-relative ${isMenuOpen ? "" : "ms-lg-3"}`}>
+                <div ref={profileMenuRef} style={{ position: "relative" }}>
+                  <Button
+                    variant="info"
+                    onClick={() => setProfileMenuOpen((v) => !v)}
+                  >
+                    <Icon variant="user" size="sm" />
+                  </Button>
+                  {profileMenuOpen && (
+                    <ProfileDropdown onClose={() => setProfileMenuOpen(false)} />
+                  )}
+                </div>
               </li>
-            ))}
-            <li className={`nav-item position-relative ${isMenuOpen ? "" : "ms-lg-3"}`}>
-              <div ref={profileMenuRef} style={{ position: "relative" }}>
-                <Button
-                  variant="info"
-                  onClick={() => setProfileMenuOpen((v) => !v)}
-                >
-                  <Icon variant="user" size="sm" />
-                </Button>
-                {profileMenuOpen && (
-                  <ProfileDropdown onClose={() => setProfileMenuOpen(false)} />
-                )}
-              </div>
-            </li>
+            ) : (
+              <>
+                <li className="nav-item">
+                  <Link
+                    to="/login"
+                    className="btn btn-outline-primary me-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Iniciar sesión
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link
+                    to="/register"
+                    className="btn btn-primary"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Registrarse
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       </div>

@@ -29,24 +29,13 @@ export default function SideBar({ visible, setVisible }: SideBarProps) {
   };
 
   if (loading && !currentUser) {
-    return (
-      <div
-        className="d-flex flex-column flex-shrink-0 p-3 bg-light"
-        style={sidebarStyle}
-      >
-        <div className="text-center mt-5">Cargando menú...</div>
-      </div>
-    );
+    return null;
   }
-
   if (!currentUser) return null;
+   
+  const userPermissions: string[] = currentUser.userRoles?.flatMap(r => r.permissions.map(p => p.permissionName)) || [];
 
-  const userPermissions: string[] =
-    currentUser.userRoles?.flatMap(r => r.permissions.map(p => p.permissionName)) || [];
-
-  const filteredMenuItems = menuItems.filter(item =>
-    userPermissions.includes(item.permission)
-  );
+  const filteredMenuItems = menuItems.filter(item => userPermissions.includes(item.permission));
 
   if (!visible) {
     return (

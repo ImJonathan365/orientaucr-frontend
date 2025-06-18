@@ -3,10 +3,20 @@ import { HeaderBar } from "../components/organisms/HeaderBar/HeaderBar";
 import FooterBar from "../components/organisms/FooterBar/FooterBar";
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
+import { useUser } from "../contexts/UserContext";
 
 export default function MainLayout() {
   const [sidebarVisible, setSidebarVisible] = useState(true);
- 
+  const { user, loading } = useUser();
+
+  if (loading && !user) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+        <div>Cargando...</div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
