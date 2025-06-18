@@ -41,6 +41,9 @@ import { NotificationEditPage } from "../pages/notification/NotificationEditPage
 import { AllCourseListPage } from "../pages/course/AllCourseListPage";
 import { NewCoursesPage } from "../pages/course/NewCoursePage";
 import { EditCoursePage } from "../pages/course/EditCoursePage";
+import { CategoryListPage } from "../pages/category/CategoryListPage";
+import { CategoryAddPage } from "../pages/category/CategoryAddPage";
+import { CategoryEditPage } from "../pages/category/CategoryEditPage";
 
 export default function AppRoutes() {
   return (
@@ -87,6 +90,9 @@ export default function AppRoutes() {
         <Route path="/course-list" element={<RequireAuth><AllCourseListPage /></RequireAuth>} />
         <Route path="/courses/new" element={<RequireAuth><NewCoursesPage /></RequireAuth>} />
         <Route path="/courses/edit/:id" element={<RequireAuth><EditCoursePage /></RequireAuth>} />
+        <Route path="/categories" element={<CategoryListPage />} />
+<Route path="/categories/add" element={<CategoryAddPage />} />
+<Route path="/categories/edit/:id" element={<CategoryEditPage />} />
       </Route>
       
       {/* Rutas privadas sin Header ni Sidebar */}

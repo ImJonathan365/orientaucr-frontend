@@ -69,7 +69,7 @@ export const SimulationQuestionEditPage = () => {
 
     if (question.options.length !== 4) {
       Swal.fire("Error", "Deben ser 4 opciones.", "warning");
-      return;
+      return; 
     }
     if (!question.options.some(opt => opt.isCorrect)) {
       Swal.fire("Error", "Debe marcar una opción como correcta.", "warning");
