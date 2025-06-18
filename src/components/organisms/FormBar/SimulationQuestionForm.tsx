@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { SimulationQuestion, SimulationOption, Difficulty } from "../../../types/SimulationQuestion";
-import { useNavigate } from "react-router-dom";
+import { Category } from "../../../types/Category";
+import { getAllCategories } from "../../../services/Category";
 import Swal from "sweetalert2";
 
 interface Props {
@@ -16,7 +17,6 @@ const defaultOptions: SimulationOption[] = [
     { optionId: "", optionText: "", isCorrect: false },
 ];
 
-// Normaliza el texto para comparar opciones
 function normalizeOptionText(text: string) {
     return text
         .trim()
@@ -28,7 +28,6 @@ function normalizeOptionText(text: string) {
         .replace(/\s+/g, " ");
 }
 
-// Valida que la opción no sea solo espacios ni solo símbolos
 const isValidOption = (text: string) => {
     const trimmed = text.trim();
     return trimmed.length > 0 && /[a-zA-Z0-9]/.test(trimmed);
@@ -36,25 +35,31 @@ const isValidOption = (text: string) => {
 
 export const SimulationQuestionForm: React.FC<Props> = ({ initial, onSubmit, loading }) => {
     const [questionText, setQuestionText] = useState(initial?.questionText ?? "");
-    const [questionCategory, setQuestionCategory] = useState(initial?.questionCategory ?? "");
     const [difficulty, setDifficulty] = useState<Difficulty>(initial?.difficulty ?? "medium");
     const [options, setOptions] = useState<SimulationOption[]>(
         initial?.options && initial.options.length === 4
             ? initial.options
             : defaultOptions
     );
-    const navigate = useNavigate();
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
+        initial?.categories?.[0]?.categoryId || ""
+    );
 
     useEffect(() => {
         setQuestionText(initial?.questionText ?? "");
-        setQuestionCategory(initial?.questionCategory ?? "");
         setDifficulty(initial?.difficulty ?? "medium");
         setOptions(
             initial?.options && initial.options.length === 4
                 ? initial.options
                 : defaultOptions
         );
+        setSelectedCategoryId(initial?.categories?.[0]?.categoryId || "");
     }, [initial]);
+
+    useEffect(() => {
+        getAllCategories().then(setCategories);
+    }, []);
 
     const handleOptionChange = (idx: number, field: keyof SimulationOption, value: any) => {
         setOptions(opts =>
@@ -67,40 +72,41 @@ export const SimulationQuestionForm: React.FC<Props> = ({ initial, onSubmit, loa
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validar opciones
         for (let i = 0; i < options.length; i++) {
             if (!isValidOption(options[i].optionText)) {
                 Swal.fire("Error", `La opción ${i + 1} debe contener al menos una letra o número y no puede estar vacía ni ser solo símbolos.`, "warning");
                 return;
             }
         }
-
-        // Validar opciones repetidas
         const normalizedOptions = options.map(opt => normalizeOptionText(opt.optionText));
         const uniqueOptions = new Set(normalizedOptions);
         if (uniqueOptions.size !== normalizedOptions.length) {
             Swal.fire("Error", "No puede haber opciones repetidas.", "warning");
             return;
         }
-
-        // Validar cantidad de opciones
         if (options.length !== 4) {
             Swal.fire("Error", "Deben ser 4 opciones.", "warning");
             return;
         }
 
-        // Validar opción correcta
         if (!options.some(opt => opt.isCorrect)) {
             Swal.fire("Error", "Debe marcar una opción como correcta.", "warning");
             return;
         }
 
+        if (!selectedCategoryId) {
+            Swal.fire("Error", "Debe seleccionar una categoría.", "warning");
+            return;
+        }
+
+        const selectedCategoryObjects = categories.filter(cat => cat.categoryId === selectedCategoryId);
+
         onSubmit({
             questionId: initial?.questionId || "",
             questionText,
-            questionCategory,
             difficulty,
             options,
+            categories: selectedCategoryObjects,
         });
     };
 
@@ -120,14 +126,18 @@ export const SimulationQuestionForm: React.FC<Props> = ({ initial, onSubmit, loa
                 <label className="form-label">Categoría</label>
                 <select
                     className="form-select"
-                    value={questionCategory}
-                    onChange={e => setQuestionCategory(e.target.value)}
+                    value={selectedCategoryId}
+                    onChange={e => setSelectedCategoryId(e.target.value)}
                     required
                 >
                     <option value="">Seleccione una categoría</option>
-                    <option value="mathematical_logic">Lógica matemática</option>
-                    <option value="verbal_logic">Lógica verbal</option>
+                    {categories.map(cat => (
+                        <option key={cat.categoryId} value={cat.categoryId}>
+                            {cat.categoryName}
+                        </option>
+                    ))}
                 </select>
+                <small className="text-muted">Seleccione una categoría.</small>
             </div>
             <div className="mb-3">
                 <label className="form-label">Dificultad</label>

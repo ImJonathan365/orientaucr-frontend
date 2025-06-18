@@ -152,7 +152,7 @@ export const SimulationExamPage = () => {
             ))}
           </ul>
         </div>
-      ))}
+      ))} 
       <div className="d-flex gap-2">
         <button
           className="btn btn-primary"

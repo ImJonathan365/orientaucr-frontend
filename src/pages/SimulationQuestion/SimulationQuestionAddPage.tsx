@@ -81,4 +81,4 @@ export const SimulationQuestionAddPage = () => {
       <SimulationQuestionForm onSubmit={handleSubmit} />
     </div>
   );
-};
+}; 
