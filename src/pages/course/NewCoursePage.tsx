@@ -15,6 +15,7 @@ interface NewCourseFormValues {
     courseName: string;
     courseDescription: string;
     credits: number;
+    courseIsShared: boolean;
     prerequisites: string[];
 }
 
@@ -69,6 +70,12 @@ export const NewCoursesPage = () => {
             min: 0,
             max: 18,
             placeholder: 'Cantidad de créditos'
+        },
+        {
+            name: 'courseIsShared',
+            label: '¿El curso es compartido?',
+            type: 'checkbox',
+            required: false
         },
         {
             name: 'prerequisites',
@@ -146,6 +153,7 @@ export const NewCoursesPage = () => {
                 courseName: values.courseName.trim(),
                 courseDescription: values.courseDescription.trim(),
                 courseCredits: values.credits,
+                courseIsShared: values.courseIsShared || false,
                 prerequisites: values.prerequisites
             };
 
@@ -183,7 +191,8 @@ export const NewCoursesPage = () => {
                     courseCode: '',
                     courseName: '',
                     courseDescription: '',
-                    credits: 3, 
+                    credits: 3,
+                    courseIsShared: false, 
                     prerequisites: []
                 }}
                 fields={formFields}

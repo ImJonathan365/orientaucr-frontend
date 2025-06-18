@@ -7,6 +7,7 @@ import { getCareerById, deleteCourseFromCareer, getCoursesForCurricula, addCours
 import { Career, Course } from '../../types/carrerTypes';
 import { Alert, Spinner, Form, Row, Col } from 'react-bootstrap';
 import Swal from "sweetalert2";
+import { updateCourse } from '../../services/courseService';
 
 export const CourseListPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -98,6 +99,15 @@ export const CourseListPage = () => {
       selectedCourseId,
       selectedSemester
     );
+    
+    const addedCourse = availableCourses.find(c => c.courseId === selectedCourseId);
+    if (addedCourse && !addedCourse.courseIsShared) {
+      await updateCourse({
+        ...addedCourse,
+        courseIsAsigned: true
+      });
+    }
+
     await Swal.fire("Agregado", "El curso fue agregado correctamente.", "success");
     // Refrescar carrera y cursos disponibles
     const updatedCareer = await getCareerById(career.careerId);
@@ -131,6 +141,14 @@ export const CourseListPage = () => {
           return;
         }
         await deleteCourseFromCareer(career.curricula.curriculaId, course.courseId);
+
+        if (!course.courseIsShared) {
+          await updateCourse({
+            ...course,
+            courseIsAsigned: false
+          });
+        };
+
         await Swal.fire("Eliminado", `El curso "${course.courseName}" fue eliminado correctamente.`, "success");
         const updatedCareer = await getCareerById(career.careerId);
         setCareer(updatedCareer);
@@ -214,11 +232,14 @@ export const CourseListPage = () => {
             Regresar
           </Button>
           <Button
-            variant={showAdd ? "danger" : "primary"}
+            variant="primary"
             onClick={handleShowAdd}
           >
-            <Icon variant={showAdd ? "close" : "add"} className="me-2" />
-            {showAdd ? "Cancelar" : "Agregar curso"}
+            Agregar curso
+            <Icon
+              variant={showAdd ? "chevron-down" : "chevron-right"}
+              className="ms-2"
+            />
           </Button>
         </div>
       </div>
@@ -257,13 +278,20 @@ export const CourseListPage = () => {
                 </Form.Select>
               </Form.Group>
             </Col>
-            <Col md={3}>
+            <Col md={3} className="d-flex gap-2">
               <Button
                 type="submit"
                 variant="primary"
                 disabled={adding || !selectedCourseId}
               >
                 {adding ? "Agregando..." : "Agregar"}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setShowAdd(false)}
+              >
+                Cancelar
               </Button>
             </Col>
           </Row>

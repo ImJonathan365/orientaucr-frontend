@@ -32,5 +32,6 @@ export const addCourse = async (course: CourseCreate): Promise<Course> => {
 };
 
 export const updateCourse = async (course: Course)=> {
+  console.log("Curso a actualizar", JSON.stringify(course, null, 2));
   await axios.post(`${API_BASE_URL}/update`, course);
 };

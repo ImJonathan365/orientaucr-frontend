@@ -37,7 +37,6 @@ export const EventAddPage = () => {
     eventTime: "",
     eventModality: "virtual",
     eventImagePath: null,
-    createdBy: currentUser?.userId || "",
     campusId: "",
     subcampusId: "",
   });
@@ -87,7 +86,9 @@ export const EventAddPage = () => {
   }, [eventData.campusId, eventData.subcampusId]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
 
@@ -143,7 +144,6 @@ export const EventAddPage = () => {
       reader.readAsDataURL(file);
     }
   };
-
   const validateForm = (): string | null => {
     const {
       eventTitle,
@@ -153,8 +153,8 @@ export const EventAddPage = () => {
       eventModality,
     } = eventData;
 
-    if (!eventTitle || eventTitle.length < 4 || eventTitle.length > 25) {
-      return "El título del evento debe tener entre 4 y 25 caracteres.";
+    if (!eventTitle || eventTitle.length < 4 || eventTitle.length > 200) {
+      return "El título del evento debe tener entre 4 y 200 caracteres.";
     }
     if (
       !eventDescription ||
@@ -166,9 +166,32 @@ export const EventAddPage = () => {
     if (!eventDate || eventDate < today) {
       return "La fecha no puede estar en el pasado.";
     }
+
+    // Validación de hora (6:00 AM a 9:00 PM)
     if (!eventTime) {
       return "La hora es obligatoria.";
+    } else {
+      const [hours, minutes] = eventTime.split(":").map(Number);
+      const totalMinutes = hours * 60 + minutes;
+
+      // Validar que esté entre 6:00 AM (360 minutos) y 9:00 PM (1260 minutos)
+      if (totalMinutes < 360 || totalMinutes > 1260) {
+        return "La hora del evento debe estar entre 6:00 AM y 9:00 PM.";
+      }
+
+      // Validar que no sea anterior a la hora actual si es el mismo día
+      if (eventDate === today) {
+        const now = new Date();
+        const currentHours = now.getHours();
+        const currentMinutes = now.getMinutes();
+        const currentTotalMinutes = currentHours * 60 + currentMinutes;
+
+        if (totalMinutes < currentTotalMinutes) {
+          return "No puedes crear un evento en una hora que ya ha pasado para el día actual.";
+        }
+      }
     }
+
     if (!eventModality) {
       return "Debes seleccionar una modalidad.";
     }
@@ -197,7 +220,7 @@ export const EventAddPage = () => {
       formData.append("eventDate", eventData.eventDate);
       formData.append("eventTime", eventData.eventTime);
       formData.append("eventModality", eventData.eventModality);
-      formData.append("createdBy", eventData.createdBy || "");
+      formData.append("createdBy", currentUser?.userId || "");
 
       if (eventData.campusId) formData.append("campusId", eventData.campusId);
       if (eventData.subcampusId)
@@ -242,7 +265,7 @@ export const EventAddPage = () => {
               className={`form-control ${
                 eventData.eventTitle.length > 0 &&
                 (eventData.eventTitle.length < 4 ||
-                  eventData.eventTitle.length > 25)
+                  eventData.eventTitle.length > 200)
                   ? "is-invalid"
                   : ""
               }`}
@@ -253,9 +276,9 @@ export const EventAddPage = () => {
             />
             {eventData.eventTitle.length > 0 &&
               (eventData.eventTitle.length < 4 ||
-                eventData.eventTitle.length > 25) && (
+                eventData.eventTitle.length > 200) && (
                 <div className="invalid-feedback">
-                  Debe tener entre 4 y 25 caracteres.
+                  Debe tener entre 4 y 200 caracteres.
                 </div>
               )}
           </div>
@@ -288,31 +311,31 @@ export const EventAddPage = () => {
             </div>
           </div>
 
-            {/* Descripción */}
-        <div className="mb-3">
-          <label htmlFor="eventDescription" className="form-label">
-            Descripción
-          </label>
-          <textarea
-            className={`form-control ${
-              eventData.eventDescription.length < 4 ||
-              eventData.eventDescription.length > 500
-                ? "is-invalid"
-                : ""
-            }`}
-            id="eventDescription"
-            name="eventDescription"
-            rows={3}
-            value={eventData.eventDescription}
-            onChange={handleChange}
-          />
-          {(eventData.eventDescription.length < 4 ||
-            eventData.eventDescription.length > 500) && (
-            <div className="invalid-feedback">
-              Debe tener entre 4 y 500 caracteres.
-            </div>
-          )}
-        </div>
+          {/* Descripción */}
+          <div className="mb-3">
+            <label htmlFor="eventDescription" className="form-label">
+              Descripción
+            </label>
+            <textarea
+              className={`form-control ${
+                eventData.eventDescription.length < 4 ||
+                eventData.eventDescription.length > 500
+                  ? "is-invalid"
+                  : ""
+              }`}
+              id="eventDescription"
+              name="eventDescription"
+              rows={3}
+              value={eventData.eventDescription}
+              onChange={handleChange}
+            />
+            {(eventData.eventDescription.length < 4 ||
+              eventData.eventDescription.length > 500) && (
+              <div className="invalid-feedback">
+                Debe tener entre 4 y 500 caracteres.
+              </div>
+            )}
+          </div>
 
           {/* Fecha */}
           <div className="mb-3">
@@ -333,7 +356,7 @@ export const EventAddPage = () => {
           {/* Hora */}
           <div className="mb-3">
             <label htmlFor="eventTime" className="form-label">
-              Hora del Evento
+              Las horas disponibles para un evento son (6:00 AM - 9:00 PM)
             </label>
             <Input
               type="time"
@@ -342,6 +365,8 @@ export const EventAddPage = () => {
               name="eventTime"
               value={eventData.eventTime}
               onChange={handleChange}
+              min="06:00"
+              max="21:00"
             />
           </div>
 

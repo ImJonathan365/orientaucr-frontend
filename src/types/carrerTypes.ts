@@ -8,6 +8,8 @@ export interface Course {
   courseId: string;
   courseCode: string;
   courseCredits: number;
+  courseIsShared: boolean;
+  courseIsAsigned: boolean;
   courseName: string;
   courseDescription: string;
   courseSemester: number;

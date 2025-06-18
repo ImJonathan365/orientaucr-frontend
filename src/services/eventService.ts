@@ -53,3 +53,12 @@ export const insertUserInterestedEvent = async (
   );
   return response.data;
 };
+export const removeUserInterestedEvent = async (
+  eventId: string,
+  userId: string
+): Promise<string> => {
+  const response = await axios.post<string>(
+    `${API_URL}/remove/${eventId}/${userId}`
+  );
+  return response.data;
+};

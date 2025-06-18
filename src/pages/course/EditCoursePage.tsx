@@ -10,6 +10,8 @@ interface EditCourseFormValues {
     courseName: string;
     courseDescription: string;
     courseCredits: number;
+    courseIsShared?: boolean;
+    courseIsAsigned?: boolean;
     prerequisites: string[];
 }
 
@@ -45,6 +47,7 @@ export const EditCoursePage = () => {
                     courseName: courseData.courseName,
                     courseDescription: courseData.courseDescription,
                     courseCredits: courseData.courseCredits,
+                    courseIsShared: courseData.courseIsShared,
                     prerequisites: courseData.prerequisites || []
                 });
             } catch (error) {
@@ -94,6 +97,12 @@ export const EditCoursePage = () => {
             placeholder: 'Cantidad de créditos'
         },
         {
+            name: 'courseIsShared',
+            label: '¿El curso es compartido?',
+            type: 'checkbox',
+            required: false
+        },
+        {
             name: 'prerequisites',
             label: 'Prerrequisitos',
             type: 'checkbox-group',
@@ -113,13 +122,14 @@ export const EditCoursePage = () => {
 
     const handleSubmit = async (values: EditCourseFormValues) => {
         try {
+            
             const code = values.courseCode.trim().toUpperCase();
             const normalizedCode = normalizeCode(code);
             const existingCodes = courses
                 .filter(c => c.courseId !== id)
                 .map(c => normalizeCode(c.courseCode));
 
-           
+
             if (/\s/.test(code)) {
                 await Swal.fire({
                     icon: 'warning',
@@ -130,7 +140,7 @@ export const EditCoursePage = () => {
                 return;
             }
 
-            
+
             if (code.length > 7) {
                 await Swal.fire({
                     icon: 'warning',
@@ -173,12 +183,17 @@ export const EditCoursePage = () => {
                 return;
             }
 
+            if (values.courseIsShared) {
+                values.courseIsAsigned = false;
+            }
             await updateCourse({
                 courseId: id!,
                 courseCode: values.courseCode.trim(),
                 courseName: values.courseName.trim(),
                 courseDescription: values.courseDescription.trim(),
                 courseCredits: values.courseCredits,
+                courseIsShared: false,
+                courseIsAsigned: false,
                 prerequisites: values.prerequisites,
                 courseSemester: 0
             });

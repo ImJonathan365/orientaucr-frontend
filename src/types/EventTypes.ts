@@ -13,4 +13,5 @@ export interface Event {
   createdBy?: string | null;
   campusId?: string | null;
   subcampusId?: string | null;
+  
 }

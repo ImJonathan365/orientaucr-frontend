@@ -129,8 +129,8 @@ export const EventsEditPage = () => {
       eventModality,
     } = eventData;
 
-    if (!eventTitle || eventTitle.length < 4 || eventTitle.length > 25)
-      return "El título debe tener entre 4 y 25 caracteres.";
+    if (!eventTitle || eventTitle.length < 4 || eventTitle.length > 200)
+      return "El título debe tener entre 4 y 200 caracteres.";
     if (
       !eventDescription ||
       eventDescription.length < 4 ||
@@ -218,15 +218,15 @@ export const EventsEditPage = () => {
             onChange={handleChange}
             className={`form-control ${
               eventData.eventTitle.length < 4 ||
-              eventData.eventTitle.length > 25
+              eventData.eventTitle.length > 200
                 ? "is-invalid"
                 : ""
             }`}
           />
           {(eventData.eventTitle.length < 4 ||
-            eventData.eventTitle.length > 25) && (
+            eventData.eventTitle.length > 200) && (
             <div className="invalid-feedback">
-              Debe tener entre 4 y 25 caracteres.
+              Debe tener entre 4 y 200 caracteres.
             </div>
           )}
         </div>
