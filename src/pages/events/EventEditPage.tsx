@@ -68,7 +68,7 @@ export const EventsEditPage = () => {
         setSubcampuses(subcampusList);
         setCurrentUser(user);
       } catch (error) {
-        Swal.fire("Error", "No se pudo cargar la información.", "error");
+        Swal.fire("Error", "No se pudo encontrar el evento solicitado.", "error");
         navigate("/events-list");
       } finally {
         setLoading(false);

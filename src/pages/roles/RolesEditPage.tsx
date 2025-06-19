@@ -55,7 +55,7 @@ export const RolesEditPage = () => {
       } catch {
         await Swal.fire({
           title: "Error",
-          text: "Hubo un problema al cargar los datos.",
+          text: "No se pudo encontrar el rol solicitado.",
           icon: "error",
           confirmButtonText: "Aceptar",
         });
