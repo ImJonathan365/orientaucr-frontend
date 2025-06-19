@@ -60,7 +60,7 @@ export const NewCoursesPage = () => {
             name: 'courseDescription',
             label: 'Descripción',
             type: 'textarea',
-            required: false,
+            required: true,
             placeholder: 'Descripción del curso'
         },
         {
@@ -102,6 +102,16 @@ export const NewCoursesPage = () => {
 
     const handleSubmit = async (values: NewCourseFormValues) => {
         try {
+            if (!values.courseName || values.courseName.trim().length === 0 || 
+                !values.courseDescription || values.courseDescription.trim().length === 0) {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos requeridos',
+                    text: 'Ningún campo puede estar vacío.',
+                    confirmButtonText: 'Aceptar'
+                });
+                return;
+            }
 
             const code = values.courseCode.trim().toUpperCase();
             const normalizedCode = normalizeCode(code);

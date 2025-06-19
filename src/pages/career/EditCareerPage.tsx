@@ -97,6 +97,17 @@ export const EditCareerPage = () => {
     }
 
     const handleSubmit = async (formData: Partial<Career>) => {
+        if (!formData.careerName || formData.careerName.trim().length === 0 || 
+            !formData.careerDescription || formData.careerDescription.trim().length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos requeridos',
+                text: 'Ningún campo puede estar vacío.',
+                confirmButtonText: 'Aceptar'
+            });
+            return;
+        }
+
         if (!id) {
             setError('ID de carrera no válido');
             return;
