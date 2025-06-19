@@ -13,6 +13,7 @@ interface EditCourseFormValues {
     courseIsShared?: boolean;
     courseIsAsigned?: boolean;
     prerequisites: string[];
+    corequisites: string[];
 }
 
 export const EditCoursePage = () => {
@@ -48,7 +49,8 @@ export const EditCoursePage = () => {
                     courseDescription: courseData.courseDescription,
                     courseCredits: courseData.courseCredits,
                     courseIsShared: courseData.courseIsShared,
-                    prerequisites: courseData.prerequisites || []
+                    prerequisites: courseData.prerequisites || [],
+                    corequisites: courseData.corequisites || []
                 });
             } catch (error) {
                 await Swal.fire({
@@ -84,7 +86,7 @@ export const EditCoursePage = () => {
             name: 'courseDescription',
             label: 'Descripción',
             type: 'textarea',
-            required: false,
+            required: true,
             placeholder: 'Descripción del curso'
         },
         {
@@ -113,6 +115,18 @@ export const EditCoursePage = () => {
                     value: c.courseId,
                     label: `${c.courseCode} - ${c.courseName}`
                 }))
+        },
+        {
+            name: 'corequisites',
+            label: 'Correquisitos',
+            type: 'checkbox-group',
+            required: false,
+            options: courses
+                .filter(c => c.courseId !== id)
+                .map(c => ({
+                    value: c.courseId,
+                    label: `${c.courseCode} - ${c.courseName}`
+                }))
         }
     ];
 
@@ -122,7 +136,17 @@ export const EditCoursePage = () => {
 
     const handleSubmit = async (values: EditCourseFormValues) => {
         try {
-            
+            if (!values.courseName || values.courseName.trim().length === 0 ||
+                !values.courseDescription || values.courseDescription.trim().length === 0) {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos requeridos',
+                    text: 'Ningún campo puede estar vacío.',
+                    confirmButtonText: 'Aceptar'
+                });
+                return;
+            }
+
             const code = values.courseCode.trim().toUpperCase();
             const normalizedCode = normalizeCode(code);
             const existingCodes = courses
@@ -195,6 +219,7 @@ export const EditCoursePage = () => {
                 courseIsShared: false,
                 courseIsAsigned: false,
                 prerequisites: values.prerequisites,
+                corequisites: values.corequisites,
                 courseSemester: 0
             });
 

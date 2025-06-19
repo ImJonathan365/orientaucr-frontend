@@ -4,20 +4,19 @@ import { createQuestion, getAllQuestions } from "../../services/simulationServic
 import { SimulationQuestion } from "../../types/SimulationQuestion";
 import { SimulationQuestionForm } from "../../components/organisms/FormBar/SimulationQuestionForm";
 import Swal from "sweetalert2";
-import { Title } from "../../components/atoms/Title/Ttile";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";
- 
+
 function normalizeQuestionText(text: string) {
   return text
-    .trim()
     .toLowerCase()
-    .normalize("NFD")               
+    .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "") 
-    .replace(/^[¿?]+/, "")
-    .replace(/[¿?]+$/, "")
-    .replace(/\s+/g, " ");
+    .replace(/[^a-z0-9]+/g, " ")  
+    .replace(/\s+/g, " ")          
+    .trim();                      
 }
+
 export const SimulationQuestionAddPage = () => {
   const navigate = useNavigate();
   const [questions, setQuestions] = useState<SimulationQuestion[]>([]);
@@ -28,6 +27,11 @@ export const SimulationQuestionAddPage = () => {
 
   const handleSubmit = async (question: SimulationQuestion) => {
     const newText = normalizeQuestionText(question.questionText);
+
+    if (!/[a-zA-Z0-9]/.test(newText)) {
+      Swal.fire("Error", "La pregunta debe contener al menos una letra o número.", "warning");
+      return;
+    }
 
     if (
       questions.some(

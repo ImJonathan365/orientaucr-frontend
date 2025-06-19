@@ -4,20 +4,8 @@ import { SimulationQuestion } from "../../types/SimulationQuestion";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { Title } from "../../components/atoms/Title/Ttile";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";
-
-const translateCategory = (category: string) => {
-  switch (category) {
-    case "mathematical_logic":
-      return "Lógica matemática";
-    case "verbal_logic":
-      return "Lógica verbal";
-    default:
-      return "-";
-  }
-};
 
 const translateDifficulty = (difficulty?: string) => {
   switch (difficulty) {
@@ -101,9 +89,12 @@ export const SimulationQuestionListPage = () => {
       ),
     },
     {
-      key: "questionCategory",
-      label: "Categoría",
-      render: (row) => translateCategory(row.questionCategory ?? "-"),
+      key: "categories",
+      label: "Categorías",
+      render: (row) =>
+        row.categories && row.categories.length > 0
+          ? row.categories.map(cat => cat.categoryName).join(", ")
+          : "-",
     },
     {
       key: "difficulty",
@@ -116,7 +107,7 @@ export const SimulationQuestionListPage = () => {
       render: (row) => (
         <div className="d-flex gap-2">
           <Button
-            variant="primary" 
+            variant="primary"
             size="small"
             style={{ minWidth: 90 }}
             onClick={() => handleEdit(row)}>
@@ -166,4 +157,5 @@ export const SimulationQuestionListPage = () => {
         data={questions}
       />
     </div>
-  );}
+  );
+};

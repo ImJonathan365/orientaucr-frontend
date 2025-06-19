@@ -19,7 +19,7 @@ export const createQuestion = async (question: SimulationQuestion) => {
   });
   return res.data;
 };
-
+ 
 export const updateQuestion = async (question: SimulationQuestion) => {
   const res = await axios.put(`${API_URL}/${question.questionId}`, question, {
     headers: { "Content-Type": "application/json" },

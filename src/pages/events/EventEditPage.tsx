@@ -4,9 +4,11 @@ import Swal from "sweetalert2";
 import { getEventById, updateEvent } from "../../services/eventService";
 import { getAllCampus } from "../../services/campusService";
 import { getAllSubcampus } from "../../services/subcampusService";
+import { getCurrentUser } from "../../services/userService";
 import { Event } from "../../types/EventTypes";
 import { Campus } from "../../types/campusType";
 import { Subcampus } from "../../types/subcampusType";
+import { User } from "../../types/userType";
 import { Title } from "../../components/atoms/Title/Ttile";
 import { Input } from "../../components/atoms/Input/Input";
 import { Button } from "../../components/atoms/Button/Button";
@@ -14,7 +16,25 @@ import { Button } from "../../components/atoms/Button/Button";
 export const EventsEditPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const today = new Date().toISOString().split("T")[0];
+
+  const getTodayInCostaRica = (): string => {
+    const today = new Date();
+    const costaRicaOffset = -6 * 60;
+    const localTime = new Date(
+      today.getTime() - (today.getTimezoneOffset() - costaRicaOffset) * 60000
+    );
+    return localTime.toISOString().split("T")[0];
+  };
+
+  const getCostaRicaCurrentTotalMinutes = (): number => {
+    const now = new Date();
+    let costaRicaHours = now.getUTCHours() - 6;
+    if (costaRicaHours < 0) costaRicaHours += 24;
+    const costaRicaMinutes = now.getUTCMinutes();
+    return costaRicaHours * 60 + costaRicaMinutes;
+  };
+
+  const today = getTodayInCostaRica();
 
   const [eventData, setEventData] = useState<Event | null>(null);
   const [campuses, setCampuses] = useState<Campus[]>([]);
@@ -22,15 +42,15 @@ export const EventsEditPage = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [campusError, setCampusError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [event, campusesData, subcampusesData] = await Promise.all([
+        const [event, campusesData, user] = await Promise.all([
           getEventById(id!),
           getAllCampus(),
-          getAllSubcampus(),
+          getCurrentUser(),
         ]);
 
         if (!event) {
@@ -39,9 +59,14 @@ export const EventsEditPage = () => {
           return;
         }
 
+        const subcampusList = event.campusId
+          ? await getAllSubcampus(event.campusId)
+          : [];
+
         setEventData(event);
         setCampuses(campusesData);
-        setSubcampuses(subcampusesData);
+        setSubcampuses(subcampusList);
+        setCurrentUser(user);
       } catch (error) {
         Swal.fire("Error", "No se pudo cargar la información.", "error");
         navigate("/events-list");
@@ -53,36 +78,31 @@ export const EventsEditPage = () => {
   }, [id, navigate]);
 
   useEffect(() => {
-    if (!eventData) return;
-    const campusSelected = !!eventData.campusId;
-    const subcampusSelected = !!eventData.subcampusId;
-
-    if (campusSelected && subcampusSelected) {
-      setCampusError(
-        "Debe seleccionar únicamente un campus o un subcampus, pero no ambos."
-      );
-    } else if (!campusSelected && !subcampusSelected) {
-      setCampusError("Debe seleccionar al menos un campus o subcampus.");
-    } else {
-      setCampusError(null);
-    }
-  }, [eventData?.campusId, eventData?.subcampusId]);
+    const fetchSubcampus = async () => {
+      if (eventData?.campusId) {
+        try {
+          const data = await getAllSubcampus(eventData.campusId);
+          setSubcampuses(data);
+        } catch {
+          setSubcampuses([]);
+        }
+      } else {
+        setSubcampuses([]);
+        if (eventData) {
+          setEventData((prev) => (prev ? { ...prev, subcampusId: "" } : null));
+        }
+      }
+    };
+    fetchSubcampus();
+  }, [eventData?.campusId]);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     if (!eventData) return;
     const { name, value } = e.target;
 
-    if (name === "campusId" && value) {
-      setEventData({ ...eventData, campusId: value, subcampusId: "" });
-    } else if (name === "subcampusId" && value) {
-      setEventData({ ...eventData, subcampusId: value, campusId: "" });
-    } else {
-      setEventData({ ...eventData, [name]: value });
-    }
+    setEventData({ ...eventData, [name]: value });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,21 +147,48 @@ export const EventsEditPage = () => {
       eventDate,
       eventTime,
       eventModality,
+      campusId,
     } = eventData;
 
-    if (!eventTitle || eventTitle.length < 4 || eventTitle.length > 200)
+    const allowedPattern = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+
+    if (!eventTitle || eventTitle.trim() === "")
+      return "El título no puede estar vacío.";
+    if (!allowedPattern.test(eventTitle))
+      return "El título solo puede contener letras y espacios.";
+    if (eventTitle.length < 4 || eventTitle.length > 200)
       return "El título debe tener entre 4 y 200 caracteres.";
-    if (
-      !eventDescription ||
-      eventDescription.length < 4 ||
-      eventDescription.length > 500
-    )
+
+    if (!eventDescription || eventDescription.trim() === "")
+      return "La descripción no puede estar vacía.";
+    if (!allowedPattern.test(eventDescription))
+      return "La descripción solo puede contener letras y espacios.";
+    if (eventDescription.length < 4 || eventDescription.length > 500)
       return "La descripción debe tener entre 4 y 500 caracteres.";
-    if (!eventDate || eventDate < today)
-      return "La fecha no puede estar en el pasado.";
+
+    if (!eventDate || eventDate < today) return "La fecha no puede estar en el pasado.";
     if (!eventTime) return "La hora es obligatoria.";
+    else {
+      const [hours, minutes] = eventTime.split(":").map(Number);
+      const totalMinutes = hours * 60 + minutes;
+      if (totalMinutes < 360 || totalMinutes > 1260) {
+        return "La hora del evento debe estar entre 6:00 AM y 9:00 PM.";
+      }
+      if (eventDate === today) {
+        const currentTotalMinutes = getCostaRicaCurrentTotalMinutes();
+        if (totalMinutes < currentTotalMinutes) {
+          Swal.fire({
+            icon: "warning",
+            title: "Hora inválida",
+            text:
+              "No puedes actualizar un evento a una hora que ya ha pasado para el día actual (hora local Costa Rica).",
+          });
+          return "Hora pasada para hoy.";
+        }
+      }
+    }
     if (!eventModality) return "Debes seleccionar una modalidad.";
-    if (campusError) return campusError;
+    if (!campusId) return "Debes seleccionar un campus.";
     return null;
   };
 
@@ -151,7 +198,9 @@ export const EventsEditPage = () => {
 
     const error = validateForm();
     if (error) {
-      Swal.fire("Validación", error, "warning");
+      if (error !== "Hora pasada para hoy.") {
+        await Swal.fire("Validación", error, "warning");
+      }
       return;
     }
 
@@ -163,7 +212,7 @@ export const EventsEditPage = () => {
       formData.append("eventDate", eventData.eventDate);
       formData.append("eventTime", eventData.eventTime);
       formData.append("eventModality", eventData.eventModality);
-      formData.append("createdBy", eventData.createdBy || "");
+      formData.append("createdBy", currentUser?.userId || "");
 
       if (eventData.campusId) formData.append("campusId", eventData.campusId);
       if (eventData.subcampusId)
@@ -171,18 +220,10 @@ export const EventsEditPage = () => {
       if (selectedFile) formData.append("image", selectedFile);
 
       await updateEvent(formData);
-      await Swal.fire(
-        "Actualizado",
-        "Evento actualizado correctamente.",
-        "success"
-      );
+      await Swal.fire("Actualizado", "Evento actualizado correctamente.", "success");
       navigate("/events-list");
     } catch (err: any) {
-      Swal.fire(
-        "Error",
-        err.message || "No se pudo actualizar el evento.",
-        "error"
-      );
+      Swal.fire("Error", err.message || "No se pudo actualizar el evento.", "error");
     }
   };
 
@@ -201,41 +242,22 @@ export const EventsEditPage = () => {
 
   return (
     <div className="container py-4">
-      <Title variant="h2" className="mb-4">
-        Editar Evento
-      </Title>
+      <Title variant="h2" className="mb-4">Editar Evento</Title>
       <form onSubmit={handleSubmit} encType="multipart/form-data">
-        {/* Título */}
         <div className="mb-3">
-          <label htmlFor="eventTitle" className="form-label">
-            Título
-          </label>
+          <label htmlFor="eventTitle" className="form-label">Título</label>
           <Input
             type="text"
             id="eventTitle"
             name="eventTitle"
             value={eventData.eventTitle}
             onChange={handleChange}
-            className={`form-control ${
-              eventData.eventTitle.length < 4 ||
-              eventData.eventTitle.length > 200
-                ? "is-invalid"
-                : ""
-            }`}
+            className="form-control"
           />
-          {(eventData.eventTitle.length < 4 ||
-            eventData.eventTitle.length > 200) && (
-            <div className="invalid-feedback">
-              Debe tener entre 4 y 200 caracteres.
-            </div>
-          )}
         </div>
 
-        {/* Imagen */}
         <div className="mb-3">
-          <label htmlFor="image" className="form-label">
-            Imagen
-          </label>
+          <label htmlFor="image" className="form-label">Imagen</label>
           <input
             type="file"
             className="form-control"
@@ -254,42 +276,22 @@ export const EventsEditPage = () => {
               />
             </div>
           )}
-          <div className="form-text">
-            Formatos permitidos: JPEG, PNG, GIF, WEBP. Máx 5MB.
-          </div>
         </div>
 
-        {/* Descripción */}
         <div className="mb-3">
-          <label htmlFor="eventDescription" className="form-label">
-            Descripción
-          </label>
+          <label htmlFor="eventDescription" className="form-label">Descripción</label>
           <textarea
-            className={`form-control ${
-              eventData.eventDescription.length < 4 ||
-              eventData.eventDescription.length > 500
-                ? "is-invalid"
-                : ""
-            }`}
+            className="form-control"
             id="eventDescription"
             name="eventDescription"
             rows={3}
             value={eventData.eventDescription}
             onChange={handleChange}
           />
-          {(eventData.eventDescription.length < 4 ||
-            eventData.eventDescription.length > 500) && (
-            <div className="invalid-feedback">
-              Debe tener entre 4 y 500 caracteres.
-            </div>
-          )}
         </div>
 
-        {/* Fecha */}
         <div className="mb-3">
-          <label htmlFor="eventDate" className="form-label">
-            Fecha
-          </label>
+          <label htmlFor="eventDate" className="form-label">Fecha</label>
           <Input
             type="date"
             className="form-control"
@@ -301,11 +303,8 @@ export const EventsEditPage = () => {
           />
         </div>
 
-        {/* Hora */}
         <div className="mb-3">
-          <label htmlFor="eventTime" className="form-label">
-            Hora
-          </label>
+          <label htmlFor="eventTime" className="form-label">Hora</label>
           <Input
             type="time"
             className="form-control"
@@ -313,14 +312,13 @@ export const EventsEditPage = () => {
             name="eventTime"
             value={eventData.eventTime}
             onChange={handleChange}
+            min="06:00"
+            max="21:00"
           />
         </div>
 
-        {/* Modalidad */}
         <div className="mb-3">
-          <label htmlFor="eventModality" className="form-label">
-            Modalidad
-          </label>
+          <label htmlFor="eventModality" className="form-label">Modalidad</label>
           <select
             className="form-select"
             id="eventModality"
@@ -329,25 +327,21 @@ export const EventsEditPage = () => {
             onChange={handleChange}
           >
             <option value="">Selecciona la modalidad</option>
-            <option value="Presencial">Presencial</option>
-            <option value="Virtual">Virtual</option>
+            <option value="inPerson">Presencial</option>
+            <option value="virtual">Virtual</option>
           </select>
         </div>
 
-        {/* Campus */}
         <div className="mb-3">
-          <label htmlFor="campusId" className="form-label">
-            Campus
-          </label>
+          <label htmlFor="campusId" className="form-label">Sedes</label>
           <select
             className="form-select"
             id="campusId"
             name="campusId"
             value={eventData.campusId || ""}
             onChange={handleChange}
-              disabled={!!eventData.subcampusId} 
           >
-            <option value="">Selecciona un campus</option>
+            <option value="">Selecciona una sede</option>
             {campuses.map((campus) => (
               <option key={campus.campusId} value={campus.campusId}>
                 {campus.campusName}
@@ -356,34 +350,27 @@ export const EventsEditPage = () => {
           </select>
         </div>
 
-        {/* Subcampus */}
         <div className="mb-3">
-          <label htmlFor="subcampusId" className="form-label">
-            Subcampus
-          </label>
+          <label htmlFor="subcampusId" className="form-label">Recintos</label>
           <select
             className="form-select"
             id="subcampusId"
             name="subcampusId"
             value={eventData.subcampusId || ""}
             onChange={handleChange}
-             disabled={!!eventData.campusId} 
+            disabled={!eventData.campusId}
           >
-            <option value="">Selecciona un subcampus</option>
-            {subcampuses.map((subcampus) => (
-              <option key={subcampus.subcampusId} value={subcampus.subcampusId}>
-                {subcampus.subcampusName}
+            <option value="">Selecciona un recinto</option>
+            {subcampuses.map((sub) => (
+              <option key={sub.subcampusId} value={sub.subcampusId}>
+                {sub.subcampusName}
               </option>
             ))}
           </select>
         </div>
 
         <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => navigate("/events-list")}
-          >
+          <Button type="button" variant="secondary" onClick={() => navigate("/events-list")}>
             <i className="bi bi-x me-2"></i> Cancelar
           </Button>
           <Button type="submit" variant="primary">

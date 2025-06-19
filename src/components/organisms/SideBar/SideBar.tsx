@@ -14,7 +14,8 @@ const menuItems = [
   { path: "/simulation-questions", icon: "bi-pencil-square", label: "Prueba simulada", permission: "VER PREGUNTAS SIMULADAS" },
   { path: "/users", icon: "bi-people", label: "Usuarios", permission: "VER USUARIOS" },
   { path: "/roles-list", icon: "bi-shield-check", label: "Roles", permission: "VER ROLES" },
-  { path: "/notifications", icon: "bi-bell", label: "Notificaciones", permission: "VER NOTIFICACIONES" }
+  { path: "/notifications", icon: "bi-bell", label: "Notificaciones", permission: "VER NOTIFICACIONES" },
+   { path: "/categories", icon: "bi-tags", label: "Categorías", permission: "VER PREGUNTAS SIMULADAS" }
 ];
 
 export default function SideBar({ visible, setVisible }: SideBarProps) {
