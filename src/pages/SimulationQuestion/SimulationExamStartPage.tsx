@@ -18,7 +18,7 @@ export const SimulationExamStartPage = () => {
     <div className="container py-5 text-center">
       <h2>¿Listo para iniciar el examen simulado?</h2>
       <p>
-        El examen consta de 30 preguntas (15 de lógica verbal y 15 de lógica matemática).<br />
+        El examen consta de 30 preguntas.<br />
         Tendrás 2 horas para completarlo. Una vez iniciado, el tiempo no se detendrá.<br />
         ¿Deseas comenzar ahora?
       </p>
