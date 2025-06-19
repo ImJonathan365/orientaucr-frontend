@@ -10,8 +10,12 @@ export const CategoryAddPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!categoryName.trim()) {
+      Swal.fire("Error", "El nombre de la categoría no puede estar vacío ni ser solo espacios.", "warning");
+      return;
+    }
     try {
-      await createCategory({ categoryName });
+      await createCategory({ categoryName: categoryName.trim() });
       await Swal.fire("Éxito", "Categoría creada correctamente", "success");
       navigate("/categories");
     } catch (err: any) {

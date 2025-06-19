@@ -29,8 +29,12 @@ export const CategoryEditPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!category) return;
+    if (!categoryName.trim()) {
+      Swal.fire("Error", "El nombre de la categoría no puede estar vacío ni ser solo espacios.", "warning");
+      return;
+    }
     try {
-      await updateCategory({ ...category, categoryName });
+      await updateCategory({ ...category, categoryName: categoryName.trim() });
       await Swal.fire("Éxito", "Categoría actualizada correctamente", "success");
       navigate("/categories");
     } catch (err: any) {

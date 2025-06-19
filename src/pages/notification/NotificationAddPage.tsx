@@ -45,6 +45,17 @@ export const NotificationAddPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validación de asunto y mensaje
+    if (!form.notificationTitle.trim()) {
+      Swal.fire("Error", "El asunto no puede estar vacío ni ser solo espacios.", "warning");
+      return;
+    }
+    if (!form.notificationMessage.trim()) {
+      Swal.fire("Error", "El mensaje no puede estar vacío ni ser solo espacios.", "warning");
+      return;
+    }
+
     const now = new Date();
     const sendDateLocal = new Date(form.notificationSendDate);
 
@@ -57,8 +68,8 @@ export const NotificationAddPage = () => {
     const notificationSendDateUTC = sendDateLocal.toISOString();
 
     const notification: Omit<Notification, "notificationId" | "attachments"> = {
-      notificationTitle: form.notificationTitle,
-      notificationMessage: form.notificationMessage,
+      notificationTitle: form.notificationTitle.trim(),
+      notificationMessage: form.notificationMessage.trim(),
       notificationSendDate: notificationSendDateUTC,
       notificationEvents: [
         {
