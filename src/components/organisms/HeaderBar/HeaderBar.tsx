@@ -37,7 +37,7 @@ export const HeaderBar: React.FC = () => {
     { to: "/events", label: "Eventos" },
     { to: "/academic-centers", label: "Centros Académicos" },
     { to: "/vocational-test", label: "Test Vocacional" },
-    { to: "/simulation-test", label: "Prueba Simulada" },
+    { to: "/simulation-exam-start", label: "Prueba Simulada" },
   ];
 
   return (
