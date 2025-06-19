@@ -90,11 +90,11 @@ export default function AppRoutes() {
         <Route path="/course-list" element={<RequireAuth><AllCourseListPage /></RequireAuth>} />
         <Route path="/courses/new" element={<RequireAuth><NewCoursesPage /></RequireAuth>} />
         <Route path="/courses/edit/:id" element={<RequireAuth><EditCoursePage /></RequireAuth>} />
-        <Route path="/categories" element={<CategoryListPage />} />
-<Route path="/categories/add" element={<CategoryAddPage />} />
-<Route path="/categories/edit/:id" element={<CategoryEditPage />} />
+        <Route path="/categories" element={<RequireAuth><CategoryListPage /></RequireAuth>} />
+        <Route path="/categories/add" element={<RequireAuth><CategoryAddPage /></RequireAuth>} />
+        <Route path="/categories/edit/:id" element={<RequireAuth><CategoryEditPage /></RequireAuth>} />
       </Route>
-      
+
       {/* Rutas privadas sin Header ni Sidebar */}
       <Route element={<SimpleLayout />}>
         <Route path="/profile" element={<RequireAuth><UserProfile /></RequireAuth>} />
