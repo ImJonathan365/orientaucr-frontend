@@ -1,12 +1,12 @@
-import axios from 'axios';
+import axios from "../utils/AxiosConfig";
 import { User } from '../types/userType';
-import { getToken } from '../utils/Auth';
+import { saveTokens, getToken } from '../utils/Auth';
 
 const API_BASE_URL = 'http://localhost:9999/api';
 
 export const loginUser = async (userEmail: string, userPassword: string): Promise<string> => {
   try {
-    const response = await axios.post<string>(`${API_BASE_URL}/auth/login`, {
+    const response = await axios.post<{ token: string, refreshToken: string }>(`${API_BASE_URL}/auth/login`, {
       userEmail,
       userPassword
     }, {
@@ -14,7 +14,8 @@ export const loginUser = async (userEmail: string, userPassword: string): Promis
         'Content-Type': 'application/json'
       }
     });
-    return response.data;
+    saveTokens(response.data.token, response.data.refreshToken);
+    return response.data.token;
   } catch (error: any) {
     if (error.response && error.response.status === 401) {
       throw new Error('Credenciales incorrectas');
@@ -24,12 +25,13 @@ export const loginUser = async (userEmail: string, userPassword: string): Promis
 };
 
 export const registerUser = async (user: Pick<User, 'userName' | 'userEmail' | 'userPassword'>): Promise<string> => {
-  const response = await axios.post<string>(`${API_BASE_URL}/auth/register`, user, {
+  const response = await axios.post<{ token: string, refreshToken: string }>(`${API_BASE_URL}/auth/register`, user, {
     headers: {
       'Content-Type': 'application/json'
     }
   });
-  return response.data;
+  saveTokens(response.data.token, response.data.refreshToken);
+  return response.data.token;
 };
 
 export const addUser = async (user: User, imageFile?: File): Promise<string> => {
@@ -85,12 +87,13 @@ export const getUserById = async (userId: string): Promise<User> => {
 };
 
 export const getCurrentUser = async (): Promise<User> => {
+  const token = getToken();
+  if (!token) throw new Error("No token");
   const response = await axios.get<User>(`${API_BASE_URL}/user/me`, {
     headers: {
-      'Authorization': `Bearer ${getToken()}`
+      'Authorization': `Bearer ${token}`
     }
   });
-  console.log('Current user:', response.data);
   return response.data;
 };
 

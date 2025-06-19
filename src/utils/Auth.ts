@@ -1,3 +1,4 @@
+const REFRESH_TOKEN_KEY = 'refresh_token';
 const TOKEN_KEY = 'jwt_token_with_activity';
 
 type TokenWithActivity = {
@@ -5,12 +6,13 @@ type TokenWithActivity = {
   lastActivity: number;
 };
 
-export const saveToken = (token: string) => {
+export const saveTokens = (token: string, refreshToken: string) => {
   const tokenWithActivity: TokenWithActivity = {
     token,
     lastActivity: Date.now(),
   };
   localStorage.setItem(TOKEN_KEY, JSON.stringify(tokenWithActivity));
+  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
 };
 
 export const getToken = (): string | null => {
@@ -22,6 +24,10 @@ export const getToken = (): string | null => {
   } catch {
     return null;
   }
+};
+
+export const getRefreshToken = (): string | null => {
+  return localStorage.getItem('refresh_token');
 };
 
 export const updateTokenActivity = () => {
@@ -45,8 +51,9 @@ export const getTokenLastActivity = (): number | null => {
   }
 };
 
-export const removeToken = () => {
+export const removeTokens = () => {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
 };
 
 export const parseJwt = (token: string): any => {
