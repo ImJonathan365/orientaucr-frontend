@@ -1,8 +1,15 @@
 import { HeaderBar } from "../components/organisms/HeaderBar/HeaderBar";
 import FooterBar from "../components/organisms/FooterBar/FooterBar";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { removeTokens } from '../utils/Auth';
 
 export default function PublicHomePage() {
+  
+  useEffect(() => {
+    removeTokens();
+  }, []);
+
   return (
     <>
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>

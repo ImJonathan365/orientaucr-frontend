@@ -11,7 +11,6 @@ export function RequireAuth({ children }: RequireAuthProps) {
   const navigate = useNavigate();
   
   useEffect(() => {
-    console.log("RequireAuth: loading:", loading, "user:", user);
     if (!loading && (!user || !user.userId)) {
       navigate("/login", { replace: true });
     }
