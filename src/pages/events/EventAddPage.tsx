@@ -12,22 +12,34 @@ import { Subcampus } from "../../types/subcampusType";
 import { getAllSubcampus } from "../../services/subcampusService";
 import { getCurrentUser } from "../../services/userService";
 import { User } from "../../types/userType";
+
 export const EventAddPage = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const today = new Date().toISOString().split("T")[0];
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = await getCurrentUser();
-        setCurrentUser(user);
-      } catch {
-        setCurrentUser(null);
-      }
-    };
-    fetchUser();
-  }, []);
+  // Obtener fecha actual en Costa Rica (YYYY-MM-DD)
+  const getTodayInCostaRica = (): string => {
+    const today = new Date();
+    const costaRicaOffset = -6 * 60; // UTC-6 en minutos
+    const localTime = new Date(
+      today.getTime() - (today.getTimezoneOffset() - costaRicaOffset) * 60000
+    );
+    return localTime.toISOString().split("T")[0];
+  };
+
+  const today = getTodayInCostaRica();
+
+  // Obtener minutos totales desde medianoche para la hora actual en Costa Rica
+  const getCostaRicaCurrentTotalMinutes = (): number => {
+    const now = new Date();
+
+    // Hora UTC
+    let costaRicaHours = now.getUTCHours() - 6;
+    if (costaRicaHours < 0) costaRicaHours += 24;
+    const costaRicaMinutes = now.getUTCMinutes();
+
+    return costaRicaHours * 60 + costaRicaMinutes;
+  };
 
   const [eventData, setEventData] = useState<Event>({
     eventId: "",
@@ -44,46 +56,62 @@ export const EventAddPage = () => {
   const [campuses, setCampuses] = useState<Campus[]>([]);
   const [subcampuses, setSubcampuses] = useState<Subcampus[]>([]);
   const [loading, setLoading] = useState(true);
-  const [campusError, setCampusError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchCampus = async () => {
       try {
         const campusesData = await getAllCampus();
-        const subcampusesData = await getAllSubcampus();
         setCampuses(campusesData);
-        setSubcampuses(subcampusesData);
       } catch (error) {
         setCampuses([]);
-        setSubcampuses([]);
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "No se pudieron cargar los campus o subcampus",
+          text: "No se pudieron cargar los campus",
         });
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    fetchCampus();
   }, []);
 
   useEffect(() => {
-    const campusSelected = !!eventData.campusId;
-    const subcampusSelected = !!eventData.subcampusId;
+    const fetchSubcampus = async () => {
+      if (eventData.campusId) {
+        try {
+          const subcampusData = await getAllSubcampus(eventData.campusId);
+          setSubcampuses(subcampusData);
+        } catch (error) {
+          setSubcampuses([]);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "No se pudieron cargar los subcampus del campus seleccionado",
+          });
+        }
+      } else {
+        setSubcampuses([]);
+        setEventData((prev) => ({ ...prev, subcampusId: "" }));
+      }
+    };
 
-    if (campusSelected && subcampusSelected) {
-      setCampusError(
-        "Debe seleccionar únicamente un campus o un subcampus, pero no ambos."
-      );
-    } else if (!campusSelected && !subcampusSelected) {
-      setCampusError("Debe seleccionar al menos un campus o subcampus.");
-    } else {
-      setCampusError(null);
-    }
-  }, [eventData.campusId, eventData.subcampusId]);
+    fetchSubcampus();
+  }, [eventData.campusId]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -92,13 +120,10 @@ export const EventAddPage = () => {
   ) => {
     const { name, value } = e.target;
 
-    if (name === "campusId" && value) {
-      setEventData({ ...eventData, campusId: value, subcampusId: "" });
-    } else if (name === "subcampusId" && value) {
-      setEventData({ ...eventData, subcampusId: value, campusId: "" });
-    } else {
-      setEventData({ ...eventData, [name]: value });
-    }
+    setEventData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,6 +169,7 @@ export const EventAddPage = () => {
       reader.readAsDataURL(file);
     }
   };
+
   const validateForm = (): string | null => {
     const {
       eventTitle,
@@ -167,27 +193,27 @@ export const EventAddPage = () => {
       return "La fecha no puede estar en el pasado.";
     }
 
-    // Validación de hora (6:00 AM a 9:00 PM)
     if (!eventTime) {
       return "La hora es obligatoria.";
     } else {
       const [hours, minutes] = eventTime.split(":").map(Number);
       const totalMinutes = hours * 60 + minutes;
 
-      // Validar que esté entre 6:00 AM (360 minutos) y 9:00 PM (1260 minutos)
       if (totalMinutes < 360 || totalMinutes > 1260) {
         return "La hora del evento debe estar entre 6:00 AM y 9:00 PM.";
       }
 
-      // Validar que no sea anterior a la hora actual si es el mismo día
       if (eventDate === today) {
-        const now = new Date();
-        const currentHours = now.getHours();
-        const currentMinutes = now.getMinutes();
-        const currentTotalMinutes = currentHours * 60 + currentMinutes;
+        const currentTotalMinutes = getCostaRicaCurrentTotalMinutes();
 
         if (totalMinutes < currentTotalMinutes) {
-          return "No puedes crear un evento en una hora que ya ha pasado para el día actual.";
+          Swal.fire({
+            icon: "warning",
+            title: "Hora inválida",
+            text:
+              "No puedes crear un evento en una hora que ya ha pasado para el día actual (hora local Costa Rica).",
+          });
+          return "Hora pasada para hoy.";
         }
       }
     }
@@ -195,9 +221,11 @@ export const EventAddPage = () => {
     if (!eventModality) {
       return "Debes seleccionar una modalidad.";
     }
-    if (campusError) {
-      return campusError;
+
+    if (!eventData.campusId) {
+      return "Debes seleccionar un campus.";
     }
+
     return null;
   };
 
@@ -206,18 +234,30 @@ export const EventAddPage = () => {
 
     const error = validateForm();
     if (error) {
-      return Swal.fire({
-        icon: "warning",
-        title: "Validación",
-        text: error,
-      });
+      if (error !== "Hora pasada para hoy.") {
+        // Mostrar Swal solo si no fue mostrado ya en validación
+        await Swal.fire({
+          icon: "warning",
+          title: "Validación",
+          text: error,
+        });
+      }
+      return;
     }
 
     try {
       const formData = new FormData();
       formData.append("eventTitle", eventData.eventTitle);
       formData.append("eventDescription", eventData.eventDescription);
-      formData.append("eventDate", eventData.eventDate);
+
+      // Ajuste de fecha para evitar problemas de zona horaria
+      const eventDateLocal = new Date(eventData.eventDate + "T00:00:00");
+      const eventDateAdjusted = new Date(
+        eventDateLocal.getTime() - eventDateLocal.getTimezoneOffset() * 60000
+      );
+      const localDateString = eventDateAdjusted.toISOString().split("T")[0];
+      formData.append("eventDate", localDateString);
+
       formData.append("eventTime", eventData.eventTime);
       formData.append("eventModality", eventData.eventModality);
       formData.append("createdBy", currentUser?.userId || "");
@@ -252,7 +292,7 @@ export const EventAddPage = () => {
       </Title>
 
       {loading ? (
-        <p>Cargando campus y subcampus...</p>
+        <p>Cargando campus...</p>
       ) : (
         <form onSubmit={handleSubmit} encType="multipart/form-data">
           {/* Título */}
@@ -262,25 +302,12 @@ export const EventAddPage = () => {
             </label>
             <Input
               type="text"
-              className={`form-control ${
-                eventData.eventTitle.length > 0 &&
-                (eventData.eventTitle.length < 4 ||
-                  eventData.eventTitle.length > 200)
-                  ? "is-invalid"
-                  : ""
-              }`}
+              className="form-control"
               id="eventTitle"
               name="eventTitle"
               value={eventData.eventTitle}
               onChange={handleChange}
             />
-            {eventData.eventTitle.length > 0 &&
-              (eventData.eventTitle.length < 4 ||
-                eventData.eventTitle.length > 200) && (
-                <div className="invalid-feedback">
-                  Debe tener entre 4 y 200 caracteres.
-                </div>
-              )}
           </div>
 
           {/* Imagen */}
@@ -306,9 +333,6 @@ export const EventAddPage = () => {
                 />
               </div>
             )}
-            <div className="form-text">
-              Formatos aceptados: JPEG, PNG, GIF, WEBP. Tamaño máximo: 5MB.
-            </div>
           </div>
 
           {/* Descripción */}
@@ -317,24 +341,13 @@ export const EventAddPage = () => {
               Descripción
             </label>
             <textarea
-              className={`form-control ${
-                eventData.eventDescription.length < 4 ||
-                eventData.eventDescription.length > 500
-                  ? "is-invalid"
-                  : ""
-              }`}
+              className="form-control"
               id="eventDescription"
               name="eventDescription"
               rows={3}
               value={eventData.eventDescription}
               onChange={handleChange}
             />
-            {(eventData.eventDescription.length < 4 ||
-              eventData.eventDescription.length > 500) && (
-              <div className="invalid-feedback">
-                Debe tener entre 4 y 500 caracteres.
-              </div>
-            )}
           </div>
 
           {/* Fecha */}
@@ -356,7 +369,7 @@ export const EventAddPage = () => {
           {/* Hora */}
           <div className="mb-3">
             <label htmlFor="eventTime" className="form-label">
-              Las horas disponibles para un evento son (6:00 AM - 9:00 PM)
+              Hora (6:00 AM - 9:00 PM)
             </label>
             <Input
               type="time"
@@ -398,9 +411,8 @@ export const EventAddPage = () => {
               name="campusId"
               value={eventData.campusId ?? ""}
               onChange={handleChange}
-              disabled={!!eventData.subcampusId} // << aquí está el truco
             >
-              <option value="">Selecciona un campus</option>
+              <option value="">Selecciona una sede</option>
               {campuses.map((campus) => (
                 <option key={campus.campusId} value={campus.campusId}>
                   {campus.campusName}
@@ -414,16 +426,15 @@ export const EventAddPage = () => {
             <label htmlFor="subcampusId" className="form-label">
               Subcampus
             </label>
-            d
             <select
               className="form-select"
               id="subcampusId"
               name="subcampusId"
               value={eventData.subcampusId ?? ""}
               onChange={handleChange}
-              disabled={!!eventData.campusId} // << aquí la lógica inversa
+              disabled={!eventData.campusId}
             >
-              <option value="">Selecciona un subcampus</option>
+              <option value="">Selecciona un recinto</option>
               {subcampuses.map((sub) => (
                 <option key={sub.subcampusId} value={sub.subcampusId}>
                   {sub.subcampusName}

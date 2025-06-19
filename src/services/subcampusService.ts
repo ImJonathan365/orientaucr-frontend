@@ -3,8 +3,8 @@ import { Subcampus } from '../types/subcampusType';
 
 const API_URL = 'http://localhost:9999/api/subcampus';
 
-export const getAllSubcampus = async (): Promise<Subcampus[]> => {
-  const response = await axios.get<Subcampus[]>(`${API_URL}/all`);
+export const getAllSubcampus = async (campusId: string): Promise<Subcampus[]> => {
+  const response = await axios.get<Subcampus[]>(`${API_URL}/all/${campusId}`);
   return response.data;
 };
 

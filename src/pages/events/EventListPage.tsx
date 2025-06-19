@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getAllEvents, deleteEvent } from "../../services/eventService";
 import { Event } from "../../types/EventTypes";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
@@ -19,8 +19,8 @@ export const EventsListPage = () => {
         const data = await getAllEvents();
         const sorted = data.sort((a, b) => {
           const dateA = new Date(`${a.eventDate}T${a.eventTime}`);
-      const dateB = new Date(`${b.eventDate}T${b.eventTime}`);
-      return dateA.getTime() - dateB.getTime();
+          const dateB = new Date(`${b.eventDate}T${b.eventTime}`);
+          return dateA.getTime() - dateB.getTime();
         });
         setEvents(sorted);
       } catch {
@@ -81,7 +81,11 @@ export const EventsListPage = () => {
     {
       key: "event_date",
       label: "Fecha",
-      render: (row) => new Date(row.eventDate).toLocaleDateString(),
+      render: (row) => {
+        // Forzar fecha local para evitar desfase por zona horaria
+        const localDate = new Date(row.eventDate + "T00:00:00");
+        return localDate.toLocaleDateString();
+      },
     },
     {
       key: "event_time",
