@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { getToken, removeToken, updateTokenActivity, getTokenLastActivity } from "../utils/Auth";
+import { getToken, removeTokens, updateTokenActivity, getTokenLastActivity } from "../utils/Auth";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 
@@ -20,7 +20,7 @@ export function useAutoLogout(inactivityLimit: number) {
     const interval = setInterval(() => {
       const lastActivity = getTokenLastActivity();
       if (getToken() && lastActivity && Date.now() - lastActivity > inactivityLimit) {
-        removeToken();
+        removeTokens();
         Swal.fire({
           title: "Sesión expirada",
           text: "Su sesión ha expirado por inactividad. Por favor, inicie sesión nuevamente.",

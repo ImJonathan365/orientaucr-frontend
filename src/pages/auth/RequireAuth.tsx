@@ -1,35 +1,27 @@
-import { ReactNode, useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
-import { User } from "../../types/userType";
-import { getCurrentUser } from "../../services/userService";
+import { ReactNode, useEffect } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useUser } from "../../contexts/UserContext";
 
 interface RequireAuthProps {
   children: ReactNode;
 }
 
 export function RequireAuth({ children }: RequireAuthProps) {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
+  const { user, loading } = useUser();
+  const navigate = useNavigate();
+  
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = await getCurrentUser();
-        setCurrentUser(user);
-      } catch (error) {
-        setCurrentUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
+    console.log("RequireAuth: loading:", loading, "user:", user);
+    if (!loading && (!user || !user.userId)) {
+      navigate("/login", { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   if (loading) {
     return <div>Cargando...</div>;
   }
 
-  if (!currentUser || !currentUser.userId) {
+  if (!user || !user.userId) {
     return <Navigate to="/login" replace />;
   }
 

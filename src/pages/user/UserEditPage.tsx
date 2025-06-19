@@ -6,11 +6,12 @@ import { User } from "../../types/userType";
 import { Roles } from "../../types/rolesType";
 import Swal from "sweetalert2";
 import { Button } from "../../components/atoms/Button/Button";
+import { useUser } from "../../contexts/UserContext";
 
 export const UserEditPage = () => {
-    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-
+    const { id } = useParams<{ id: string }>();
+    const { user: currentUser } = useUser();
     const [user, setUser] = useState<User | null>(null);
     const [roles, setRoles] = useState<Roles[]>([]);
     const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
@@ -28,31 +29,46 @@ export const UserEditPage = () => {
     });
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const userData = await getUserById(id!);
-                setUser(userData);
-                setForm({
-                    userName: userData.userName,
-                    userLastname: userData.userLastname,
-                    userEmail: userData.userEmail,
-                    userBirthdate: userData.userBirthdate || "",
-                    userPassword: userData.userPassword,
-                    userAdmissionAverage: userData.userAdmissionAverage?.toString() || "",
-                    userAllowEmailNotification: userData.userAllowEmailNotification,
-                    userProfilePicture: userData.userProfilePicture || "",
-                });
-                const allRoles = await getAllRoles();
-                setRoles(allRoles);
-                setSelectedRoleIds(userData.userRoles?.map(r => r.rolId) || []);
-            } catch (error) {
-                Swal.fire({ icon: "error", title: "Error", text: "Error al cargar datos del usuario" });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
-    }, [id]);
+        if (!currentUser) return;
+
+        if (id === currentUser.userId) {
+            Swal.fire({
+                icon: "warning",
+                title: "No permitido",
+                text: "No puedes editar tus propios datos desde aquí.",
+                confirmButtonText: "Aceptar"
+            }).then(() => {
+                navigate("/home", { replace: true });
+            });
+            return;
+        } else {
+            const fetchData = async () => {
+                try {
+                    const userData = await getUserById(id!);
+                    setUser(userData);
+                    setForm({
+                        userName: userData.userName,
+                        userLastname: userData.userLastname,
+                        userEmail: userData.userEmail,
+                        userBirthdate: userData.userBirthdate || "",
+                        userPassword: userData.userPassword,
+                        userAdmissionAverage: userData.userAdmissionAverage?.toString() || "",
+                        userAllowEmailNotification: userData.userAllowEmailNotification,
+                        userProfilePicture: userData.userProfilePicture || "",
+                    });
+                    const allRoles = await getAllRoles();
+                    setRoles(allRoles);
+                    setSelectedRoleIds(userData.userRoles?.map(r => r.rolId) || []);
+                } catch (error) {
+                    Swal.fire({ icon: "error", title: "Error", text: "Error al cargar datos del usuario" });
+                    navigate("/home", { replace: true });
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchData();
+        }
+    }, [id, currentUser, navigate]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type, checked } = e.target as HTMLInputElement;
@@ -211,7 +227,10 @@ export const UserEditPage = () => {
     }
 
     if (!user) {
-        return <div className="container"><p>No se encontró el usuario.</p></div>;
+        Swal.fire({ icon: "error", title: "Usuario no encontrado", text: "El usuario no existe o no tiene permisos para verlo." }).then(() => {
+            navigate("/home", { replace: true });
+        });
+        return null;
     }
 
     return (

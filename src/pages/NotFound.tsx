@@ -20,8 +20,6 @@ export const NotFound = () => {
       navigate("/course-list", { replace: true });
     } else if (location.pathname.startsWith("simulation-questions/edit/")) {
       navigate("/simulation-questions", { replace: true });
-    } else if (location.pathname.startsWith("/")) {
-      navigate("/home", { replace: true });
     }
   }, [location, navigate]);
 

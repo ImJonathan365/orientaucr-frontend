@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginUser, setAuthToken } from '../../services/userService';
-import { saveToken } from '../../utils/Auth';
 import { useUser } from '../../contexts/UserContext';
 
 const LoginPage: React.FC = () => {
@@ -16,7 +15,6 @@ const LoginPage: React.FC = () => {
     setError('');
     try {
       const token = await loginUser(email, password);
-      saveToken(token);
       setAuthToken(token);
       await refreshUser();
       navigate('/home');

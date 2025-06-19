@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "../../services/userService";
+import { registerUser, setAuthToken } from "../../services/userService";
+import { useUser } from "../../contexts/UserContext";
 import Swal from "sweetalert2";
 
 export const RegisterPage = () => {
@@ -10,6 +11,7 @@ export const RegisterPage = () => {
   const [userPassword, setUserPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { refreshUser } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,14 +34,14 @@ export const RegisterPage = () => {
         userPassword,
       };
 
-      await registerUser(user);
-
+      const token = await registerUser(user);
+      setAuthToken(token);
+      await refreshUser();
       await Swal.fire({
         icon: "success",
         title: "¡Usuario registrado exitosamente!",
-        confirmButtonText: "Ir a iniciar sesión",
+        confirmButtonText: "Ir al inicio",
       });
-
       navigate("/login");
     } catch (err: any) {
       await Swal.fire({

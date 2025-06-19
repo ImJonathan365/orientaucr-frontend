@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { removeToken } from "../../../utils/Auth";
+import { removeTokens } from "../../../utils/Auth";
+import { resetAxios } from "../../../utils/AxiosConfig";
 import { useUser } from "../../../contexts/UserContext";
 
 interface ProfileDropdownProps {
@@ -12,9 +13,10 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onClose }) => 
   const { refreshUser } = useUser();
 
   const handleLogout = async () => {
-    removeToken();
+    removeTokens();
+    resetAxios();
     await refreshUser();
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -37,4 +39,4 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onClose }) => 
       </ul>
     </div>
   );
-};
+}
