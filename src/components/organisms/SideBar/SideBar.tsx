@@ -15,7 +15,7 @@ const menuItems = [
   { path: "/users", icon: "bi-people", label: "Usuarios", permission: "VER USUARIOS" },
   { path: "/roles-list", icon: "bi-shield-check", label: "Roles", permission: "VER ROLES" },
   { path: "/notifications", icon: "bi-bell", label: "Notificaciones", permission: "VER NOTIFICACIONES" },
-   { path: "/categories", icon: "bi-tags", label: "Categorías", permission: "VER PREGUNTAS SIMULADAS" }
+  { path: "/categories", icon: "bi-tags", label: "Categorías", permission: "VER PREGUNTAS SIMULADAS" }
 ];
 
 export default function SideBar({ visible, setVisible }: SideBarProps) {
@@ -33,7 +33,7 @@ export default function SideBar({ visible, setVisible }: SideBarProps) {
     return null;
   }
   if (!currentUser) return null;
-   
+
   const userPermissions: string[] = currentUser.userRoles?.flatMap(r => r.permissions.map(p => p.permissionName)) || [];
 
   const filteredMenuItems = menuItems.filter(item => userPermissions.includes(item.permission));
