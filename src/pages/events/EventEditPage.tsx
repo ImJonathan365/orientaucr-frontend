@@ -17,17 +17,15 @@ export const EventsEditPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  // Obtener fecha actual en Costa Rica (YYYY-MM-DD)
   const getTodayInCostaRica = (): string => {
     const today = new Date();
-    const costaRicaOffset = -6 * 60; // UTC-6 en minutos
+    const costaRicaOffset = -6 * 60;
     const localTime = new Date(
       today.getTime() - (today.getTimezoneOffset() - costaRicaOffset) * 60000
     );
     return localTime.toISOString().split("T")[0];
   };
 
-  // Obtener minutos totales desde medianoche para la hora actual en Costa Rica
   const getCostaRicaCurrentTotalMinutes = (): number => {
     const now = new Date();
     let costaRicaHours = now.getUTCHours() - 6;
@@ -152,10 +150,22 @@ export const EventsEditPage = () => {
       campusId,
     } = eventData;
 
-    if (!eventTitle || eventTitle.length < 4 || eventTitle.length > 200)
+    const allowedPattern = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+
+    if (!eventTitle || eventTitle.trim() === "")
+      return "El título no puede estar vacío.";
+    if (!allowedPattern.test(eventTitle))
+      return "El título solo puede contener letras y espacios.";
+    if (eventTitle.length < 4 || eventTitle.length > 200)
       return "El título debe tener entre 4 y 200 caracteres.";
-    if (!eventDescription || eventDescription.length < 4 || eventDescription.length > 500)
+
+    if (!eventDescription || eventDescription.trim() === "")
+      return "La descripción no puede estar vacía.";
+    if (!allowedPattern.test(eventDescription))
+      return "La descripción solo puede contener letras y espacios.";
+    if (eventDescription.length < 4 || eventDescription.length > 500)
       return "La descripción debe tener entre 4 y 500 caracteres.";
+
     if (!eventDate || eventDate < today) return "La fecha no puede estar en el pasado.";
     if (!eventTime) return "La hora es obligatoria.";
     else {
@@ -232,15 +242,10 @@ export const EventsEditPage = () => {
 
   return (
     <div className="container py-4">
-      <Title variant="h2" className="mb-4">
-        Editar Evento
-      </Title>
+      <Title variant="h2" className="mb-4">Editar Evento</Title>
       <form onSubmit={handleSubmit} encType="multipart/form-data">
-        {/* Título */}
         <div className="mb-3">
-          <label htmlFor="eventTitle" className="form-label">
-            Título
-          </label>
+          <label htmlFor="eventTitle" className="form-label">Título</label>
           <Input
             type="text"
             id="eventTitle"
@@ -251,11 +256,8 @@ export const EventsEditPage = () => {
           />
         </div>
 
-        {/* Imagen */}
         <div className="mb-3">
-          <label htmlFor="image" className="form-label">
-            Imagen
-          </label>
+          <label htmlFor="image" className="form-label">Imagen</label>
           <input
             type="file"
             className="form-control"
@@ -276,11 +278,8 @@ export const EventsEditPage = () => {
           )}
         </div>
 
-        {/* Descripción */}
         <div className="mb-3">
-          <label htmlFor="eventDescription" className="form-label">
-            Descripción
-          </label>
+          <label htmlFor="eventDescription" className="form-label">Descripción</label>
           <textarea
             className="form-control"
             id="eventDescription"
@@ -291,11 +290,8 @@ export const EventsEditPage = () => {
           />
         </div>
 
-        {/* Fecha */}
         <div className="mb-3">
-          <label htmlFor="eventDate" className="form-label">
-            Fecha
-          </label>
+          <label htmlFor="eventDate" className="form-label">Fecha</label>
           <Input
             type="date"
             className="form-control"
@@ -307,11 +303,8 @@ export const EventsEditPage = () => {
           />
         </div>
 
-        {/* Hora */}
         <div className="mb-3">
-          <label htmlFor="eventTime" className="form-label">
-            Hora
-          </label>
+          <label htmlFor="eventTime" className="form-label">Hora</label>
           <Input
             type="time"
             className="form-control"
@@ -324,11 +317,8 @@ export const EventsEditPage = () => {
           />
         </div>
 
-        {/* Modalidad */}
         <div className="mb-3">
-          <label htmlFor="eventModality" className="form-label">
-            Modalidad
-          </label>
+          <label htmlFor="eventModality" className="form-label">Modalidad</label>
           <select
             className="form-select"
             id="eventModality"
@@ -342,11 +332,8 @@ export const EventsEditPage = () => {
           </select>
         </div>
 
-        {/* Campus */}
         <div className="mb-3">
-          <label htmlFor="campusId" className="form-label">
-            Campus
-          </label>
+          <label htmlFor="campusId" className="form-label">Sedes</label>
           <select
             className="form-select"
             id="campusId"
@@ -363,11 +350,8 @@ export const EventsEditPage = () => {
           </select>
         </div>
 
-        {/* Subcampus */}
         <div className="mb-3">
-          <label htmlFor="subcampusId" className="form-label">
-            Subcampus
-          </label>
+          <label htmlFor="subcampusId" className="form-label">Recintos</label>
           <select
             className="form-select"
             id="subcampusId"
@@ -386,11 +370,7 @@ export const EventsEditPage = () => {
         </div>
 
         <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => navigate("/events-list")}
-          >
+          <Button type="button" variant="secondary" onClick={() => navigate("/events-list")}>
             <i className="bi bi-x me-2"></i> Cancelar
           </Button>
           <Button type="submit" variant="primary">

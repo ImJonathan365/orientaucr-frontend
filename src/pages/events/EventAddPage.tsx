@@ -17,10 +17,9 @@ export const EventAddPage = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  // Obtener fecha actual en Costa Rica (YYYY-MM-DD)
   const getTodayInCostaRica = (): string => {
     const today = new Date();
-    const costaRicaOffset = -6 * 60; // UTC-6 en minutos
+    const costaRicaOffset = -6 * 60;
     const localTime = new Date(
       today.getTime() - (today.getTimezoneOffset() - costaRicaOffset) * 60000
     );
@@ -29,15 +28,11 @@ export const EventAddPage = () => {
 
   const today = getTodayInCostaRica();
 
-  // Obtener minutos totales desde medianoche para la hora actual en Costa Rica
   const getCostaRicaCurrentTotalMinutes = (): number => {
     const now = new Date();
-
-    // Hora UTC
     let costaRicaHours = now.getUTCHours() - 6;
     if (costaRicaHours < 0) costaRicaHours += 24;
     const costaRicaMinutes = now.getUTCMinutes();
-
     return costaRicaHours * 60 + costaRicaMinutes;
   };
 
@@ -170,64 +165,76 @@ export const EventAddPage = () => {
     }
   };
 
-  const validateForm = (): string | null => {
-    const {
-      eventTitle,
-      eventDescription,
-      eventDate,
-      eventTime,
-      eventModality,
-    } = eventData;
+ const validateForm = (): string | null => {
+  const {
+    eventTitle,
+    eventDescription,
+    eventDate,
+    eventTime,
+    eventModality,
+  } = eventData;
 
-    if (!eventTitle || eventTitle.length < 4 || eventTitle.length > 200) {
-      return "El título del evento debe tener entre 4 y 200 caracteres.";
-    }
-    if (
-      !eventDescription ||
-      eventDescription.length < 4 ||
-      eventDescription.length > 500
-    ) {
-      return "La descripción debe tener entre 4 y 500 caracteres.";
-    }
-    if (!eventDate || eventDate < today) {
-      return "La fecha no puede estar en el pasado.";
+  const allowedPattern = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+
+  if (!eventTitle.trim()) {
+    return "El título no puede estar vacío o contener solo espacios.";
+  }
+  if (!allowedPattern.test(eventTitle)) {
+    return "El título solo puede contener letras y espacios.";
+  }
+  if (eventTitle.length < 4 || eventTitle.length > 200) {
+    return "El título del evento debe tener entre 4 y 200 caracteres.";
+  }
+
+  if (!eventDescription.trim()) {
+    return "La descripción no puede estar vacía o tener solo espacios.";
+  }
+  if (!allowedPattern.test(eventDescription)) {
+    return "La descripción solo puede contener letras y espacios.";
+  }
+  if (eventDescription.length < 4 || eventDescription.length > 500) {
+    return "La descripción debe tener entre 4 y 500 caracteres.";
+  }
+
+  if (!eventDate || eventDate < today) {
+    return "La fecha no puede estar en el pasado.";
+  }
+
+  if (!eventTime) {
+    return "La hora es obligatoria.";
+  } else {
+    const [hours, minutes] = eventTime.split(":").map(Number);
+    const totalMinutes = hours * 60 + minutes;
+
+    if (totalMinutes < 360 || totalMinutes > 1260) {
+      return "La hora del evento debe estar entre 6:00 AM y 9:00 PM.";
     }
 
-    if (!eventTime) {
-      return "La hora es obligatoria.";
-    } else {
-      const [hours, minutes] = eventTime.split(":").map(Number);
-      const totalMinutes = hours * 60 + minutes;
-
-      if (totalMinutes < 360 || totalMinutes > 1260) {
-        return "La hora del evento debe estar entre 6:00 AM y 9:00 PM.";
+    if (eventDate === today) {
+      const currentTotalMinutes = getCostaRicaCurrentTotalMinutes();
+      if (totalMinutes < currentTotalMinutes) {
+        Swal.fire({
+          icon: "warning",
+          title: "Hora inválida",
+          text:
+            "No puedes crear un evento en una hora que ya ha pasado para el día actual (hora local Costa Rica).",
+        });
+        return "Hora pasada para hoy.";
       }
-
-      if (eventDate === today) {
-        const currentTotalMinutes = getCostaRicaCurrentTotalMinutes();
-
-        if (totalMinutes < currentTotalMinutes) {
-          Swal.fire({
-            icon: "warning",
-            title: "Hora inválida",
-            text:
-              "No puedes crear un evento en una hora que ya ha pasado para el día actual (hora local Costa Rica).",
-          });
-          return "Hora pasada para hoy.";
-        }
-      }
     }
+  }
 
-    if (!eventModality) {
-      return "Debes seleccionar una modalidad.";
-    }
+  if (!eventModality) {
+    return "Debes seleccionar una modalidad.";
+  }
 
-    if (!eventData.campusId) {
-      return "Debes seleccionar un campus.";
-    }
+  if (!eventData.campusId) {
+    return "Debes seleccionar un campus.";
+  }
 
-    return null;
-  };
+  return null;
+};
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -235,7 +242,6 @@ export const EventAddPage = () => {
     const error = validateForm();
     if (error) {
       if (error !== "Hora pasada para hoy.") {
-        // Mostrar Swal solo si no fue mostrado ya en validación
         await Swal.fire({
           icon: "warning",
           title: "Validación",
@@ -250,7 +256,6 @@ export const EventAddPage = () => {
       formData.append("eventTitle", eventData.eventTitle);
       formData.append("eventDescription", eventData.eventDescription);
 
-      // Ajuste de fecha para evitar problemas de zona horaria
       const eventDateLocal = new Date(eventData.eventDate + "T00:00:00");
       const eventDateAdjusted = new Date(
         eventDateLocal.getTime() - eventDateLocal.getTimezoneOffset() * 60000
@@ -284,7 +289,6 @@ export const EventAddPage = () => {
       });
     }
   };
-
   return (
     <div className="container py-4">
       <Title variant="h2" className="mb-4">
@@ -403,7 +407,7 @@ export const EventAddPage = () => {
           {/* Campus */}
           <div className="mb-3">
             <label htmlFor="campusId" className="form-label">
-              Campus
+              Sedes
             </label>
             <select
               className="form-select"
@@ -424,7 +428,7 @@ export const EventAddPage = () => {
           {/* Subcampus */}
           <div className="mb-3">
             <label htmlFor="subcampusId" className="form-label">
-              Subcampus
+              Recintos
             </label>
             <select
               className="form-select"
