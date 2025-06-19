@@ -22,23 +22,18 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUser = async () => {
     setLoading(true);
     const token = getToken();
-    console.log("UserContext: token actual:", token);
     if (!token) {
       setUser(null);
       setLoading(false);
-      console.log("UserContext: No token, usuario null");
       return;
     }
     try {
       const u = await getCurrentUser();
       setUser(u);
-      console.log("UserContext: Usuario cargado:", u);
     } catch (e) {
       setUser(null);
-      console.log("UserContext: Error al cargar usuario:", e);
     } finally {
       setLoading(false);
-      console.log("UserContext: loading=false");
     }
   };
 
