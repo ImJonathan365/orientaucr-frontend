@@ -86,7 +86,7 @@ export const EditCoursePage = () => {
             name: 'courseDescription',
             label: 'Descripción',
             type: 'textarea',
-            required: false,
+            required: true,
             placeholder: 'Descripción del curso'
         },
         {
@@ -136,7 +136,17 @@ export const EditCoursePage = () => {
 
     const handleSubmit = async (values: EditCourseFormValues) => {
         try {
-            
+            if (!values.courseName || values.courseName.trim().length === 0 ||
+                !values.courseDescription || values.courseDescription.trim().length === 0) {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos requeridos',
+                    text: 'Ningún campo puede estar vacío.',
+                    confirmButtonText: 'Aceptar'
+                });
+                return;
+            }
+
             const code = values.courseCode.trim().toUpperCase();
             const normalizedCode = normalizeCode(code);
             const existingCodes = courses

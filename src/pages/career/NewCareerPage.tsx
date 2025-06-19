@@ -79,6 +79,16 @@ export const NewCareerPage = () => {
 
   const handleSubmit = async (values: CareerFormValues) => {
     try {
+        if (!values.careerName || values.careerName.trim().length === 0 || 
+        !values.careerDescription || values.careerDescription.trim().length === 0) {
+            await Swal.fire({
+                icon: 'warning',
+                title: 'Nombre requerido',
+                text: 'Ningún campo puede estar vacío.',
+                confirmButtonText: 'Aceptar'
+            });
+            return;
+        }
       const existingCareers = await getCareers();
       const existingNames = existingCareers.map(c => normalizeString(c.careerName));
       const newCareerName = normalizeString(values.careerName);
