@@ -28,7 +28,6 @@ export const NotificationEditPage = () => {
     }
   }, [id]);
 
-  
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -39,9 +38,21 @@ export const NotificationEditPage = () => {
       setForm((prev) => prev ? { ...prev, [name]: value } : prev);
     }
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form) return;
+
+    // Validación de asunto y mensaje
+    if (!form.notificationTitle.trim()) {
+      Swal.fire("Error", "El asunto no puede estar vacío ni ser solo espacios.", "warning");
+      return;
+    }
+    if (!form.notificationMessage.trim()) {
+      Swal.fire("Error", "El mensaje no puede estar vacío ni ser solo espacios.", "warning");
+      return;
+    }
+
     const now = new Date();
     const sendDate = new Date(form.notificationSendDate);
     if (sendDate <= now) {
@@ -50,8 +61,8 @@ export const NotificationEditPage = () => {
     }
     const notification: Notification = {
       notificationId: form.notificationId,
-      notificationTitle: form.notificationTitle,
-      notificationMessage: form.notificationMessage,
+      notificationTitle: form.notificationTitle.trim(),
+      notificationMessage: form.notificationMessage.trim(),
       notificationSendDate: form.notificationSendDate,
       notificationEvents: [
         {
