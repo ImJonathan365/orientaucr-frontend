@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../utils/AxiosConfig";
 const API_URL = "http://localhost:9999/api/notifications";
 
 export const getAllNotifications = async () => {

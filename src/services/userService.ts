@@ -25,11 +25,18 @@ export const loginUser = async (userEmail: string, userPassword: string): Promis
 };
 
 export const registerUser = async (user: Pick<User, 'userName' | 'userEmail' | 'userPassword'>): Promise<string> => {
-  const response = await axios.post<{ token: string, refreshToken: string }>(`${API_BASE_URL}/auth/register`, user, {
-    headers: {
-      'Content-Type': 'application/json'
+  const response = await axios.post<{ token: string, refreshToken: string }>(
+    `${API_BASE_URL}/auth/register`,
+    {
+      ...user,
+      userAllowEmailNotification: true
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     }
-  });
+  );
   saveTokens(response.data.token, response.data.refreshToken);
   return response.data.token;
 };
