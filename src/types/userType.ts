@@ -7,7 +7,7 @@ export interface User {
   userEmail: string;
   userBirthdate: string | null;
   userPassword: string;
-  userAdmissionAverage: number | null;
+  userDiversifiedAverage: number | null;
   userProfilePicture?: string;
   userAllowEmailNotification: boolean;
   userRoles?: Roles[];
@@ -19,7 +19,7 @@ export type UserFormData = {
   userEmail: string;
   userBirthdate: string;
   userPassword: string;
-  userAdmissionAverage: string;
+  userDiversifiedAverage: string;
   userAllowEmailNotification: boolean;
   userProfilePicture?: string | null;
 };

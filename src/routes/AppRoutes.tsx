@@ -22,6 +22,7 @@ import { NewCareerPage } from "../pages/career/NewCareerPage";
 import { UserEditPage } from "../pages/user/UserEditPage";
 import { UserCreatePage } from "../pages/user/UserCreatePage";
 import UserListPage from "../pages/user/UserListPage";
+import { UserProfileEdit } from "../pages/user/UserProfileEdit";
 import { RolesListPage } from "../pages/roles/RolesListPage";
 import { RolesEditPage } from "../pages/roles/RolesEditPage";
 import { RolesAddPage } from "../pages/roles/RolesAddPage";
@@ -98,6 +99,7 @@ export default function AppRoutes() {
       {/* Rutas privadas sin Header ni Sidebar */}
       <Route element={<SimpleLayout />}>
         <Route path="/profile" element={<RequireAuth><UserProfile /></RequireAuth>} />
+        <Route path="/profile/edit" element={<RequireAuth><UserProfileEdit /></RequireAuth>} />
       </Route>
 
       {/* Ruta de inicio por defecto */}

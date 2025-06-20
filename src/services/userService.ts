@@ -104,3 +104,14 @@ export const setAuthToken = (token: string | null) => {
     delete axios.defaults.headers.common['Authorization'];
   }
 };
+
+export const getUserProfileImage = async (filename: string): Promise<string | null> => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/user/users/${filename}`, {
+      responseType: "blob",
+    });
+    return URL.createObjectURL(response.data as Blob);
+  } catch {
+    return null;
+  }
+};
