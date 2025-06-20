@@ -15,11 +15,9 @@ export const EventsPage = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userInterestedEvents, setUserInterestedEvents] = useState<Set<string>>(
-    new Set()
-  );
+  const [userInterestedEvents, setUserInterestedEvents] = useState<Set<string>>(new Set());
 
-  // Convierte la fecha a local (Costa Rica) evitando desfase UTC
+  // Formatea fecha en español y horario local
   const formatCostaRicanDate = (dateString: string): string => {
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
@@ -31,7 +29,6 @@ export const EventsPage = () => {
     return localDate.toLocaleDateString("es-CR", options);
   };
 
-  // Convierte la hora a formato 12h en Costa Rica
   const formatCostaRicanTime = (timeString: string): string => {
     const [hours, minutes] = timeString.split(":");
     const time = new Date();
@@ -45,19 +42,20 @@ export const EventsPage = () => {
   };
 
   useEffect(() => {
-    const fetchUserAndInterests = async () => {
-      try {
-        const user = await getCurrentUser();
-        setCurrentUser(user);
+   const fetchUserAndInterests = async () => {
+  try {
+    const user = await getCurrentUser();
+    setCurrentUser(user);
 
-        const interested = await getUserInterestedEvents(user.userId ?? "");
-        setUserInterestedEvents(new Set(interested));
-      } catch (error) {
-        console.error("Error al cargar usuario o eventos interesados", error);
-        setCurrentUser(null);
-        setUserInterestedEvents(new Set());
-      }
-    };
+    const interested = await getUserInterestedEvents(user.userId ?? "");
+    setUserInterestedEvents(new Set(interested ?? []));
+  } catch (error) {
+    console.warn("Usuario sin eventos interesados o error cargando:", error);
+    // ❌ Este bloque NO debe anular al usuario ni los eventos
+    setCurrentUser(null); // <-- Esto es lo que daña todo si hubo error menor
+    setUserInterestedEvents(new Set());
+  }
+};
 
     fetchUserAndInterests();
   }, []);
@@ -68,22 +66,18 @@ export const EventsPage = () => {
         const data = await getAllEvents();
         setEvents(data);
 
-        // Obtener imágenes para cada evento que tenga eventImagePath
-        data.forEach(async (event) => {
+        for (const event of data) {
           if (event.eventImagePath) {
             try {
               const url = await getImage(event.eventImagePath);
               setImageUrls((prev) => ({ ...prev, [event.eventId]: url }));
             } catch (error) {
-              console.error(
-                `Error cargando imagen para evento ${event.eventId}:`,
-                error
-              );
+              console.error(`Error cargando imagen para evento ${event.eventId}:`, error);
             }
           }
-        });
+        }
       } catch (error) {
-        console.error("Error fetching events:", error);
+        console.error("Error al obtener eventos:", error);
         Swal.fire({
           icon: "error",
           title: "Error",
@@ -96,7 +90,7 @@ export const EventsPage = () => {
   }, []);
 
   const handleParticipate = async (event: Event) => {
-    if (!currentUser || !currentUser.userId) {
+    if (!currentUser?.userId) {
       Swal.fire({
         icon: "warning",
         title: "Debes iniciar sesión",
@@ -107,12 +101,8 @@ export const EventsPage = () => {
 
     const result = await Swal.fire({
       title: `¿Deseas participar en el evento "${event.eventTitle}"?`,
-      html: `<p><strong>Fecha:</strong> ${formatCostaRicanDate(
-        event.eventDate
-      )}</p>
-             <p><strong>Hora:</strong> ${formatCostaRicanTime(
-               event.eventTime
-             )}</p>`,
+      html: `<p><strong>Fecha:</strong> ${formatCostaRicanDate(event.eventDate)}</p>
+             <p><strong>Hora:</strong> ${formatCostaRicanTime(event.eventTime)}</p>`,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Sí, participar",
@@ -126,26 +116,15 @@ export const EventsPage = () => {
 
     if (result.isConfirmed) {
       try {
-        await insertUserInterestedEvent(
-          event.eventId,
-          currentUser.userId ?? ""
-        );
+        await insertUserInterestedEvent(event.eventId, currentUser.userId);
         setUserInterestedEvents((prev) => new Set(prev).add(event.eventId));
         Swal.fire({
           icon: "success",
           title: "¡Te esperamos!",
-          html: `<p>Has registrado tu participación en el evento "<strong>${
-            event.eventTitle
-          }</strong>".</p>
-                 <p><strong>Fecha:</strong> ${formatCostaRicanDate(
-                   event.eventDate
-                 )}</p>
-                 <p><strong>Hora:</strong> ${formatCostaRicanTime(
-                   event.eventTime
-                 )}</p>`,
-          customClass: {
-            confirmButton: "btn btn-success",
-          },
+          html: `<p>Has registrado tu participación en el evento "<strong>${event.eventTitle}</strong>".</p>
+                 <p><strong>Fecha:</strong> ${formatCostaRicanDate(event.eventDate)}</p>
+                 <p><strong>Hora:</strong> ${formatCostaRicanTime(event.eventTime)}</p>`,
+          customClass: { confirmButton: "btn btn-success" },
           buttonsStyling: false,
         });
       } catch (error) {
@@ -154,9 +133,7 @@ export const EventsPage = () => {
           icon: "error",
           title: "Error",
           text: "Ocurrió un error al registrar tu interés. Intenta más tarde.",
-          customClass: {
-            confirmButton: "btn btn-danger",
-          },
+          customClass: { confirmButton: "btn btn-danger" },
           buttonsStyling: false,
         });
       }
@@ -164,7 +141,7 @@ export const EventsPage = () => {
   };
 
   const handleCancelParticipate = async (event: Event) => {
-    if (!currentUser || !currentUser.userId) {
+    if (!currentUser?.userId) {
       Swal.fire({
         icon: "warning",
         title: "Debes iniciar sesión",
@@ -175,12 +152,8 @@ export const EventsPage = () => {
 
     const result = await Swal.fire({
       title: `¿Deseas cancelar la participación en el evento "${event.eventTitle}"?`,
-      html: `<p><strong>Fecha:</strong> ${formatCostaRicanDate(
-        event.eventDate
-      )}</p>
-             <p><strong>Hora:</strong> ${formatCostaRicanTime(
-               event.eventTime
-             )}</p>`,
+      html: `<p><strong>Fecha:</strong> ${formatCostaRicanDate(event.eventDate)}</p>
+             <p><strong>Hora:</strong> ${formatCostaRicanTime(event.eventTime)}</p>`,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Sí, deseo cancelar",
@@ -194,10 +167,7 @@ export const EventsPage = () => {
 
     if (result.isConfirmed) {
       try {
-        await removeUserInterestedEvent(
-          event.eventId,
-          currentUser.userId ?? ""
-        );
+        await removeUserInterestedEvent(event.eventId, currentUser.userId);
         setUserInterestedEvents((prev) => {
           const copy = new Set(prev);
           copy.delete(event.eventId);
@@ -206,18 +176,10 @@ export const EventsPage = () => {
         Swal.fire({
           icon: "success",
           title: "¡Lástima, te queríamos ver!",
-          html: `<p>Has cancelado tu participación en el evento "<strong>${
-            event.eventTitle
-          }</strong>".</p>
-                 <p><strong>Fecha:</strong> ${formatCostaRicanDate(
-                   event.eventDate
-                 )}</p>
-                 <p><strong>Hora:</strong> ${formatCostaRicanTime(
-                   event.eventTime
-                 )}</p>`,
-          customClass: {
-            confirmButton: "btn btn-success",
-          },
+          html: `<p>Has cancelado tu participación en el evento "<strong>${event.eventTitle}</strong>".</p>
+                 <p><strong>Fecha:</strong> ${formatCostaRicanDate(event.eventDate)}</p>
+                 <p><strong>Hora:</strong> ${formatCostaRicanTime(event.eventTime)}</p>`,
+          customClass: { confirmButton: "btn btn-success" },
           buttonsStyling: false,
         });
       } catch (error) {
@@ -226,9 +188,7 @@ export const EventsPage = () => {
           icon: "error",
           title: "Error",
           text: "Ocurrió un error al cancelar tu interés. Intenta más tarde.",
-          customClass: {
-            confirmButton: "btn btn-danger",
-          },
+          customClass: { confirmButton: "btn btn-danger" },
           buttonsStyling: false,
         });
       }
@@ -238,12 +198,9 @@ export const EventsPage = () => {
   return (
     <>
       <section className="mb-5 text-center">
-        <h1 className="display-4 fw-bold text-primary">
-          Eventos Institucionales
-        </h1>
+        <h1 className="display-4 fw-bold text-primary">Eventos Institucionales</h1>
         <p className="lead text-secondary">
-          Explora los próximos eventos, conferencias y talleres organizados por
-          la universidad.
+          Explora los próximos eventos, conferencias y talleres organizados por la universidad.
         </p>
       </section>
 
@@ -265,16 +222,11 @@ export const EventsPage = () => {
                     <div style={{ height: "180px", backgroundColor: "#ddd" }} />
                   )}
                   <div className="card-body d-flex flex-column">
-                    <h5 className="card-title fw-semibold text-dark">
-                      {event.eventTitle}
-                    </h5>
-                    <p className="card-text text-muted flex-grow-1">
-                      {event.eventDescription}
-                    </p>
+                    <h5 className="card-title fw-semibold text-dark">{event.eventTitle}</h5>
+                    <p className="card-text text-muted flex-grow-1">{event.eventDescription}</p>
                     <ul className="list-unstyled mt-3 small text-secondary">
                       <li>
-                        <i className="bi bi-calendar3"></i>{" "}
-                        <strong>Fecha:</strong>{" "}
+                        <i className="bi bi-calendar3"></i> <strong>Fecha:</strong>{" "}
                         {formatCostaRicanDate(event.eventDate)}
                       </li>
                       <li>
@@ -282,11 +234,8 @@ export const EventsPage = () => {
                         {formatCostaRicanTime(event.eventTime)}
                       </li>
                       <li>
-                        <i className="bi bi-globe"></i>{" "}
-                        <strong>Modalidad:</strong>{" "}
-                        {event.eventModality === "virtual"
-                          ? "Virtual"
-                          : "Presencial"}
+                        <i className="bi bi-globe"></i> <strong>Modalidad:</strong>{" "}
+                        {event.eventModality === "virtual" ? "Virtual" : "Presencial"}
                       </li>
                     </ul>
                     {currentUser && (
@@ -310,9 +259,7 @@ export const EventsPage = () => {
           })
         ) : (
           <div className="text-center text-muted">
-            <p className="fs-5">
-              No hay eventos disponibles actualmente. ¡Vuelve pronto!
-            </p>
+            <p className="fs-5">No hay eventos disponibles actualmente. ¡Vuelve pronto!</p>
           </div>
         )}
       </div>
