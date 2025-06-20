@@ -37,12 +37,8 @@ export const RegisterPage = () => {
       const token = await registerUser(user);
       setAuthToken(token);
       await refreshUser();
-      await Swal.fire({
-        icon: "success",
-        title: "¡Usuario registrado exitosamente!",
-        confirmButtonText: "Ir al inicio",
-      });
-      navigate("/login");
+      navigate("/home");
+
     } catch (err: any) {
       await Swal.fire({
         icon: "error",
