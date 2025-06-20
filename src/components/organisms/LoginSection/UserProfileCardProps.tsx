@@ -200,7 +200,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                     type="number"
                     className="form-control"
                     name="userAdmissionAverage"
-                    value={user.userAdmissionAverage?.toString() || ''}
+                    value={user.userDiversifiedAverage?.toString() || ''}
                     onChange={onInputChange}
                     step="0.01"
                     min="0"
@@ -208,7 +208,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
                     disabled={isSaving}
                   />
                 ) : (
-                  <p className="text-muted mb-0">{user.userAdmissionAverage ?? 'No proporcionado'}</p>
+                  <p className="text-muted mb-0">{user.userDiversifiedAverage ?? 'No proporcionado'}</p>
                 )}
               </div>
             </div>

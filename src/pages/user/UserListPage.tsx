@@ -1,43 +1,101 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { getAllUsers, deleteUser } from "../../services/userService";
+import { getAllUsers, deleteUser, getUserProfileImage } from "../../services/userService";
 import { User } from "../../types/userType";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
-import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";
 import { useUser } from "../../contexts/UserContext";
+import { DateTime } from "luxon";
+import Swal from "sweetalert2";
 
 type UserWithActions = User & { onDelete: (user: User) => void; onEdit: (user: User) => void };
-
-const columns: TableColumn<UserWithActions>[] = [
-  { key: "userName", label: "Nombre" },
-  { key: "userLastname", label: "Apellido" },
-  { key: "userEmail", label: "Correo" },
-  { key: "userBirthdate", label: "Fecha de nacimiento" },
-  { key: "userAdmissionAverage", label: "Promedio de admisión" },
-  {
-    key: "userRoles",
-    label: "Roles",
-    render: (row) => (
-      <select className="form-select" >
-        {row.userRoles && row.userRoles.length > 0 ? (
-          row.userRoles.map((r, idx) => (
-            <option key={r.rolId || idx}>{r.rolName}</option>
-          ))
-        ) : (
-          <option>Sin roles</option>
-        )}
-      </select>
-    )
-  }
-];
 
 const UserListPage: React.FC = () => {
   const { user: currentUser } = useUser();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const getUniquePermissions = (user: User) => {
+    if (!user.userRoles) return [];
+    const allPermissions = user.userRoles.flatMap(role => role.permissions || []);
+    const unique = Array.from(new Set(allPermissions.map(p => p.permissionName)));
+    return unique;
+  };
+
+  const handleShowProfilePicture = async (user: User) => {
+    if (!user.userProfilePicture) {
+      Swal.fire({
+        icon: "info",
+        title: "Sin foto de perfil",
+        text: "Este usuario no tiene foto de perfil.",
+      });
+      return;
+    }
+    const imageUrl = await getUserProfileImage(user.userProfilePicture);
+    if (imageUrl) {
+      Swal.fire({
+        title: "Foto de perfil",
+        html: `<img src="${imageUrl}" alt="Foto de perfil" style="max-width: 100%; max-height: 300px;" />`,
+        showCloseButton: true,
+        showConfirmButton: false,
+      });
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo cargar la foto de perfil.",
+      });
+    }
+  };
+
+  const columns: TableColumn<UserWithActions>[] = [
+    { key: "userName", label: "Nombre" },
+    { key: "userLastname", label: "Apellido" },
+    { key: "userEmail", label: "Correo" },
+    {
+      key: "userBirthdate",
+      label: "Fecha de nacimiento",
+      render: (row) =>
+        row.userBirthdate
+          ? DateTime.fromISO(row.userBirthdate, { zone: "America/Costa_Rica" }).toFormat("dd/MM/yyyy")
+          : "No especificada"
+    }, { key: "userDiversifiedAverage", label: "Promedio de Educación Diversificada" },
+    {
+      key: "userAllowEmailNotification",
+      label: "Permite notificaciones",
+      render: (row) => row.userAllowEmailNotification ? "Sí" : "No"
+    },
+    {
+      key: "userProfilePicture",
+      label: "Foto de perfil",
+      render: (row) => (
+        <Button
+          variant="info"
+          size="small"
+          onClick={() => handleShowProfilePicture(row)}
+        >
+          Ver foto
+        </Button>
+      )
+    },
+    {
+      key: "permissions",
+      label: "Permisos",
+      render: (row) => (
+        <select className="form-select">
+          {getUniquePermissions(row).length > 0 ? (
+            getUniquePermissions(row).map((perm, idx) => (
+              <option key={idx}>{perm}</option>
+            ))
+          ) : (
+            <option>Sin permisos</option>
+          )}
+        </select>
+      )
+    }
+  ];
 
   const cargarUsuarios = useCallback(async () => {
     setLoading(true);
@@ -89,8 +147,18 @@ const UserListPage: React.FC = () => {
     }
   };
 
-  const handleEdit = (user: User) => {
-    navigate(`/users/edit/${user.userId}`);
+  const handleEdit = async (user: User) => {
+    const result = await Swal.fire({
+      title: `¿Seguro que deseas editar a ${user.userName}?`,
+      text: "Podrás modificar los datos de este usuario.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, editar",
+      cancelButtonText: "Cancelar",
+    });
+    if (result.isConfirmed) {
+      navigate(`/users/edit/${user.userId}`);
+    }
   };
 
   const handleCreate = () => {
