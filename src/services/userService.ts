@@ -5,7 +5,6 @@ import { saveTokens, getToken } from '../utils/Auth';
 const API_BASE_URL = 'http://localhost:9999/api';
 
 export const loginUser = async (userEmail: string, userPassword: string): Promise<string> => {
-  try {
     const response = await axios.post<{ token: string, refreshToken: string }>(`${API_BASE_URL}/auth/login`, {
       userEmail,
       userPassword
@@ -16,12 +15,6 @@ export const loginUser = async (userEmail: string, userPassword: string): Promis
     });
     saveTokens(response.data.token, response.data.refreshToken);
     return response.data.token;
-  } catch (error: any) {
-    if (error.response && error.response.status === 401) {
-      throw new Error('Credenciales incorrectas');
-    }
-    throw new Error('Error al iniciar sesión');
-  }
 };
 
 export const registerUser = async (user: Pick<User, 'userName' | 'userEmail' | 'userPassword'>): Promise<string> => {

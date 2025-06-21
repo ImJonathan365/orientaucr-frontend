@@ -2,24 +2,41 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginUser, setAuthToken } from '../../services/userService';
 import { useUser } from '../../contexts/UserContext';
+import { loginValidation } from '../../validations/loginValidation';
+import Swal from 'sweetalert2';
 
 const LoginPage: React.FC = () => {
   const { refreshUser } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+
+    const validation = loginValidation(email, password);
+    if (!validation.valid) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error de validación",
+        text: validation.message,
+        confirmButtonText: "Aceptar"
+      });
+      return;
+    }
     try {
       const token = await loginUser(email, password);
       setAuthToken(token);
       await refreshUser();
       navigate('/home');
     } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión');
+      const backendMsg = err.response?.data || err.message || "Error al iniciar sesión";
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: backendMsg,
+        confirmButtonText: "Aceptar"
+      });
     }
   };
 
@@ -36,7 +53,6 @@ const LoginPage: React.FC = () => {
               className="form-control"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              required
             />
           </div>
           <div className="mb-3">
@@ -47,14 +63,8 @@ const LoginPage: React.FC = () => {
               className="form-control"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              required
             />
           </div>
-          {error && (
-            <div className="alert alert-danger py-1" role="alert">
-              {error}
-            </div>
-          )}
           <button type="submit" className="btn btn-primary w-100 mb-3">Iniciar sesión</button>
         </form>
         <div className="text-center">

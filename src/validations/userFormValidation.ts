@@ -20,12 +20,12 @@ export function validateUserForm(
     if (!form.userName.trim()) {
         return { valid: false, message: "El nombre es obligatorio." };
     }
-    if (!/^[A-Za-z0-9]{1,100}$/.test(form.userName)) {
-        return { valid: false, message: "El nombre solo puede contener letras y números, sin espacios ni caracteres especiales, máximo 100 caracteres." };
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9]{1,100}$/.test(form.userName)) {
+        return { valid: false, message: "El nombre solo puede contener letras (incluyendo tildes y ñ), y números, sin espacios ni caracteres especiales, máximo 100 caracteres." };
     }
     // Lastname
-    if (form.userLastname && !/^[A-Za-z0-9 ]{1,100}$/.test(form.userLastname)) {
-        return { valid: false, message: "El apellido solo puede contener letras, números y espacios, máximo 100 caracteres." };
+    if (form.userLastname && !/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9 ]{1,100}$/.test(form.userLastname)) {
+        return { valid: false, message: "El apellido solo puede contener letras (incluyendo tildes y ñ), números y espacios, máximo 100 caracteres." };
     }
     // Email
     if (!form.userEmail.trim()) {

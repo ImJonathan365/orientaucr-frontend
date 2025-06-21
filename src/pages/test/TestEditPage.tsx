@@ -5,6 +5,7 @@ import { getTestById, updateTest } from "../../services/testService";
 import { getAllCharacteristics } from "../../services/characteristicService";
 import { Characteristic } from "../../types/carrerTypes";
 import { Button } from "../../components/atoms/Button/Button";
+import { validateTestForm } from "../../validations/test/testFormValidation";
 import Swal from "sweetalert2";
 
 export const TestEditPage = () => {
@@ -26,15 +27,21 @@ export const TestEditPage = () => {
                     questionHelpText: testData.questionHelpText || "",
                 });
                 setCharacteristics(allCharacteristics);
-            } catch {
-                setTest(null);
-                setCharacteristics([]);
+            } catch (error: any) {
+                const backendMsg = error?.response?.data || error?.message || "No se encontró la pregunta.";
+                await Swal.fire({
+                    icon: "error",
+                    title: "Pregunta no encontrada",
+                    text: backendMsg,
+                    confirmButtonText: "Aceptar"
+                });
+                navigate("/test-list", { replace: true });
             } finally {
                 setLoading(false);
             }
         };
         fetchData();
-    }, [id]);
+    }, [id, navigate]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (!test) return;
@@ -77,21 +84,16 @@ export const TestEditPage = () => {
         e.preventDefault();
         setLoading(true);
         if (!test) return;
-        if (!test.questionText.trim()) {
+        const validation = validateTestForm({
+            questionText: test.questionText,
+            questionHelpText: test.questionHelpText ?? "",
+            characteristics: test.characteristics,
+        });
+        if (!validation.valid) {
             await Swal.fire({
                 icon: "error",
-                title: "Pregunta obligatoria",
-                text: "La pregunta es obligatoria.",
-                confirmButtonText: "Aceptar"
-            });
-            setLoading(false);
-            return;
-        }
-        if (test.characteristics.length === 0) {
-            await Swal.fire({
-                icon: "error",
-                title: "Características requeridas",
-                text: "Debe agregar al menos una característica.",
+                title: "Error",
+                text: validation.message,
                 confirmButtonText: "Aceptar"
             });
             setLoading(false);
@@ -105,11 +107,12 @@ export const TestEditPage = () => {
                 confirmButtonText: "Aceptar"
             });
             navigate("/test-list");
-        } catch (error) {
+        } catch (error: any) {
+            const backendMsg = error.response?.data || error.message || "Error al actualizar la pregunta";
             await Swal.fire({
                 icon: "error",
                 title: "Error",
-                text: "Error al actualizar la pregunta",
+                text: backendMsg,
                 confirmButtonText: "Aceptar"
             });
         } finally {
@@ -117,107 +120,105 @@ export const TestEditPage = () => {
         }
     };
 
-    if (!test) {
-        return <div className="container py-4"><p>No se encontró la pregunta.</p></div>;
-    }
-
     return (
         <div className="container py-4">
             <h2 className="mb-4">Editar Pregunta</h2>
-            <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                    <label htmlFor="questionText" className="form-label">Pregunta</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        id="questionText"
-                        name="questionText"
-                        value={test.questionText}
-                        onChange={handleChange}
-                    />
-                </div>
-                <div className="mb-3">
-                    <label htmlFor="questionHelpText" className="form-label">Texto de ayuda (opcional)</label>
-                    <textarea
-                        className="form-control"
-                        id="questionHelpText"
-                        name="questionHelpText"
-                        value={test.questionHelpText}
-                        onChange={handleChange}
-                    />
-                </div>
-                <div className="mb-3 form-check">
-                    <input
-                        type="checkbox"
-                        className="form-check-input"
-                        id="isActive"
-                        name="isActive"
-                        checked={test.isActive}
-                        onChange={handleChange}
-                    />
-                    <label className="form-check-label" htmlFor="isActive">
-                        Activa
-                    </label>
-                </div>
-                <div className="mb-3 form-check">
-                    <input
-                        type="checkbox"
-                        className="form-check-input"
-                        id="isMultipleSelection"
-                        name="isMultipleSelection"
-                        checked={test.isMultipleSelection}
-                        onChange={handleChange}
-                    />
-                    <label className="form-check-label" htmlFor="isMultipleSelection">
-                        Permitir selección múltiple
-                    </label>
-                </div>
-                <div className="mb-3">
-                    <label htmlFor="characteristics" className="form-label">Agregar Característica</label>
-                    <select
-                        className="form-select"
-                        id="characteristics"
-                        onChange={handleAddCharacteristic}
-                        value=""
-                    >
-                        <option value="" disabled>Seleccione una característica</option>
-                        {characteristics
-                            .filter(
-                                (c) =>
-                                    !test.characteristics.some(
-                                        (tc) => tc.characteristicsId === c.characteristicsId
-                                    )
-                            )
-                            .map((c) => (
-                                <option key={c.characteristicsId} value={c.characteristicsId}>
-                                    {c.characteristicsName}
-                                </option>
-                            ))}
-                    </select>
-                </div>
-                <ul className="list-group mb-3">
-                    {test.characteristics.map((c) => (
-                        <li key={c.characteristicsId} className="list-group-item d-flex justify-content-between align-items-center">
-                            {c.characteristicsName}
-                            <button
-                                type="button"
-                                className="btn btn-danger btn-sm"
-                                onClick={() => handleRemoveCharacteristic(c.characteristicsId)}
-                            >
-                                Eliminar
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-                <div className="d-flex gap-2">
-                    <Button type="submit" variant="primary" disabled={loading}>
-                        {loading ? "Guardando..." : "Guardar"}
-                    </Button>
-                    <Button type="button" variant="secondary" onClick={() => navigate('/test-list')}>
-                        Cancelar
-                    </Button>
-                </div>
-            </form>
+            {test && (
+                <form onSubmit={handleSubmit}>
+                    <div className="mb-3">
+                        <label htmlFor="questionText" className="form-label">Pregunta</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            id="questionText"
+                            name="questionText"
+                            value={test.questionText}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="questionHelpText" className="form-label">Texto de ayuda (opcional)</label>
+                        <textarea
+                            className="form-control"
+                            id="questionHelpText"
+                            name="questionHelpText"
+                            value={test.questionHelpText}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div className="mb-3 form-check">
+                        <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="isActive"
+                            name="isActive"
+                            checked={test.isActive}
+                            onChange={handleChange}
+                        />
+                        <label className="form-check-label" htmlFor="isActive">
+                            ¿Estará activa?
+                        </label>
+                    </div>
+                    <div className="mb-3 form-check">
+                        <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="isMultipleSelection"
+                            name="isMultipleSelection"
+                            checked={test.isMultipleSelection}
+                            onChange={handleChange}
+                        />
+                        <label className="form-check-label" htmlFor="isMultipleSelection">
+                            ¿Permite selección múltiple?
+                        </label>
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="characteristics" className="form-label">Agregar Característica</label>
+                        <select
+                            className="form-select"
+                            id="characteristics"
+                            onChange={handleAddCharacteristic}
+                            value=""
+                        >
+                            <option value="" disabled>Seleccione una característica</option>
+                            {characteristics
+                                .filter(
+                                    (c) =>
+                                        !test.characteristics.some(
+                                            (tc) => tc.characteristicsId === c.characteristicsId
+                                        )
+                                )
+                                .map((c) => (
+                                    <option key={c.characteristicsId} value={c.characteristicsId}>
+                                        {c.characteristicsName}
+                                    </option>
+                                ))}
+                        </select>
+                    </div>
+                    <ul className="list-group mb-3">
+                        {test.characteristics.map((c) => (
+                            <li key={c.characteristicsId} className="list-group-item d-flex justify-content-between align-items-center">
+                                {c.characteristicsName}
+                                <button
+                                    type="button"
+                                    className="btn btn-danger btn-sm"
+                                    onClick={() => handleRemoveCharacteristic(c.characteristicsId)}
+                                >
+                                    Eliminar
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                    <div className="d-flex gap-2">
+                        <Button type="submit" variant="primary" disabled={loading}>
+                            {loading ? "Guardando..." : "Guardar"}
+                        </Button>
+                        <Button type="button" variant="secondary" onClick={() => navigate('/test-list')}>
+                            Cancelar
+                        </Button>
+                    </div>
+                </form>
+            )}
         </div>
     );
 };

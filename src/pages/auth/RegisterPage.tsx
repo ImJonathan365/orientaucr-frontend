@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser, setAuthToken } from "../../services/userService";
 import { useUser } from "../../contexts/UserContext";
+import { validateUserForm } from "../../validations/userFormValidation";
 import Swal from "sweetalert2";
 
 export const RegisterPage = () => {
@@ -16,6 +17,23 @@ export const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const validation = validateUserForm({
+      userName,
+      userLastname: "",
+      userEmail,
+      userBirthdate: "",
+      userPassword,
+      userDiversifiedAverage: "",
+    }, false);
+    if (!validation.valid) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error de validación",
+        text: validation.message,
+        confirmButtonText: "Aceptar",
+      });
+      return;
+    }
     if (userPassword !== confirmPassword) {
       return Swal.fire({
         icon: "error",
@@ -24,26 +42,24 @@ export const RegisterPage = () => {
         confirmButtonText: "Aceptar",
       });
     }
-
     setIsLoading(true);
-
     try {
       const user = {
         userName,
         userEmail,
         userPassword,
       };
-
       const token = await registerUser(user);
       setAuthToken(token);
       await refreshUser();
       navigate("/home");
 
     } catch (err: any) {
+      const backendMsg = err.response?.data || err.message || "Error al registrar usuario";
       await Swal.fire({
         icon: "error",
         title: "Error",
-        text: err.message || "Error al registrar usuario",
+        text: backendMsg,
         confirmButtonText: "Aceptar",
       });
     } finally {

@@ -11,7 +11,7 @@ type TestWithActions = Test & { onDelete: (test: Test) => void; onEdit: (test: T
 
 const columns: TableColumn<TestWithActions>[] = [
   { key: "questionText", label: "Pregunta" },
-  { key: "questionHelpText", label: "Ayuda", render: row => row.questionHelpText || <span className="text-muted">Sin ayuda</span> },
+  { key: "questionHelpText", label: "Ayuda adicional", render: row => row.questionHelpText || <span className="text-muted">Sin ayuda</span> },
   { key: "isActive", label: "Está activa", render: row => row.isActive ? "Sí" : "No" },
   { key: "isMultipleSelection", label: "De selección múltiple", render: row => row.isMultipleSelection ? "Sí" : "No" },
   {
@@ -82,8 +82,18 @@ export const TestListPage = () => {
     }
   };
 
-  const handleEdit = (test: Test) => {
-    navigate(`/test-list/edit/${test.questionId}`);
+  const handleEdit = async (test: Test) => {
+    const result = await Swal.fire({
+      title: "¿Seguro que deseas editar esta pregunta?",
+      text: "Podrás modificar el contenido de la pregunta.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, editar",
+      cancelButtonText: "Cancelar",
+    });
+    if (result.isConfirmed) {
+      navigate(`/test-list/edit/${test.questionId}`);
+    }
   };
 
   const handleCreate = () => {

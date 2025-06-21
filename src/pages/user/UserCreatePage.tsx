@@ -16,7 +16,7 @@ export const UserCreatePage = () => {
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [form, setForm] = useState({
     userName: "",
     userLastname: "",
@@ -34,6 +34,10 @@ export const UserCreatePage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target as HTMLInputElement;
+    if (name === "confirmPassword") {
+      setConfirmPassword(value);
+      return;
+    }
     if (type === "checkbox") {
       setForm(prev => ({
         ...prev,
@@ -126,7 +130,16 @@ export const UserCreatePage = () => {
       setIsLoading(false);
       return;
     }
-
+    if (form.userPassword !== confirmPassword) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Las contraseñas no coinciden",
+        confirmButtonText: "Aceptar"
+      });
+      setIsLoading(false);
+      return;
+    }
     try {
       const selectedRoles = roles.filter(r => selectedRoleIds.includes(r.rolId));
       const user: User = {
@@ -153,10 +166,11 @@ export const UserCreatePage = () => {
       });
       navigate('/users');
     } catch (err: any) {
+      const backendMsg = err.response?.data || err.message || "Error al actualizar usuario";
       await Swal.fire({
         icon: "error",
         title: "Error",
-        text: err.message || "Error al crear usuario",
+        text: backendMsg,
         confirmButtonText: "Aceptar"
       });
     } finally {
@@ -273,6 +287,18 @@ export const UserCreatePage = () => {
                 name="userPassword"
                 value={form.userPassword}
                 onChange={handleChange}
+                placeholder="********"
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label fw-semibold mb-1">Confirmar contraseña</label>
+              <input
+                type="password"
+                className="form-control shadow-sm rounded-3"
+                name="confirmPassword"
+                value={confirmPassword}
+                onChange={handleChange}
+                placeholder="********"
               />
             </div>
             <div className="mb-3">
