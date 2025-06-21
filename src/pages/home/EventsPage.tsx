@@ -17,7 +17,6 @@ export const EventsPage = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userInterestedEvents, setUserInterestedEvents] = useState<Set<string>>(new Set());
 
-  // Formatea fecha en español y horario local
   const formatCostaRicanDate = (dateString: string): string => {
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
@@ -51,8 +50,7 @@ export const EventsPage = () => {
     setUserInterestedEvents(new Set(interested ?? []));
   } catch (error) {
     console.warn("Usuario sin eventos interesados o error cargando:", error);
-    // ❌ Este bloque NO debe anular al usuario ni los eventos
-    setCurrentUser(null); // <-- Esto es lo que daña todo si hubo error menor
+    setCurrentUser(null); 
     setUserInterestedEvents(new Set());
   }
 };

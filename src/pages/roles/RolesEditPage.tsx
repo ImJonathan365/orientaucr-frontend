@@ -12,6 +12,8 @@ import {
 import { Title } from "../../components/atoms/Title/Ttile";
 import { Input } from "../../components/atoms/Input/Input";
 import { Button } from "../../components/atoms/Button/Button";
+import { getCurrentUser } from "../../services/userService";
+import { User } from "../../types/userType";
 
 export const RolesEditPage = () => {
   const navigate = useNavigate();
@@ -19,8 +21,38 @@ export const RolesEditPage = () => {
   const [roles, setRoles] = useState<Roles | null>(null);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
+
+  // Verificar permiso de edición
+  useEffect(() => {
+    const verifyPermission = async () => {
+      try {
+        const user: User | null = await getCurrentUser();
+        const hasPermission = user?.userRoles?.some(role =>
+          role.permissions?.some(p => p.permissionName === "MODIFICAR ROLES")
+        );
+
+        if (!hasPermission) {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso denegado",
+            text: "No tienes permiso para editar roles.",
+          });
+          navigate("/home", { replace: true });
+          return;
+        }
+        setAuthorized(true);
+      } catch {
+        await Swal.fire("Error", "No se pudo validar tu sesión", "error");
+        navigate("/home", { replace: true });
+      }
+    };
+    verifyPermission();
+  }, [navigate]);
 
   useEffect(() => {
+    if (!authorized) return; // Esperar autorización
+
     const fetchData = async () => {
       if (!id) {
         await Swal.fire({
@@ -66,7 +98,7 @@ export const RolesEditPage = () => {
     };
 
     fetchData();
-  }, [id, navigate]);
+  }, [id, navigate, authorized]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!roles) return;
@@ -115,11 +147,12 @@ export const RolesEditPage = () => {
   };
 
   const isValidRolName = (name: string): boolean => {
-    const words = name.trim().split(/\s+/);
-    if (words.length < 1 || words.length > 3) return false;
-    return words.every((word) => /^[A-Za-zÁÉÍÓÚáéíóúÑñ_]{3,25}$/.test(word));
-  };
-
+  const cleaned = name.trim();
+  return (
+    /^[A-Za-zÁÉÍÓÚáéíóúÑñ_ ]{3,200}$/.test(cleaned) &&
+    !/\s{2,}/.test(cleaned)
+  );
+};
   const isDuplicateName = async (
     name: string,
     currentId: string
@@ -248,10 +281,9 @@ export const RolesEditPage = () => {
             onChange={handleChange}
           />
           {!isValidRolName(roles.rolName) && (
-            <div className="invalid-feedback">
-              El nombre debe tener solo letras, entre 1 y 3 palabras y de 3 a 20
-              caracteres.
-            </div>
+                <div className="invalid-feedback">
+          El nombre debe tener entre 3 y 200 caracteres, sin múltiples espacios ni caracteres especiales.
+        </div>
           )}
         </div>
 

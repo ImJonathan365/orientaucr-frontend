@@ -16,6 +16,24 @@ import { User } from "../../types/userType";
 export const EventAddPage = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [eventData, setEventData] = useState<Event>({
+    eventId: "",
+    eventTitle: "",
+    eventDescription: "",
+    eventDate: "",
+    eventTime: "",
+    eventModality: "virtual",
+    eventImagePath: null,
+    campusId: "",
+    subcampusId: "",
+  });
+
+  const [campuses, setCampuses] = useState<Campus[]>([]);
+  const [subcampuses, setSubcampuses] = useState<Subcampus[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const getTodayInCostaRica = (): string => {
     const today = new Date();
@@ -36,48 +54,42 @@ export const EventAddPage = () => {
     return costaRicaHours * 60 + costaRicaMinutes;
   };
 
-  const [eventData, setEventData] = useState<Event>({
-    eventId: "",
-    eventTitle: "",
-    eventDescription: "",
-    eventDate: "",
-    eventTime: "",
-    eventModality: "virtual",
-    eventImagePath: null,
-    campusId: "",
-    subcampusId: "",
-  });
-
-  const [campuses, setCampuses] = useState<Campus[]>([]);
-  const [subcampuses, setSubcampuses] = useState<Subcampus[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndPermissions = async () => {
       try {
         const user = await getCurrentUser();
+        const hasPermission = user?.userRoles?.some(role =>
+          role.permissions?.some(p => p.permissionName === "CREAR EVENTOS")
+        );
+
+        if (!hasPermission) {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso denegado",
+            text: "No tienes permiso para crear eventos.",
+          });
+          navigate("/home", { replace: true });
+          return;
+        }
+
         setCurrentUser(user);
       } catch {
-        setCurrentUser(null);
+        await Swal.fire("Error", "No se pudo validar tu sesión", "error");
+        navigate("/home", { replace: true });
       }
     };
-    fetchUser();
-  }, []);
+
+    fetchUserAndPermissions();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchCampus = async () => {
       try {
         const campusesData = await getAllCampus();
         setCampuses(campusesData);
-      } catch (error) {
+      } catch {
         setCampuses([]);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "No se pudieron cargar los campus",
-        });
+        Swal.fire("Error", "No se pudieron cargar las sedes", "error");
       } finally {
         setLoading(false);
       }
@@ -91,13 +103,9 @@ export const EventAddPage = () => {
         try {
           const subcampusData = await getAllSubcampus(eventData.campusId);
           setSubcampuses(subcampusData);
-        } catch (error) {
+        } catch {
           setSubcampuses([]);
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "No se pudieron cargar los subcampus del campus seleccionado",
-          });
+          Swal.fire("Error", "No se pudieron cargar los Recintos", "error");
         }
       } else {
         setSubcampuses([]);
@@ -109,12 +117,9 @@ export const EventAddPage = () => {
   }, [eventData.campusId]);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-
     setEventData((prev) => ({
       ...prev,
       [name]: value,
@@ -124,31 +129,17 @@ export const EventAddPage = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      const validImageTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "image/webp",
-      ];
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
       if (!validImageTypes.includes(file.type)) {
-        Swal.fire({
-          icon: "error",
-          title: "Tipo de archivo no válido",
-          text: "Por favor, sube solo imágenes (JPEG, PNG, GIF, WEBP).",
-        });
+        Swal.fire("Error", "Formato no válido (JPEG, PNG, GIF, WEBP)", "error");
         e.target.value = "";
         setImagePreview(null);
         return;
       }
 
-      const maxSize = 5 * 1024 * 1024;
-      if (file.size > maxSize) {
-        Swal.fire({
-          icon: "error",
-          title: "Archivo demasiado grande",
-          text: "La imagen no puede superar los 5MB.",
-        });
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire("Error", "La imagen no puede superar los 5MB", "error");
         e.target.value = "";
         setImagePreview(null);
         return;
@@ -157,97 +148,61 @@ export const EventAddPage = () => {
       setSelectedFile(file);
       const reader = new FileReader();
       reader.onload = (event) => {
-        if (event.target) {
-          setImagePreview(event.target.result as string);
-        }
+        if (event.target) setImagePreview(event.target.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
- const validateForm = (): string | null => {
-  const {
-    eventTitle,
-    eventDescription,
-    eventDate,
-    eventTime,
-    eventModality,
-  } = eventData;
+  const validateForm = (): string | null => {
+    const {
+      eventTitle,
+      eventDescription,
+      eventDate,
+      eventTime,
+      eventModality,
+      campusId,
+    } = eventData;
 
-  const allowedPattern = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+    const allowedPattern = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s¿?()\/]+$/;
 
-  if (!eventTitle.trim()) {
-    return "El título no puede estar vacío o contener solo espacios.";
-  }
-  if (!allowedPattern.test(eventTitle)) {
-    return "El título solo puede contener letras y espacios.";
-  }
-  if (eventTitle.length < 4 || eventTitle.length > 200) {
-    return "El título del evento debe tener entre 4 y 200 caracteres.";
-  }
+    if (!eventTitle.trim()) return "El título no puede estar vacío.";
+    if (!allowedPattern.test(eventTitle))
+      return "El título solo puede contener letras y espacios.";
+    if (eventTitle.length < 4 || eventTitle.length > 200)
+      return "El título debe tener entre 4 y 200 caracteres.";
 
-  if (!eventDescription.trim()) {
-    return "La descripción no puede estar vacía o tener solo espacios.";
-  }
-  if (!allowedPattern.test(eventDescription)) {
-    return "La descripción solo puede contener letras y espacios.";
-  }
-  if (eventDescription.length < 4 || eventDescription.length > 500) {
-    return "La descripción debe tener entre 4 y 500 caracteres.";
-  }
+    if (!eventDescription.trim()) return "La descripción no puede estar vacía.";
+    if (!allowedPattern.test(eventDescription))
+      return "La descripción solo puede contener letras y espacios.";
+    if (eventDescription.length < 4 || eventDescription.length > 500)
+      return "La descripción debe tener entre 4 y 500 caracteres.";
 
-  if (!eventDate || eventDate < today) {
-    return "La fecha no puede estar en el pasado.";
-  }
+    if (!eventDate || eventDate < today) return "La fecha no puede estar en el pasado.";
+    if (!eventTime) return "La hora es obligatoria.";
 
-  if (!eventTime) {
-    return "La hora es obligatoria.";
-  } else {
     const [hours, minutes] = eventTime.split(":").map(Number);
     const totalMinutes = hours * 60 + minutes;
-
-    if (totalMinutes < 360 || totalMinutes > 1260) {
-      return "La hora del evento debe estar entre 6:00 AM y 9:00 PM.";
-    }
+    if (totalMinutes < 360 || totalMinutes > 1260)
+      return "La hora debe estar entre 6:00 AM y 9:00 PM.";
 
     if (eventDate === today) {
-      const currentTotalMinutes = getCostaRicaCurrentTotalMinutes();
-      if (totalMinutes < currentTotalMinutes) {
-        Swal.fire({
-          icon: "warning",
-          title: "Hora inválida",
-          text:
-            "No puedes crear un evento en una hora que ya ha pasado para el día actual (hora local Costa Rica).",
-        });
-        return "Hora pasada para hoy.";
-      }
+      const nowMinutes = getCostaRicaCurrentTotalMinutes();
+      if (totalMinutes < nowMinutes)
+        return "La hora debe ser mayor a la hora actual en Costa Rica.";
     }
-  }
 
-  if (!eventModality) {
-    return "Debes seleccionar una modalidad.";
-  }
+    if (!eventModality) return "Debes seleccionar una modalidad.";
+    if (!campusId) return "Debes seleccionar un campus.";
 
-  if (!eventData.campusId) {
-    return "Debes seleccionar un campus.";
-  }
-
-  return null;
-};
-
+    return null;
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     const error = validateForm();
     if (error) {
-      if (error !== "Hora pasada para hoy.") {
-        await Swal.fire({
-          icon: "warning",
-          title: "Validación",
-          text: error,
-        });
-      }
+      Swal.fire("Validación", error, "warning");
       return;
     }
 
@@ -256,37 +211,23 @@ export const EventAddPage = () => {
       formData.append("eventTitle", eventData.eventTitle);
       formData.append("eventDescription", eventData.eventDescription);
 
-      const eventDateLocal = new Date(eventData.eventDate + "T00:00:00");
-      const eventDateAdjusted = new Date(
-        eventDateLocal.getTime() - eventDateLocal.getTimezoneOffset() * 60000
+      const localDate = new Date(eventData.eventDate + "T00:00:00");
+      const adjustedDate = new Date(
+        localDate.getTime() - localDate.getTimezoneOffset() * 60000
       );
-      const localDateString = eventDateAdjusted.toISOString().split("T")[0];
-      formData.append("eventDate", localDateString);
-
+      formData.append("eventDate", adjustedDate.toISOString().split("T")[0]);
       formData.append("eventTime", eventData.eventTime);
       formData.append("eventModality", eventData.eventModality);
       formData.append("createdBy", currentUser?.userId || "");
-
       if (eventData.campusId) formData.append("campusId", eventData.campusId);
-      if (eventData.subcampusId)
-        formData.append("subcampusId", eventData.subcampusId);
+      if (eventData.subcampusId) formData.append("subcampusId", eventData.subcampusId);
       if (selectedFile) formData.append("image", selectedFile);
 
       await addEvent(formData);
-
-      await Swal.fire({
-        icon: "success",
-        title: "Evento creado",
-        text: "El evento se añadió correctamente.",
-      });
-
+      await Swal.fire("Evento creado", "El evento se añadió correctamente.", "success");
       navigate("/events-list");
     } catch (error: any) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message || "No se pudo añadir el evento.",
-      });
+      Swal.fire("Error", error.message || "No se pudo añadir el evento.", "error");
     }
   };
   return (

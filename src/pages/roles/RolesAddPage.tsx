@@ -2,16 +2,17 @@ import Swal from "sweetalert2";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Roles } from "../../types/rolesType";
-
-import { addRoles, getAllRoles } from "../../services/rolesService";
-import { getAllPermissions } from "../../services/rolesService";
+import { addRoles, getAllRoles, getAllPermissions } from "../../services/rolesService";
 import { Permission } from "../../types/permissionType";
 import { Input } from "../../components/atoms/Input/Input";
 import { Title } from "../../components/atoms/Title/Ttile";
 import { Button } from "../../components/atoms/Button/Button";
+import { getCurrentUser } from "../../services/userService";
+import { User } from "../../types/userType";
 
 export const RolesAddPage = () => {
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [Roles, setRoles] = useState<Roles>({
     rolId: "",
     rolName: "",
@@ -19,6 +20,34 @@ export const RolesAddPage = () => {
   });
   const [loading, setLoading] = useState(true);
   const [Permissions, setPermissions] = useState<Permission[]>([]);
+
+  useEffect(() => {
+    const fetchUserAndPermissions = async () => {
+      try {
+        const user = await getCurrentUser();
+        const hasPermission = user?.userRoles?.some(role =>
+          role.permissions?.some(p => p.permissionName === "CREAR ROLES")
+        );
+
+        if (!hasPermission) {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso denegado",
+            text: "No tienes permiso para crear roles.",
+          });
+          navigate("/home", { replace: true });
+          return;
+        }
+
+        setCurrentUser(user);
+      } catch {
+        await Swal.fire("Error", "No se pudo validar tu sesión", "error");
+        navigate("/home", { replace: true });
+      }
+    };
+
+    fetchUserAndPermissions();
+  }, [navigate]);
 
   useEffect(() => {
     const fetchCharacteristics = async () => {
@@ -74,16 +103,14 @@ export const RolesAddPage = () => {
       showConfirmButton: false,
     });
   };
-  const isValidRolName = (name: string): boolean => {
-    const words = name.trim().split(/\s+/);
 
-    if (words.length < 1 || words.length > 3) return false;
-
-    return words.every(
-      (word) => /^[A-Za-zÁÉÍÓÚáéíóúÑñ_]{3,25}$/.test(word) // Letras con tildes, no símbolos ni números
-    );
-  };
-
+   const isValidRolName = (name: string): boolean => {
+  const cleaned = name.trim();
+  return (
+    /^[A-Za-zÁÉÍÓÚáéíóúÑñ_ ]{3,200}$/.test(cleaned) &&
+    !/\s{2,}/.test(cleaned)
+  );
+};
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -91,10 +118,11 @@ export const RolesAddPage = () => {
       Swal.fire({
         icon: "warning",
         title: "Nombre de rol inválido",
-        text: "El nombre debe contener solo letras (máx. 3 palabras, sin caracteres especiales y debe tener minimo 3 a 25 caracteres).",
+        text: "El nombre debe contener solo letras (máx. 3 palabras, sin caracteres especiales y debe tener mínimo 3 a 25 caracteres).",
       });
       return;
     }
+
     if (!Roles.permissions || Roles.permissions.length === 0) {
       Swal.fire({
         icon: "warning",
@@ -103,11 +131,10 @@ export const RolesAddPage = () => {
       });
       return;
     }
+
     try {
-      // Obtener todos los roles existentes
       const existingRoles = await getAllRoles();
 
-      // Validar si ya existe un rol con el mismo nombre (case insensitive)
       const nameExists = existingRoles.some(
         (role) =>
           role.rolName.toLowerCase() === Roles.rolName.trim().toLowerCase()
@@ -120,7 +147,6 @@ export const RolesAddPage = () => {
         });
       }
 
-      // Validar si ya existe un rol con los mismos permisos
       const currentPermissionsIds = Roles.permissions
         .map((p) => p.permissionId)
         .sort();
@@ -143,7 +169,6 @@ export const RolesAddPage = () => {
         });
       }
 
-      // Si pasa las validaciones, añadir el rol
       await addRoles(Roles);
       await Swal.fire({
         icon: "success",
@@ -170,7 +195,6 @@ export const RolesAddPage = () => {
         <p>Cargando permisos...</p>
       ) : (
         <form onSubmit={handleSubmit}>
-          {/* Nombre del Rol */}
           <div className="mb-3">
             <label htmlFor="rolName" className="form-label">
               Nombre del Rol
@@ -188,12 +212,11 @@ export const RolesAddPage = () => {
             {!isValidRolName(Roles.rolName) && (
               <div className="invalid-feedback">
                 El nombre debe tener solo letras, entre 1 y 3 palabras y de 3 a
-                20 caracteres.
+                25 caracteres.
               </div>
             )}
           </div>
 
-          {/* Selección de Permisos */}
           <div className="mb-3">
             <label htmlFor="permissions" className="form-label">
               Permisos
@@ -215,7 +238,6 @@ export const RolesAddPage = () => {
             </select>
           </div>
 
-          {/* Lista de permisos seleccionados */}
           <ul className="list-group mb-3">
             {Roles.permissions.map((p) => (
               <li
@@ -233,6 +255,7 @@ export const RolesAddPage = () => {
               </li>
             ))}
           </ul>
+
           <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
             <Button
               type="button"
