@@ -5,6 +5,7 @@ import { addTest } from "../../services/testService";
 import { getAllCharacteristics } from "../../services/characteristicService";
 import { Characteristic } from "../../types/carrerTypes";
 import { Button } from "../../components/atoms/Button/Button";
+import { validateTestForm } from "../../validations/test/testFormValidation";
 import Swal from "sweetalert2";
 
 export const TestAddPage = () => {
@@ -77,21 +78,16 @@ export const TestAddPage = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
-        if (!test.questionText.trim()) {
+        const validation = validateTestForm({
+            questionText: test.questionText,
+            questionHelpText: test.questionHelpText ?? "",
+            characteristics: test.characteristics,
+        });
+        if (!validation.valid) {
             await Swal.fire({
                 icon: "error",
-                title: "Pregunta obligatoria",
-                text: "La pregunta es obligatoria.",
-                confirmButtonText: "Aceptar"
-            });
-            setLoading(false);
-            return;
-        }
-        if (test.characteristics.length === 0) {
-            await Swal.fire({
-                icon: "error",
-                title: "Características requeridas",
-                text: "Debe agregar al menos una característica.",
+                title: "Error",
+                text: validation.message,
                 confirmButtonText: "Aceptar"
             });
             setLoading(false);
@@ -105,11 +101,12 @@ export const TestAddPage = () => {
                 confirmButtonText: "Aceptar"
             });
             navigate("/test-list");
-        } catch (error) {
+        } catch (error: any) {
+            const backendMsg = error.response?.data || error.message || "Error al añadir la pregunta";
             await Swal.fire({
                 icon: "error",
                 title: "Error",
-                text: "Error al añadir la pregunta",
+                text: backendMsg,
                 confirmButtonText: "Aceptar"
             });
         } finally {
@@ -152,7 +149,7 @@ export const TestAddPage = () => {
                         onChange={handleChange}
                     />
                     <label className="form-check-label" htmlFor="isActive">
-                        Activa
+                        ¿Estará activa?
                     </label>
                 </div>
                 <div className="mb-3 form-check">
@@ -165,7 +162,7 @@ export const TestAddPage = () => {
                         onChange={handleChange}
                     />
                     <label className="form-check-label" htmlFor="isMultipleSelection">
-                        Permitir selección múltiple
+                        ¿Permite selección múltiple?
                     </label>
                 </div>
                 <div className="mb-3">

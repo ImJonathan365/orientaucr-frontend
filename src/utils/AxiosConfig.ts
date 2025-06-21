@@ -44,10 +44,26 @@ axios.interceptors.response.use(
     const originalRequest = error.config;
 
     if (
+      originalRequest.url &&
+      (originalRequest.url.includes("/auth/login") || originalRequest.url.includes("/auth/register"))
+    ) {
+      return Promise.reject(error);
+    }
+
+    if (
       error.response &&
       (error.response.status === 401 || error.response.status === 403) &&
-      !originalRequest._retry &&
-      error.response.data !== "Credenciales inválidas."
+      originalRequest.url &&
+      originalRequest.url.includes("/auth/refresh")
+    ) {
+      redirectToLogin();
+      return Promise.reject(error);
+    }
+
+    if (
+      error.response &&
+      (error.response.status === 401 || error.response.status === 403) &&
+      !originalRequest._retry
     ) {
       if (!originalRequest._retry) {
         originalRequest._retry = true;

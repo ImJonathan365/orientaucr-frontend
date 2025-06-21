@@ -21,6 +21,7 @@ export const UserEditPage = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [form, setForm] = useState({
     userName: "",
@@ -36,51 +37,64 @@ export const UserEditPage = () => {
   useEffect(() => {
     if (!currentUser) return;
 
-    if (id === currentUser.userId) {
-      Swal.fire({
-        icon: "warning",
-        title: "No permitido",
-        text: "No puedes editar tus propios datos desde aquí.",
-        confirmButtonText: "Aceptar"
-      }).then(() => {
-        navigate("/home", { replace: true });
-      });
-      return;
-    } else {
-      const fetchData = async () => {
-        try {
-          const userData = await getUserById(id!);
-          setUser(userData);
-          setForm({
-            userName: userData.userName,
-            userLastname: userData.userLastname,
-            userEmail: userData.userEmail,
-            userBirthdate: userData.userBirthdate || "",
-            userPassword: userData.userPassword,
-            userDiversifiedAverage: userData.userDiversifiedAverage?.toString() || "",
-            userAllowEmailNotification: userData.userAllowEmailNotification,
-            userProfilePicture: userData.userProfilePicture || "",
-          });
-          const allRoles = await getAllRoles();
-          setRoles(allRoles);
-          setSelectedRoleIds(userData.userRoles?.map(r => r.rolId) || []);
-          if (userData.userProfilePicture) {
-            const url = await getUserProfileImage(userData.userProfilePicture);
-            setProfileImageUrl(url);
-          }
-        } catch (error) {
-          Swal.fire({ icon: "error", title: "Error", text: "Error al cargar datos del usuario" });
-          navigate("/users", { replace: true });
-        } finally {
-          setIsLoading(false);
+    const fetchData = async () => {
+      try {
+        const userData = await getUserById(id!);
+        setUser(userData);
+        setForm({
+          userName: userData.userName,
+          userLastname: userData.userLastname,
+          userEmail: userData.userEmail,
+          userBirthdate: userData.userBirthdate || "",
+          userPassword: userData.userPassword,
+          userDiversifiedAverage: userData.userDiversifiedAverage?.toString() || "",
+          userAllowEmailNotification: userData.userAllowEmailNotification,
+          userProfilePicture: userData.userProfilePicture || "",
+        });
+        const allRoles = await getAllRoles();
+        setRoles(allRoles);
+        setSelectedRoleIds(userData.userRoles?.map(r => r.rolId) || []);
+        if (userData.userProfilePicture) {
+          const url = await getUserProfileImage(userData.userProfilePicture);
+          setProfileImageUrl(url);
         }
-      };
-      fetchData();
-    }
+      } catch (error: any) {
+        const backendMsg = error.response?.data || error.message || "Error al cargar datos del usuario";
+        if (error.response && error.response.status === 403) {
+          await Swal.fire({
+            icon: "error",
+            title: "No permitido",
+            text: backendMsg,
+            confirmButtonText: "Aceptar"
+          });
+          if (backendMsg.includes("No puedes editar tus propios datos")) {
+            navigate("/home", { replace: true });
+          } else {
+            navigate("/users", { replace: true });
+          }
+        } else {
+          await Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: backendMsg,
+            confirmButtonText: "Aceptar"
+          });
+          navigate("/users", { replace: true });
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, [id, currentUser, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target as HTMLInputElement;
+    if (name === "confirmPassword") {
+      setConfirmPassword(value);
+      return;
+    }
     if (type === "checkbox") {
       setForm(prev => ({
         ...prev,
@@ -174,7 +188,16 @@ export const UserEditPage = () => {
       setIsLoading(false);
       return;
     }
-
+    if (form.userPassword && form.userPassword !== confirmPassword) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Las contraseñas no coinciden",
+        confirmButtonText: "Aceptar"
+      });
+      setIsLoading(false);
+      return;
+    }
     try {
       const selectedRoles = roles.filter(r => selectedRoleIds.includes(r.rolId));
       const updatedUser: User = {
@@ -201,23 +224,17 @@ export const UserEditPage = () => {
       });
       navigate('/users');
     } catch (err: any) {
+      const backendMsg = err.response?.data || err.message || "Error al actualizar usuario";
       await Swal.fire({
         icon: "error",
         title: "Error",
-        text: err.message || "Error al actualizar usuario",
+        text: backendMsg,
         confirmButtonText: "Aceptar"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-  if (!isLoading && !user) {
-    Swal.fire({ icon: "error", title: "Usuario no encontrado", text: "El usuario no existe o no tiene permisos para verlo." }).then(() => {
-      navigate("/users", { replace: true });
-    });
-    return null;
-  }
 
   return (
     <div className="container py-4 d-flex justify-content-center align-items-center min-vh-100">
@@ -328,6 +345,18 @@ export const UserEditPage = () => {
                 name="userPassword"
                 value={form.userPassword}
                 onChange={handleChange}
+                placeholder="********"
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label fw-semibold mb-1">Confirmar contraseña</label>
+              <input
+                type="password"
+                className="form-control shadow-sm rounded-3"
+                name="confirmPassword"
+                value={confirmPassword}
+                onChange={handleChange}
+                placeholder="********"
               />
             </div>
             <div className="mb-3">
