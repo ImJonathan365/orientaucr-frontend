@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { getAllEvents, deleteEvent } from "../../services/eventService";
+import { getCurrentUser } from "../../services/userService";
 import { Event } from "../../types/EventTypes";
+import { User } from "../../types/userType";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
 import { useNavigate } from "react-router-dom";
 import { Title } from "../../components/atoms/Title/Ttile";
@@ -12,9 +14,17 @@ export const EventsListPage = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchUserAndEvents = async () => {
+      try {
+        const user = await getCurrentUser();
+        setCurrentUser(user);
+      } catch {
+        setCurrentUser(null);
+      }
+
       try {
         const data = await getAllEvents();
         const sorted = data.sort((a, b) => {
@@ -29,10 +39,26 @@ export const EventsListPage = () => {
         setLoading(false);
       }
     };
-    fetchEvents();
+
+    fetchUserAndEvents();
   }, []);
 
+  const hasPermission = (permission: string): boolean => {
+    return currentUser?.userRoles?.some((role) =>
+      role.permissions?.some((p) => p.permissionName === permission)
+    ) ?? false;
+  };
+
   const handleEdit = async (event: Event) => {
+    if (!hasPermission("EDITAR EVENTOS")) {
+      Swal.fire({
+        icon: "warning",
+        title: "Acceso denegado",
+        text: "No tienes permiso para editar eventos.",
+      });
+      return;
+    }
+
     const result = await Swal.fire({
       title: "¿Editar evento?",
       text: `¿Deseas editar el evento: ${event.eventTitle}?`,
@@ -48,6 +74,15 @@ export const EventsListPage = () => {
   };
 
   const handleDelete = async (event: Event) => {
+    if (!hasPermission("ELIMINAR EVENTOS")) {
+      Swal.fire({
+        icon: "warning",
+        title: "Acceso denegado",
+        text: "No tienes permiso para eliminar eventos.",
+      });
+      return;
+    }
+
     const result = await Swal.fire({
       title: "¿Eliminar evento?",
       text: `¿Seguro que deseas eliminar el evento: ${event.eventTitle}?`,
@@ -82,7 +117,6 @@ export const EventsListPage = () => {
       key: "event_date",
       label: "Fecha",
       render: (row) => {
-        // Forzar fecha local para evitar desfase por zona horaria
         const localDate = new Date(row.eventDate + "T00:00:00");
         return localDate.toLocaleDateString();
       },
@@ -111,13 +145,15 @@ export const EventsListPage = () => {
             <Icon variant="home" className="me-2" />
             Regresar
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => navigate("/events-list/add")}
-          >
-            <Icon variant="add" className="me-2" />
-            Nuevo Evento
-          </Button>
+          {hasPermission("CREAR EVENTOS") && (
+            <Button
+              variant="primary"
+              onClick={() => navigate("/events-list/add")}
+            >
+              <Icon variant="add" className="me-2" />
+              Nuevo Evento
+            </Button>
+          )}
         </div>
       </div>
       {loading ? (

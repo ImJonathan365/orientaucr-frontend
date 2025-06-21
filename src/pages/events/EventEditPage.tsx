@@ -59,6 +59,26 @@ export const EventsEditPage = () => {
           return;
         }
 
+        // 🔒 Validación de permisos
+        const hasPermission = (permissionName: string): boolean => {
+          return (
+            user?.userRoles?.some(role =>
+              role.permissions?.some(p => p.permissionName === permissionName)
+            ) ?? false
+          );
+        };
+
+        if (!hasPermission("MODIFICAR EVENTOS")) {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso denegado",
+            text: "No tienes permiso para editar eventos.",
+            confirmButtonText: "Volver"
+          });
+          navigate("/home", { replace: true });
+          return;
+        }
+
         const subcampusList = event.campusId
           ? await getAllSubcampus(event.campusId)
           : [];
@@ -101,25 +121,15 @@ export const EventsEditPage = () => {
   ) => {
     if (!eventData) return;
     const { name, value } = e.target;
-
     setEventData({ ...eventData, [name]: value });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      const validImageTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "image/webp",
-      ];
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
       if (!validImageTypes.includes(file.type)) {
-        Swal.fire(
-          "Error",
-          "Solo se permiten imágenes JPEG, PNG, GIF o WEBP.",
-          "error"
-        );
+        Swal.fire("Error", "Solo se permiten imágenes JPEG, PNG, GIF o WEBP.", "error");
         e.target.value = "";
         setImagePreview(null);
         return;
@@ -150,7 +160,7 @@ export const EventsEditPage = () => {
       campusId,
     } = eventData;
 
-    const allowedPattern = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+     const allowedPattern = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s¿?()\/]+$/;
 
     if (!eventTitle || eventTitle.trim() === "")
       return "El título no puede estar vacío.";
