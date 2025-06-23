@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginUser, setAuthToken } from '../../services/userService';
 import { useUser } from '../../contexts/UserContext';
-import { loginValidation } from '../../validations/loginValidation';
+import { loginValidation } from '../../validations/user/loginValidation';
 import Swal from 'sweetalert2';
 
 const LoginPage: React.FC = () => {

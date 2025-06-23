@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useUser } from "../../contexts/UserContext";
 import { updateUser, getUserProfileImage } from "../../services/userService";
-import { validateUserForm } from "../../validations/userFormValidation";
-import { validateProfileImage } from "../../validations/profileImageValidation";
+import { validateUserForm } from "../../validations/user/userFormValidation";
+import { validateProfileImage } from "../../validations/user/profileImageValidation";
 import Swal from "sweetalert2";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";

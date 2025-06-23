@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser, setAuthToken } from "../../services/userService";
 import { useUser } from "../../contexts/UserContext";
-import { validateUserForm } from "../../validations/userFormValidation";
+import { validateUserForm } from "../../validations/user/userFormValidation";
 import Swal from "sweetalert2";
 
 export const RegisterPage = () => {

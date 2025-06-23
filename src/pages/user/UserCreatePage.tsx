@@ -6,12 +6,15 @@ import { getAllRoles } from "../../services/rolesService";
 import { addUser } from "../../services/userService";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";
-import { validateUserForm } from "../../validations/userFormValidation";
-import { validateProfileImage } from "../../validations/profileImageValidation";
+import { validateUserForm } from "../../validations/user/userFormValidation";
+import { validateProfileImage } from "../../validations/user/profileImageValidation";
+import { useUser } from "../../contexts/UserContext";
+import { validateUserPermission } from "../../validations/userPermissionValidation";
 import Swal from "sweetalert2";
 
 export const UserCreatePage = () => {
   const navigate = useNavigate();
+  const { user: currentUser } = useUser();
   const [roles, setRoles] = useState<Roles[]>([]);
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -29,8 +32,37 @@ export const UserCreatePage = () => {
   });
 
   useEffect(() => {
-    getAllRoles().then(setRoles);
-  }, []);
+    const { canCreate } = validateUserPermission(currentUser, "MODIFICAR USUARIOS", "ELIMINAR USUARIOS", "CREAR USUARIOS");
+    if (!canCreate) {
+      Swal.fire({
+        icon: "warning",
+        title: "No autorizado",
+        text: "No tienes permiso para crear usuarios.",
+        confirmButtonText: "Aceptar"
+      }).then(() => {
+        navigate("/users", { replace: true });
+      });
+    }
+  }, [currentUser, navigate]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const allRoles = await getAllRoles();
+        setRoles(allRoles);
+      } catch (rolesError: any) {
+        const backendMsg = rolesError.response?.data || rolesError.message || "No tienes permiso para ver los roles.";
+        await Swal.fire({
+          icon: "error",
+          title: "Error al cargar roles",
+          text: backendMsg,
+          confirmButtonText: "Aceptar"
+        });
+        navigate("/users", { replace: true });
+      }
+    };
+    fetchRoles();
+  }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target as HTMLInputElement;
@@ -137,6 +169,18 @@ export const UserCreatePage = () => {
         text: "Las contraseñas no coinciden",
         confirmButtonText: "Aceptar"
       });
+      setIsLoading(false);
+      return;
+    }
+    const result = await Swal.fire({
+      icon: "question",
+      title: "¿Seguro que deseas guardar este nuevo usuario?",
+      text: "Se guardarán los datos del usuario.",
+      showCancelButton: true,
+      confirmButtonText: "Sí, guardar",
+      cancelButtonText: "Cancelar"
+    });
+    if (!result.isConfirmed) {
       setIsLoading(false);
       return;
     }
