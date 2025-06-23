@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";
 import { useUser } from "../../contexts/UserContext";
+import { validateUserPermission } from "../../validations/userPermissionValidation";
 import { DateTime } from "luxon";
 import Swal from "sweetalert2";
 
@@ -15,6 +16,7 @@ const UserListPage: React.FC = () => {
   const { user: currentUser } = useUser();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const { canEdit, canDelete, canCreate } = validateUserPermission(currentUser, "MODIFICAR USUARIOS", "ELIMINAR USUARIOS", "CREAR USUARIOS");
   const navigate = useNavigate();
 
   const getUniquePermissions = (user: User) => {
@@ -179,18 +181,23 @@ const UserListPage: React.FC = () => {
     <>
       <div className="container mt-4">
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <Button
-            variant="secondary"
-            onClick={handleBack}
-          >
-            <Icon variant="home" className="me-2" />
-            Regresar
-          </Button>
-          <h2>Lista de Usuarios</h2>
-          <Button className="btn btn-primary" onClick={handleCreate}>
-            <Icon variant="add" className="me-2" />
-            Nuevo Usuario
-          </Button>
+          <div style={{ flex: 1 }}>
+            <Button variant="secondary" onClick={handleBack}>
+              <Icon variant="home" className="me-2" />
+              Regresar
+            </Button>
+          </div>
+          <div style={{ flex: 2, textAlign: "center" }}>
+            <h2 className="m-0">Lista de Usuarios</h2>
+          </div>
+          <div style={{ flex: 1, textAlign: "right" }}>
+            {canCreate && (
+              <Button className="btn btn-primary" onClick={handleCreate}>
+                <Icon variant="add" className="me-2" />
+                Nuevo Usuario
+              </Button>
+            )}
+          </div>
         </div>
         {loading ? (
           <p>Cargando...</p>
@@ -198,8 +205,9 @@ const UserListPage: React.FC = () => {
           <Table
             columns={columns}
             data={usersWithActions}
-            onEdit={handleEdit}
-            onDelete={handleDelete} />
+            onEdit={canEdit ? handleEdit : undefined}
+            onDelete={canDelete ? handleDelete : undefined}
+          />
         )}
       </div>
     </>

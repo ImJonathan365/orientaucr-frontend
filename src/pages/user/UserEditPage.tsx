@@ -4,12 +4,13 @@ import { getUserById, updateUser, getUserProfileImage } from "../../services/use
 import { getAllRoles } from "../../services/rolesService";
 import { User } from "../../types/userType";
 import { Roles } from "../../types/rolesType";
-import Swal from "sweetalert2";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";
-import { validateUserForm } from "../../validations/userFormValidation";
-import { validateProfileImage } from "../../validations/profileImageValidation";
+import { validateUserForm } from "../../validations/user/userFormValidation";
+import { validateProfileImage } from "../../validations/user/profileImageValidation";
 import { useUser } from "../../contexts/UserContext";
+import { validateUserPermission } from "../../validations/userPermissionValidation";
+import Swal from "sweetalert2";
 
 export const UserEditPage = () => {
   const navigate = useNavigate();
@@ -22,7 +23,6 @@ export const UserEditPage = () => {
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [form, setForm] = useState({
     userName: "",
     userLastname: "",
@@ -33,6 +33,20 @@ export const UserEditPage = () => {
     userAllowEmailNotification: true,
     userProfilePicture: "",
   });
+
+  useEffect(() => {
+    const { canEdit } = validateUserPermission(currentUser, "MODIFICAR USUARIOS", "ELIMINAR USUARIOS", "CREAR USUARIOS");
+    if (!canEdit) {
+      Swal.fire({
+        icon: "warning",
+        title: "No autorizado",
+        text: "No tienes permiso para editar usuarios.",
+        confirmButtonText: "Aceptar"
+      }).then(() => {
+        navigate("/users", { replace: true });
+      });
+    }
+  }, [currentUser, navigate]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -51,9 +65,22 @@ export const UserEditPage = () => {
           userAllowEmailNotification: userData.userAllowEmailNotification,
           userProfilePicture: userData.userProfilePicture || "",
         });
-        const allRoles = await getAllRoles();
-        setRoles(allRoles);
-        setSelectedRoleIds(userData.userRoles?.map(r => r.rolId) || []);
+        try {
+          const allRoles = await getAllRoles();
+          setRoles(allRoles);
+          setSelectedRoleIds(userData.userRoles?.map(r => r.rolId) || []);
+        } catch (rolesError: any) {
+          const backendMsg = rolesError.response?.data || rolesError.message || "No tienes permiso para ver los roles.";
+          await Swal.fire({
+            icon: "error",
+            title: "Error al cargar roles",
+            text: backendMsg,
+            confirmButtonText: "Aceptar"
+          });
+          navigate("/users", { replace: true });
+          return;
+        }
+
         if (userData.userProfilePicture) {
           const url = await getUserProfileImage(userData.userProfilePicture);
           setProfileImageUrl(url);
@@ -195,6 +222,18 @@ export const UserEditPage = () => {
         text: "Las contraseñas no coinciden",
         confirmButtonText: "Aceptar"
       });
+      setIsLoading(false);
+      return;
+    }
+    const result = await Swal.fire({
+      icon: "question",
+      title: "¿Seguro que deseas guardar los cambios?",
+      text: "Se actualizarán los datos del usuario.",
+      showCancelButton: true,
+      confirmButtonText: "Sí, guardar",
+      cancelButtonText: "Cancelar"
+    });
+    if (!result.isConfirmed) {
       setIsLoading(false);
       return;
     }
