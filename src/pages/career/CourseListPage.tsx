@@ -7,7 +7,7 @@ import { getCareerById, deleteCourseFromCareer, getCoursesForCurricula, addCours
 import { Career, Course } from '../../types/carrerTypes';
 import { Alert, Spinner, Form, Row, Col } from 'react-bootstrap';
 import Swal from "sweetalert2";
-import { updateCourse } from '../../services/courseService';
+import { updateCourse, getNumberCarrersAssociated } from '../../services/courseService';
 
 export const CourseListPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -101,7 +101,7 @@ export const CourseListPage = () => {
     );
     
     const addedCourse = availableCourses.find(c => c.courseId === selectedCourseId);
-    if (addedCourse && !addedCourse.courseIsShared) {
+    if (addedCourse) {
       await updateCourse({
         ...addedCourse,
         courseIsAsigned: true
@@ -142,7 +142,8 @@ export const CourseListPage = () => {
         }
         await deleteCourseFromCareer(career.curricula.curriculaId, course.courseId);
 
-        if (!course.courseIsShared) {
+        const numberOfCareersAssociated = await getNumberCarrersAssociated(course.courseId);
+        if (!course.courseIsShared || numberOfCareersAssociated === 0) {
           await updateCourse({
             ...course,
             courseIsAsigned: false

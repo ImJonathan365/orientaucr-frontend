@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { GenericForm, FormField } from '../../components/organisms/FormBar/GenericForm';
 import { getCourses, addCourse, CourseCreate } from '../../services/courseService';
+import { Form, Row, Col, Button } from 'react-bootstrap';
 
 interface Course {
     courseId: string;
@@ -20,6 +21,10 @@ interface NewCourseFormValues {
     corequisites: string[];
 }
 
+interface PrereqOrCoreq {
+    courseId: string;
+}
+
 function normalizeCode(code: string) {
     return code.replace(/-/g, '').toUpperCase().trim();
 }
@@ -27,6 +32,13 @@ function normalizeCode(code: string) {
 export const NewCoursesPage = () => {
     const navigate = useNavigate();
     const [courses, setCourses] = useState<Course[]>([]);
+
+    const [selectedPrereqId, setSelectedPrereqId] = useState<string>('');
+    const [selectedPrereqSemester, setSelectedPrereqSemester] = useState<number>(1);
+    const [prerequisites, setPrerequisites] = useState<PrereqOrCoreq[]>([]);
+    const [selectedCoreqId, setSelectedCoreqId] = useState<string>('');
+    const [selectedCoreqSemester, setSelectedCoreqSemester] = useState<number>(1);
+    const [corequisites, setCorequisites] = useState<PrereqOrCoreq[]>([]);
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -40,6 +52,28 @@ export const NewCoursesPage = () => {
 
         fetchCourses();
     }, []);
+
+    const handleAddPrereq = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedPrereqId || prerequisites.some(p => p.courseId === selectedPrereqId)) return;
+        setPrerequisites([...prerequisites, { courseId: selectedPrereqId }]);
+        setSelectedPrereqId('');
+        setSelectedPrereqSemester(1);
+    };
+    const handleRemovePrereq = (courseId: string) => {
+        setPrerequisites(prerequisites.filter(p => p.courseId !== courseId));
+    };
+
+    const handleAddCoreq = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedCoreqId || corequisites.some(c => c.courseId === selectedCoreqId)) return;
+        setCorequisites([...corequisites, { courseId: selectedCoreqId }]);
+        setSelectedCoreqId('');
+        setSelectedCoreqSemester(1);
+    };
+    const handleRemoveCoreq = (courseId: string) => {
+        setCorequisites(corequisites.filter(c => c.courseId !== courseId));
+    };
 
     const formFields: FormField[] = [
         {
@@ -77,32 +111,12 @@ export const NewCoursesPage = () => {
             label: '¿El curso es compartido?',
             type: 'checkbox',
             required: false
-        },
-        {
-            name: 'prerequisites',
-            label: 'Prerrequisitos',
-            type: 'checkbox-group',
-            required: false,
-            options: courses.map(c => ({
-                value: c.courseId,
-                label: `${c.courseCode} - ${c.courseName}`
-            }))
-        },
-        {
-            name: 'corequisites',
-            label: 'Correquisitos',
-            type: 'checkbox-group',
-            required: false,
-            options: courses.map(c => ({
-                value: c.courseId,
-                label: `${c.courseCode} - ${c.courseName}`
-            }))
         }
     ];
 
     const handleSubmit = async (values: NewCourseFormValues) => {
         try {
-            if (!values.courseName || values.courseName.trim().length === 0 || 
+            if (!values.courseName || values.courseName.trim().length === 0 ||
                 !values.courseDescription || values.courseDescription.trim().length === 0) {
                 await Swal.fire({
                     icon: 'warning',
@@ -175,8 +189,8 @@ export const NewCoursesPage = () => {
                 courseDescription: values.courseDescription.trim(),
                 courseCredits: values.credits,
                 courseIsShared: values.courseIsShared || false,
-                prerequisites: values.prerequisites,
-                corequisites: values.corequisites 
+                prerequisites: prerequisites.map(p => p.courseId),
+                corequisites: corequisites.map(c => c.courseId)
             };
 
             await addCourse(payload);
@@ -214,7 +228,7 @@ export const NewCoursesPage = () => {
                     courseName: '',
                     courseDescription: '',
                     credits: 3,
-                    courseIsShared: false, 
+                    courseIsShared: false,
                     prerequisites: [],
                     corequisites: []
                 }}
@@ -222,6 +236,117 @@ export const NewCoursesPage = () => {
                 onSubmit={handleSubmit}
                 onCancel={handleCancel}
                 submitText="Crear Curso"
+                renderExtraFields={() => (
+                    <>
+                        {/* Prerrequisitos */}
+                        <Form.Group className="mb-3">
+                            <Form.Label>Agregar prerrequisito</Form.Label>
+                            <Row>
+                                <Col md={6}>
+                                    <Form.Select
+                                        value={selectedPrereqId}
+                                        onChange={e => setSelectedPrereqId(e.target.value)}
+                                    >
+                                        <option value="">Seleccione un curso</option>
+                                        {courses
+                                            .filter(course => !prerequisites.some(p => p.courseId === course.courseId))
+                                            .map(course => (
+                                                <option key={course.courseId} value={course.courseId}>
+                                                    {course.courseCode} - {course.courseName}
+                                                </option>
+                                            ))}
+                                    </Form.Select>
+                                </Col>
+                                <Col md={3}>
+                                    <Button
+                                        variant="primary"
+                                        onClick={handleAddPrereq}
+                                        disabled={!selectedPrereqId}
+                                    >
+                                        Agregar
+                                    </Button>
+                                </Col>
+                            </Row>
+                        </Form.Group>
+                        {prerequisites.length > 0 && (
+                            <div className="mb-3">
+                                <strong>Prerrequisitos agregados:</strong>
+                                <ul className="list-unstyled">
+                                    {prerequisites.map(p => {
+                                        const course = courses.find(cs => cs.courseId === p.courseId);
+                                        return (
+                                            <li key={p.courseId} className="mb-2">
+                                                {course ? `${course.courseCode} - ${course.courseName}` : p.courseId}
+                                                <Button
+                                                    variant="danger"
+                                                    size="sm"
+                                                    className="ms-2"
+                                                    onClick={() => handleRemovePrereq(p.courseId)}
+                                                >
+                                                    Quitar
+                                                </Button>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
+                        )}
+
+                        {/* Correquisitos */}
+                        <Form.Group className="mb-3">
+                            <Form.Label>Agregar correquisito</Form.Label>
+                            <Row>
+                                <Col md={6}>
+                                    <Form.Select
+                                        value={selectedCoreqId}
+                                        onChange={e => setSelectedCoreqId(e.target.value)}
+                                    >
+                                        <option value="">Seleccione un curso</option>
+                                        {courses
+                                            .filter(course => !corequisites.some(c => c.courseId === course.courseId))
+                                            .map(course => (
+                                                <option key={course.courseId} value={course.courseId}>
+                                                    {course.courseCode} - {course.courseName}
+                                                </option>
+                                            ))}
+                                    </Form.Select>
+                                </Col>
+                                <Col md={3}>
+                                    <Button
+                                        variant="primary"
+                                        onClick={handleAddCoreq}
+                                        disabled={!selectedCoreqId}
+                                    >
+                                        Agregar
+                                    </Button>
+                                </Col>
+                            </Row>
+                        </Form.Group>
+                        {corequisites.length > 0 && (
+                            <div className="mb-3">
+                                <strong>Correquisitos agregados:</strong>
+                                <ul className="list-unstyled">
+                                    {corequisites.map(c => {
+                                        const course = courses.find(cs => cs.courseId === c.courseId);
+                                        return (
+                                            <li key={c.courseId} className="mb-2">
+                                                {course ? `${course.courseCode} - ${course.courseName}` : c.courseId}
+                                                <Button
+                                                    variant="danger"
+                                                    size="sm"
+                                                    className="ms-2"
+                                                    onClick={() => handleRemoveCoreq(c.courseId)}
+                                                >
+                                                    Quitar
+                                                </Button>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
+                        )}
+                    </>
+                )}
             />
         </div>
     );
