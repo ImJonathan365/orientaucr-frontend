@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import { GenericForm, FormField } from '../../components/organisms/FormBar/GenericForm';
 import { getCourseById, updateCourse, getCourses } from '../../services/courseService';
 import { Course } from '../../types/carrerTypes';
+import { Form, Row, Col, Button } from 'react-bootstrap';
 
 interface EditCourseFormValues {
     courseCode: string;
@@ -22,6 +23,10 @@ export const EditCoursePage = () => {
     const [initialValues, setInitialValues] = useState<EditCourseFormValues | null>(null);
     const [courses, setCourses] = useState<Course[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedPrereqId, setSelectedPrereqId] = useState<string>('');
+    const [prerequisites, setPrerequisites] = useState<string[]>([]);
+    const [selectedCoreqId, setSelectedCoreqId] = useState<string>('');
+    const [corequisites, setCorequisites] = useState<string[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -42,6 +47,8 @@ export const EditCoursePage = () => {
                     getCourses()
                 ]);
                 setCourses(allCourses);
+                setPrerequisites(courseData.prerequisites || []);
+                setCorequisites(courseData.corequisites || []);
 
                 setInitialValues({
                     courseCode: courseData.courseCode,
@@ -49,6 +56,7 @@ export const EditCoursePage = () => {
                     courseDescription: courseData.courseDescription,
                     courseCredits: courseData.courseCredits,
                     courseIsShared: courseData.courseIsShared,
+                    courseIsAsigned: courseData.courseIsAsigned,
                     prerequisites: courseData.prerequisites || [],
                     corequisites: courseData.corequisites || []
                 });
@@ -103,36 +111,33 @@ export const EditCoursePage = () => {
             label: '¿El curso es compartido?',
             type: 'checkbox',
             required: false
-        },
-        {
-            name: 'prerequisites',
-            label: 'Prerrequisitos',
-            type: 'checkbox-group',
-            required: false,
-            options: courses
-                .filter(c => c.courseId !== id)
-                .map(c => ({
-                    value: c.courseId,
-                    label: `${c.courseCode} - ${c.courseName}`
-                }))
-        },
-        {
-            name: 'corequisites',
-            label: 'Correquisitos',
-            type: 'checkbox-group',
-            required: false,
-            options: courses
-                .filter(c => c.courseId !== id)
-                .map(c => ({
-                    value: c.courseId,
-                    label: `${c.courseCode} - ${c.courseName}`
-                }))
         }
     ];
 
     function normalizeCode(code: string) {
         return code.replace(/-/g, '').toUpperCase().trim();
     }
+
+    const handleAddPrereq = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedPrereqId || prerequisites.includes(selectedPrereqId)) return;
+        setPrerequisites([...prerequisites, selectedPrereqId]);
+        setSelectedPrereqId('');
+    };
+    const handleRemovePrereq = (courseId: string) => {
+        setPrerequisites(prerequisites.filter(id => id !== courseId));
+    };
+
+
+    const handleAddCoreq = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedCoreqId || corequisites.includes(selectedCoreqId)) return;
+        setCorequisites([...corequisites, selectedCoreqId]);
+        setSelectedCoreqId('');
+    };
+    const handleRemoveCoreq = (courseId: string) => {
+        setCorequisites(corequisites.filter(id => id !== courseId));
+    };
 
     const handleSubmit = async (values: EditCourseFormValues) => {
         try {
@@ -145,6 +150,21 @@ export const EditCoursePage = () => {
                     confirmButtonText: 'Aceptar'
                 });
                 return;
+            }
+
+            const originalIsShared = initialValues?.courseIsShared;
+            const originalIsAsigned = initialValues?.courseIsAsigned;
+            if (originalIsShared && !values.courseIsShared && originalIsAsigned) {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'No permitido',
+                    text: 'No puedes marcar como NO compartido un curso que ya está asignado, primero elimine las relaciones.',
+                    confirmButtonText: 'Aceptar'
+                });
+                return;
+            }
+            if (originalIsShared && !values.courseIsShared) {
+                values.courseIsAsigned = false;
             }
 
             const code = values.courseCode.trim().toUpperCase();
@@ -207,19 +227,17 @@ export const EditCoursePage = () => {
                 return;
             }
 
-            if (values.courseIsShared) {
-                values.courseIsAsigned = false;
-            }
+            
             await updateCourse({
                 courseId: id!,
                 courseCode: values.courseCode.trim(),
                 courseName: values.courseName.trim(),
                 courseDescription: values.courseDescription.trim(),
                 courseCredits: values.courseCredits,
-                courseIsShared: false,
-                courseIsAsigned: false,
-                prerequisites: values.prerequisites,
-                corequisites: values.corequisites,
+                courseIsShared: values.courseIsShared ?? false,
+                courseIsAsigned: values.courseIsAsigned ?? initialValues?.courseIsAsigned ?? false,
+                prerequisites,
+                corequisites,
                 courseSemester: 0
             });
 
@@ -262,6 +280,115 @@ export const EditCoursePage = () => {
                 onCancel={() => navigate('/course-list')}
                 submitText="Guardar Cambios"
                 cancelText="Cancelar"
+                renderExtraFields={() => (
+                    <>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Agregar prerrequisito</Form.Label>
+                            <Row>
+                                <Col md={8}>
+                                    <Form.Select
+                                        value={selectedPrereqId}
+                                        onChange={e => setSelectedPrereqId(e.target.value)}
+                                    >
+                                        <option value="">Seleccione un curso</option>
+                                        {courses
+                                            .filter(course => course.courseId !== id && !prerequisites.includes(course.courseId))
+                                            .map(course => (
+                                                <option key={course.courseId} value={course.courseId}>
+                                                    {course.courseCode} - {course.courseName}
+                                                </option>
+                                            ))}
+                                    </Form.Select>
+                                </Col>
+                                <Col md={4}>
+                                    <Button
+                                        variant="primary"
+                                        onClick={handleAddPrereq}
+                                        disabled={!selectedPrereqId}
+                                    >
+                                        Agregar
+                                    </Button>
+                                </Col>
+                            </Row>
+                            {prerequisites.length > 0 && (
+                                <div className="mt-2">
+                                    <strong>Prerrequisitos agregados:</strong>
+                                    <ul className="list-unstyled">
+                                        {prerequisites.map(pid => {
+                                            const course = courses.find(cs => cs.courseId === pid);
+                                            return (
+                                                <li key={pid} className="mb-2">
+                                                    {course ? `${course.courseCode} - ${course.courseName}` : pid}
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        className="ms-2"
+                                                        onClick={() => handleRemovePrereq(pid)}
+                                                    >
+                                                        Quitar
+                                                    </Button>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            )}
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Agregar correquisito</Form.Label>
+                            <Row>
+                                <Col md={8}>
+                                    <Form.Select
+                                        value={selectedCoreqId}
+                                        onChange={e => setSelectedCoreqId(e.target.value)}
+                                    >
+                                        <option value="">Seleccione un curso</option>
+                                        {courses
+                                            .filter(course => course.courseId !== id && !corequisites.includes(course.courseId))
+                                            .map(course => (
+                                                <option key={course.courseId} value={course.courseId}>
+                                                    {course.courseCode} - {course.courseName}
+                                                </option>
+                                            ))}
+                                    </Form.Select>
+                                </Col>
+                                <Col md={4}>
+                                    <Button
+                                        variant="primary"
+                                        onClick={handleAddCoreq}
+                                        disabled={!selectedCoreqId}
+                                    >
+                                        Agregar
+                                    </Button>
+                                </Col>
+                            </Row>
+                            {corequisites.length > 0 && (
+                                <div className="mt-2">
+                                    <strong>Correquisitos agregados:</strong>
+                                    <ul className="list-unstyled">
+                                        {corequisites.map(cid => {
+                                            const course = courses.find(cs => cs.courseId === cid);
+                                            return (
+                                                <li key={cid} className="mb-2">
+                                                    {course ? `${course.courseCode} - ${course.courseName}` : cid}
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        className="ms-2"
+                                                        onClick={() => handleRemoveCoreq(cid)}
+                                                    >
+                                                        Quitar
+                                                    </Button>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            )}
+                        </Form.Group>
+                    </>
+                )}
             />
         </div>
     );

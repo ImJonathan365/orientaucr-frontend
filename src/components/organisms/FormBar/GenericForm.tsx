@@ -26,7 +26,7 @@ interface GenericFormProps<T = any> {
     submitText?: string;
     cancelText?: string;
     icon?: IconVariant;
-    renderExtraFields?: () => React.ReactNode; // <-- Agregado
+    renderExtraFields?: () => React.ReactNode;
 }
 
 export const GenericForm = <T extends Record<string, any>>({
@@ -72,10 +72,10 @@ export const GenericForm = <T extends Record<string, any>>({
                 };
                 reader.readAsDataURL(file);
 
-                // Actualizar el valor del campo (aunque para files normalmente manejamos el file object aparte)
+                // Actualizar el valor del campo 
                 setFormValues(prev => ({
                     ...prev,
-                    [name]: file.name // O podrías almacenar el file object si lo necesitas
+                    [name]: file.name
                 }));
             }
         } else {
@@ -105,11 +105,13 @@ export const GenericForm = <T extends Record<string, any>>({
                 <form onSubmit={handleSubmit}>
                     {fields.map((field) => (
                         <div key={field.name} className="mb-3">
-                            <label htmlFor={field.name} className="form-label">
-                                {field.label} {field.required && <span className="text-danger">*</span>}
-                            </label>
+                            {field.type !== 'checkbox' && (
+                                <label htmlFor={field.name} className="form-label">
+                                    {field.label} {field.required && <span className="text-danger">*</span>}
+                                </label>
+                            )}
                             {field.type === 'checkbox' ? (
-                                <div className="form-check">
+                                <div className="form-check d-flex align-items-center">
                                     <input
                                         className="form-check-input"
                                         type="checkbox"
@@ -123,7 +125,11 @@ export const GenericForm = <T extends Record<string, any>>({
                                             }));
                                         }}
                                         disabled={field.disabled}
+                                        style={{ marginRight: '8px' }}
                                     />
+                                    <label className="form-check-label mb-0" htmlFor={field.name}>
+                                        {field.label}
+                                    </label>
                                 </div>
                             ) : field.type === 'checkbox-group' ? (
                                 <div className="d-flex flex-column">
