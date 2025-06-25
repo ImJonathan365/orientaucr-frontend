@@ -5,6 +5,8 @@ import { GenericForm, FormField } from '../../components/organisms/FormBar/Gener
 import { getCourseById, updateCourse, getCourses } from '../../services/courseService';
 import { Course } from '../../types/carrerTypes';
 import { Form, Row, Col, Button } from 'react-bootstrap';
+import { getCurrentUser } from '../../services/userService';
+import { validateUserPermission } from '../../validations/userPermissionValidation';
 
 interface EditCourseFormValues {
     courseCode: string;
@@ -27,6 +29,35 @@ export const EditCoursePage = () => {
     const [prerequisites, setPrerequisites] = useState<string[]>([]);
     const [selectedCoreqId, setSelectedCoreqId] = useState<string>('');
     const [corequisites, setCorequisites] = useState<string[]>([]);
+    const [checkingPermission, setCheckingPermission] = useState(true);
+
+    useEffect(() => {
+        const checkPermission = async () => {
+            try {
+                const user = await getCurrentUser();
+                const { canEdit } = validateUserPermission(
+                    user,
+                    "MODIFICAR CARRERAS",
+                    "",
+                    ""
+                );
+                if (!canEdit) {
+                    await Swal.fire({
+                        icon: "warning",
+                        title: "Acceso denegado",
+                        text: "No tienes permiso para editar cursos.",
+                    });
+                    navigate("/course-list", { replace: true });
+                }
+            } catch {
+                await Swal.fire("Error", "No se pudo validar tu sesión", "error");
+                navigate("/course-list", { replace: true });
+            } finally {
+                setCheckingPermission(false);
+            }
+        };
+        checkPermission();
+    }, [navigate]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -227,7 +258,7 @@ export const EditCoursePage = () => {
                 return;
             }
 
-            
+
             await updateCourse({
                 courseId: id!,
                 courseCode: values.courseCode.trim(),
@@ -259,6 +290,10 @@ export const EditCoursePage = () => {
             });
         }
     };
+
+    if (checkingPermission) {
+        return null; 
+    }
 
     if (isLoading || !initialValues) {
         return (

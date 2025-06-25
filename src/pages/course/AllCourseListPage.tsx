@@ -6,6 +6,7 @@ import { Button } from '../../components/atoms/Button/Button';
 import { Icon } from '../../components/atoms/Icon/Icon';
 import { getCourses, deleteCourse, getCourseById } from '../../services/courseService';
 import Swal from "sweetalert2";
+import { getCurrentUser } from '../../services/userService';
 
 interface Course {
   courseId: string;
@@ -24,6 +25,37 @@ export const AllCourseListPage = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [canDelete, setCanDelete] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canView, setCanView] = useState(false);
+
+  useEffect(() => {
+    const checkPermissions = async () => {
+      const user = await getCurrentUser();
+      const userPermissions = user.userRoles?.flatMap(role => role.permissions) ?? [];
+      setCanDelete(
+        userPermissions.some((perm: any) => perm.permissionName === "ELIMINAR CURSOS")
+      );
+      setCanEdit(
+        userPermissions.some((perm: any) => perm.permissionName === "MODIFICAR CURSOS")
+      );
+      setCanCreate(
+        userPermissions.some((perm: any) => perm.permissionName === "CREAR CURSOS")
+      );
+      const hasView = userPermissions.some((perm: any) => perm.permissionName === "VER CURSOS");
+      setCanView(hasView);
+      if (!hasView) {
+        await Swal.fire({
+          icon: "warning",
+          title: "Acceso denegado",
+          text: "No tienes permiso para ver la lista de cursos.",
+        });
+        navigate("/home", { replace: true });
+      }
+    };
+    checkPermissions();
+  }, [navigate]);
 
   useEffect(() => {
     fetchCourses();
@@ -111,6 +143,14 @@ export const AllCourseListPage = () => {
   };
 
   const handleDeleteClick = async (course: Course) => {
+    if (!canDelete) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Acceso denegado",
+        text: "No tienes permiso para eliminar carreras.",
+      });
+      return;
+    }
     const result = await Swal.fire({
       title: "¿Estás seguro?",
       text: `Esta acción eliminará el curso "${course.courseName}".`,
@@ -202,21 +242,23 @@ export const AllCourseListPage = () => {
             <Icon variant="home" className="me-2" />
             Regresar
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => navigate('/courses/new')}
-          >
-            <Icon variant="add" className="me-2" />
-            Nuevo Curso
-          </Button>
+          {canCreate && (
+            <Button
+              variant="primary"
+              onClick={() => navigate('/courses/new')}
+            >
+              <Icon variant="add" className="me-2" />
+              Nuevo Curso
+            </Button>
+          )}
         </div>
       </div>
 
       <Table
         columns={columns}
         data={courses}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
+        onEdit={canEdit ? handleEdit : undefined}
+        onDelete={canDelete ? handleDeleteClick : undefined}
       />
     </div>
   );

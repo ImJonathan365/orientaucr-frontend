@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GenericForm } from '../../components/organisms/FormBar/GenericForm';
-import { addCareer, getCoursesForCurricula, addCourseToCareer, getCareers, AddCareerPayload} from '../../services/careerService';
+import { addCareer, getCoursesForCurricula, addCourseToCareer, getCareers, AddCareerPayload } from '../../services/careerService';
 import { getAllCharacteristics } from '../../services/characteristicService';
 import { FormField } from '../../components/organisms/FormBar/GenericForm';
 import Swal from "sweetalert2";
 import { Form, Row, Col, Button } from 'react-bootstrap';
+import { getCurrentUser } from '../../services/userService';
+import { validateUserPermission } from '../../validations/userPermissionValidation';
 
 interface Characteristic {
   characteristicsId: string;
@@ -29,7 +31,7 @@ interface CareerFormValues {
   careerName: string;
   careerDescription: string;
   careerDurationYears: number;
-  characteristics: string[]; 
+  characteristics: string[];
   courses: SelectedCourse[];
 }
 
@@ -40,6 +42,35 @@ export const NewCareerPage = () => {
   const [selectedCourses, setSelectedCourses] = useState<SelectedCourse[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [selectedSemester, setSelectedSemester] = useState<number>(1);
+  const [checkingPermission, setCheckingPermission] = useState(true);
+
+  useEffect(() => {
+    const checkPermission = async () => {
+      try {
+        const user = await getCurrentUser();
+        const { canEdit } = validateUserPermission(
+          user,
+          "CREAR CARRERAS",
+          "",
+          ""
+        );
+        if (!canEdit) {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso denegado",
+            text: "No tienes permiso para crear carreras.",
+          });
+          navigate("/career-list", { replace: true });
+        }
+      } catch {
+        await Swal.fire("Error", "No se pudo validar tu sesión", "error");
+        navigate("/career-list", { replace: true });
+      } finally {
+        setCheckingPermission(false);
+      }
+    };
+    checkPermission();
+  }, [navigate]);
 
   useEffect(() => {
     getAllCharacteristics().then((data) => {
@@ -79,16 +110,16 @@ export const NewCareerPage = () => {
 
   const handleSubmit = async (values: CareerFormValues) => {
     try {
-        if (!values.careerName || values.careerName.trim().length === 0 || 
+      if (!values.careerName || values.careerName.trim().length === 0 ||
         !values.careerDescription || values.careerDescription.trim().length === 0) {
-            await Swal.fire({
-                icon: 'warning',
-                title: 'Nombre requerido',
-                text: 'Ningún campo puede estar vacío.',
-                confirmButtonText: 'Aceptar'
-            });
-            return;
-        }
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Nombre requerido',
+          text: 'Ningún campo puede estar vacío.',
+          confirmButtonText: 'Aceptar'
+        });
+        return;
+      }
       const existingCareers = await getCareers();
       const existingNames = existingCareers.map(c => normalizeString(c.careerName));
       const newCareerName = normalizeString(values.careerName);
@@ -128,10 +159,10 @@ export const NewCareerPage = () => {
           const characteristic = characteristics.find(c => c.characteristicsId === id);
           return characteristic
             ? {
-                characteristicsId: characteristic.characteristicsId,
-                characteristicsName: characteristic.characteristicsName,
-                characteristicsDescription: characteristic.characteristicsDescription || ''
-              }
+              characteristicsId: characteristic.characteristicsId,
+              characteristicsName: characteristic.characteristicsName,
+              characteristicsDescription: characteristic.characteristicsDescription || ''
+            }
             : { characteristicsId: id, characteristicsName: '', characteristicsDescription: '' };
         }),
 
@@ -204,6 +235,10 @@ export const NewCareerPage = () => {
         }))
     }
   ];
+
+  if (checkingPermission) {
+    return null;
+  }
 
   return (
     <div className="container py-4">
