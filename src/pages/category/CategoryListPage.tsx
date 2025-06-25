@@ -55,10 +55,9 @@ export const CategoryListPage = () => {
    <div className="container py-4">
   <h2>Categorías</h2>
   <div className="d-flex gap-2 mb-3">
-    <Button variant="secondary" onClick={() => navigate(-1)}>
-      <i className="bi bi-arrow-left me-2"></i>
-      Volver
-    </Button>
+    <Button variant="secondary" onClick={() => navigate("/home")}>
+               Volver
+             </Button>
     <Button variant="primary" onClick={() => navigate("/categories/add")}>
       Nueva Categoría
     </Button>
