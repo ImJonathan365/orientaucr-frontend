@@ -7,26 +7,56 @@ import { getAllEvents } from "../../services/eventService";
 import { getNotificationById, updateNotification } from "../../services/notificationService";
 import { Notification } from "../../types/Notification";
 import { Event } from "../../types/EventTypes";
+import { getCurrentUser } from "../../services/userService";
+import { User } from "../../types/userType";
 
 export const NotificationEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const [form, setForm] = useState<(Notification & { eventId: string }) | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [files, setFiles] = useState<FileList | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    getAllEvents().then(setEvents);
-    if (id) {
-      getNotificationById(id).then((data) => {
-        const notification = data as Notification;
-        setForm({
-          ...notification,
-          eventId: notification.notificationEvents?.[0]?.event?.eventId || ""
-        });
-      });
-    }
-  }, [id]);
+    const fetchAll = async () => {
+      try {
+        const user: User = await getCurrentUser();
+        const hasPermission = user?.userRoles?.some(role =>
+          role.permissions?.some(p => p.permissionName === "MODIFICAR NOTIFICACIONES")
+        );
+        if (!hasPermission) {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso denegado",
+            text: "No tienes permiso para editar notificaciones.",
+          });
+          navigate("/notifications", { replace: true });
+          return;
+        }
+        // Solo si tiene permiso, carga eventos y la notificación
+        const [eventsData, notificationData] = await Promise.all([
+          getAllEvents(),
+          id ? getNotificationById(id) : Promise.resolve(null)
+        ]);
+        setEvents(eventsData);
+        if (notificationData) {
+          const notification = notificationData as Notification;
+          setForm({
+            ...notification,
+            eventId: notification.notificationEvents?.[0]?.event?.eventId || ""
+          });
+        }
+      } catch {
+        await Swal.fire("Error", "No se pudo validar tu sesión", "error");
+        navigate("/notifications", { replace: true });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAll();
+  }, [id, navigate]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -86,7 +116,7 @@ export const NotificationEditPage = () => {
     }
   };
 
-  if (!form) return <div className="container py-4">Cargando...</div>;
+  if (loading || !form) return <div className="container py-4">Cargando...</div>;
 
   return (
     <div className="container py-4">

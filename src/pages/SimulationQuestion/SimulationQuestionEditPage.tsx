@@ -6,15 +6,17 @@ import { SimulationQuestionForm } from "../../components/organisms/FormBar/Simul
 import Swal from "sweetalert2";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";
+import { getCurrentUser } from "../../services/userService";
+import { User } from "../../types/userType";
 
 function normalizeQuestionText(text: string) {
   return text
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") 
-    .replace(/[^a-z0-9]+/g, " ")  
-    .replace(/\s+/g, " ")          
-    .trim();                      
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export const SimulationQuestionEditPage = () => {
@@ -25,8 +27,21 @@ export const SimulationQuestionEditPage = () => {
   const [questions, setQuestions] = useState<SimulationQuestion[]>([]);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchAll = async () => {
       try {
+        const user: User = await getCurrentUser();
+        const hasPermission = user?.userRoles?.some(role =>
+          role.permissions?.some(p => p.permissionName === "MODIFICAR PREGUNTAS SIMULACION")
+        );
+        if (!hasPermission) {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso denegado",
+            text: "No tienes permiso para editar preguntas de simulación.",
+          });
+          navigate("/simulation-questions", { replace: true });
+          return;
+        }
         if (id) {
           const [data, allQuestions] = await Promise.all([
             getQuestionById(id),
@@ -36,13 +51,13 @@ export const SimulationQuestionEditPage = () => {
           setQuestions(allQuestions);
         }
       } catch {
-        Swal.fire("Error", "No se pudo cargar la pregunta", "error");
-        navigate("/simulation-questions");
+        Swal.fire("Error", "No se pudo validar tu sesión", "error");
+        navigate("/simulation-questions", { replace: true });
       } finally {
         setLoading(false);
       }
     };
-    fetch();
+    fetchAll();
   }, [id, navigate]);
 
   const handleSubmit = async (question: SimulationQuestion) => {
