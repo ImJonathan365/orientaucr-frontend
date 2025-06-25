@@ -7,6 +7,8 @@ import { getAllEvents } from "../../services/eventService";
 import { createNotification } from "../../services/notificationService";
 import { Notification } from "../../types/Notification";
 import { Event } from "../../types/EventTypes";
+import { getCurrentUser } from "../../services/userService";
+import { User } from "../../types/userType";
 
 export const NotificationAddPage = () => {
   const [form, setForm] = useState<Omit<Notification, "notificationId" | "attachments"> & { eventId: string }>({
@@ -18,11 +20,37 @@ export const NotificationAddPage = () => {
   });
   const [events, setEvents] = useState<Event[]>([]);
   const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    getAllEvents().then(setEvents);
-  }, []);
+    const fetchUserAndPermissions = async () => {
+      try {
+        const user: User = await getCurrentUser();
+        const hasPermission = user?.userRoles?.some(role =>
+          role.permissions?.some(p => p.permissionName === "CREAR NOTIFICACIONES")
+        );
+        if (!hasPermission) {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso denegado",
+            text: "No tienes permiso para crear notificaciones.",
+          });
+          navigate("/notifications", { replace: true });
+          return;
+        }
+        // Solo si tiene permiso, carga los eventos
+        getAllEvents().then(setEvents);
+      } catch {
+        await Swal.fire("Error", "No se pudo validar tu sesión", "error");
+        navigate("/notifications", { replace: true });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserAndPermissions();
+  }, [navigate]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -90,6 +118,10 @@ export const NotificationAddPage = () => {
       Swal.fire("Error", "No se pudo crear la notificación", "error");
     }
   };
+
+  if (loading) {
+    return <div className="container py-4">Cargando...</div>;
+  }
 
   return (
     <div className="container py-4">

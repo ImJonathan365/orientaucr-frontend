@@ -6,6 +6,8 @@ import { SimulationQuestionForm } from "../../components/organisms/FormBar/Simul
 import Swal from "sweetalert2";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";
+import { getCurrentUser } from "../../services/userService";
+import { User } from "../../types/userType";
 
 function normalizeQuestionText(text: string) {
   return text
@@ -16,14 +18,42 @@ function normalizeQuestionText(text: string) {
     .replace(/\s+/g, " ")          
     .trim();                      
 }
-
 export const SimulationQuestionAddPage = () => {
   const navigate = useNavigate();
   const [questions, setQuestions] = useState<SimulationQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    getAllQuestions().then(setQuestions);
-  }, []);
+    const fetchUserAndPermissions = async () => {
+      try {
+        const user: User = await getCurrentUser();
+        const hasPermission = user?.userRoles?.some(role =>
+          role.permissions?.some(p => p.permissionName === "CREAR PREGUNTAS SIMULADAS")
+        );
+
+        if (hasPermission) {
+          const data = await getAllQuestions();
+          setQuestions(data);
+          setAuthorized(true);
+        } else {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso denegado",
+            text: "No tienes permiso para crear preguntas de simulación.",
+          });
+          navigate("/simulation-questions", { replace: true });
+        }
+      } catch {
+        await Swal.fire("Error", "No se pudo validar tu sesión", "error");
+        navigate("/simulation-questions", { replace: true });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserAndPermissions();
+  }, [navigate]);
 
   const handleSubmit = async (question: SimulationQuestion) => {
     const newText = normalizeQuestionText(question.questionText);
@@ -59,6 +89,7 @@ export const SimulationQuestionAddPage = () => {
       Swal.fire("Error", "Debe marcar una opción como correcta.", "warning");
       return;
     }
+
     try {
       await createQuestion(question);
       await Swal.fire("Éxito", "Pregunta creada correctamente", "success");
@@ -67,6 +98,15 @@ export const SimulationQuestionAddPage = () => {
       Swal.fire("Error", "No se pudo crear la pregunta", "error");
     }
   };
+
+  if (loading) {
+    return <div className="container py-4">Cargando...</div>;
+  }
+
+  if (!authorized) {
+    // ⛔️ No autorizado, no renderiza el formulario
+    return null;
+  }
 
   return (
     <div className="container py-4">
