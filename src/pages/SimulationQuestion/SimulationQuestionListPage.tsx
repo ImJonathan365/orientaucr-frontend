@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";
+import { getCurrentUser } from "../../services/userService";
+import { User } from "../../types/userType";
 
 const translateDifficulty = (difficulty?: string) => {
   switch (difficulty) {
@@ -24,6 +26,7 @@ export const SimulationQuestionListPage = () => {
   const navigate = useNavigate();
   const [questions, setQuestions] = useState<SimulationQuestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canDelete, setCanDelete] = useState(false);
 
   const fetchQuestions = async () => {
     setLoading(true);
@@ -41,6 +44,18 @@ export const SimulationQuestionListPage = () => {
   };
 
   useEffect(() => {
+    const checkPermissions = async () => {
+      try {
+        const user: User = await getCurrentUser();
+        const hasPermission = user?.userRoles?.some(role =>
+          role.permissions?.some(p => p.permissionName === "ELIMINAR PREGUNTAS SIMULADAS")
+        );
+        setCanDelete(!!hasPermission);
+      } catch {
+        setCanDelete(false);
+      }
+    };
+    checkPermissions();
     fetchQuestions();
   }, []);
 
@@ -49,6 +64,10 @@ export const SimulationQuestionListPage = () => {
   };
 
   const handleDelete = async (question: SimulationQuestion) => {
+    if (!canDelete) {
+      Swal.fire("Acceso denegado", "No tienes permiso para eliminar preguntas.", "warning");
+      return;
+    }
     const result = await Swal.fire({
       title: "¿Eliminar pregunta?",
       text: `¿Seguro que deseas eliminar la pregunta: ${question.questionText}?`,
@@ -101,32 +120,32 @@ export const SimulationQuestionListPage = () => {
       label: "Dificultad",
       render: (row) => translateDifficulty(row.difficulty),
     },
-    {
-      key: "acciones",
-      label: "Acciones",
-      render: (row) => (
-        <div className="d-flex gap-2">
-          <Button
-            variant="primary"
-            size="small"
-            style={{ minWidth: 90 }}
-            onClick={() => handleEdit(row)}>
-            <Icon variant="edit" className="me-2" />
-            Editar
-          </Button>
-          <Button
-            variant="danger"
-            size="small"
-            style={{ minWidth: 90 }}
-            onClick={() => handleDelete(row)}>
-            <Icon variant="trash" className="me-2" />
-            Eliminar
-          </Button>
-        </div>
-      ),
-    },
+   {
+  key: "acciones",
+  label: "Acciones",
+  render: (row) => (
+    <div className="d-flex gap-2">
+      <Button
+        variant="primary"
+        size="small"
+        style={{ minWidth: 90 }}
+        onClick={() => handleEdit(row)}>
+        <Icon variant="edit" className="me-2" />
+        Editar
+      </Button>
+      <Button
+        variant="danger"
+        size="small"
+        style={{ minWidth: 90 }}
+        onClick={() => handleDelete(row)}
+      >
+        <Icon variant="trash" className="me-2" />
+        Eliminar
+      </Button>
+    </div>
+  ),
+},
   ];
-
   if (loading) {
     return <div>Cargando preguntas...</div>;
   }
@@ -157,5 +176,5 @@ export const SimulationQuestionListPage = () => {
         data={questions}
       />
     </div>
-  );
+    );
 };
