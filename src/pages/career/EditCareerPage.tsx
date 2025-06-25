@@ -8,8 +8,11 @@ import { Career, Characteristic } from '../../types/carrerTypes';
 import { Alert, Spinner } from 'react-bootstrap';
 import Swal from "sweetalert2";
 import { getAllCharacteristics } from '../../services/characteristicService';
+import { getCurrentUser } from '../../services/userService';
+import { validateUserPermission } from '../../validations/userPermissionValidation';
 
 export const EditCareerPage = () => {
+
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [initialValues, setInitialValues] = useState<any>({
@@ -20,13 +23,41 @@ export const EditCareerPage = () => {
     });
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
     const [allCharacteristics, setAllCharacteristics] = useState<Characteristic[]>([]);
+    const [checkingPermission, setCheckingPermission] = useState(true);
+
+    useEffect(() => {
+        const checkPermission = async () => {
+            try {
+                const user = await getCurrentUser();
+                const { canEdit } = validateUserPermission(
+                    user,
+                    "MODIFICAR CARRERAS",
+                    "",
+                    ""
+                );
+                if (!canEdit) {
+                    await Swal.fire({
+                        icon: "warning",
+                        title: "Acceso denegado",
+                        text: "No tienes permiso para editar carreras.",
+                    });
+                    navigate("/career-list", { replace: true });
+                }
+            } catch {
+                await Swal.fire("Error", "No se pudo validar tu sesión", "error");
+                navigate("/career-list", { replace: true });
+            } finally {
+                setCheckingPermission(false);
+            }
+        };
+        checkPermission();
+    }, [navigate]);
 
     useEffect(() => {
         const fetchCharacteristics = async () => {
             try {
-                const data = await getAllCharacteristics(); 
+                const data = await getAllCharacteristics();
                 setAllCharacteristics(data);
             } catch (error) {
                 console.error('Error al cargar características:', error);
@@ -35,6 +66,7 @@ export const EditCareerPage = () => {
 
         fetchCharacteristics();
     }, []);
+
 
     useEffect(() => {
         const loadCareerData = async () => {
@@ -90,14 +122,14 @@ export const EditCareerPage = () => {
 
     function normalizeString(str: string): string {
         return str
-            .normalize('NFD') 
-            .replace(/[\u0300-\u036f]/g, '') 
-            .replace(/\s+/g, '') 
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, '')
             .toLowerCase();
     }
 
     const handleSubmit = async (formData: Partial<Career>) => {
-        if (!formData.careerName || formData.careerName.trim().length === 0 || 
+        if (!formData.careerName || formData.careerName.trim().length === 0 ||
             !formData.careerDescription || formData.careerDescription.trim().length === 0) {
             Swal.fire({
                 icon: 'warning',
@@ -205,6 +237,10 @@ export const EditCareerPage = () => {
         }
     ];
 
+    if (checkingPermission) {
+        return null; 
+    }
+    
     if (isLoading && !initialValues.careerName) {
         return (
             <div className="d-flex justify-content-center mt-5">

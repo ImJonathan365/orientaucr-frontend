@@ -6,8 +6,7 @@ import { Button } from '../../components/atoms/Button/Button';
 import { Icon } from '../../components/atoms/Icon/Icon';
 import { getCareers, deleteCareer } from '../../services/careerService';
 import Swal from "sweetalert2";
-
-
+import { getCurrentUser } from '../../services/userService';
 
 interface Characteristic {
   characteristicsId: string;
@@ -46,10 +45,10 @@ export const CareerListPage = () => {
     careerId: null as string | null,
     careerName: "",
   });
-
-  useEffect(() => {
-    fetchCareers();
-  }, []);
+  const [canDelete, setCanDelete] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [canCreate, setCanCreate] = useState(false);
+  const [canView, setCanView] = useState(false);
 
   const fetchCareers = async () => {
     try {
@@ -64,11 +63,55 @@ export const CareerListPage = () => {
     }
   };
 
+  useEffect(() => {
+    const checkPermissions = async () => {
+      const user = await getCurrentUser();
+      const userPermissions = user.userRoles?.flatMap(role => role.permissions) ?? [];
+      setCanDelete(
+        userPermissions.some((perm: any) => perm.permissionName === "ELIMINAR CARRERAS")
+      );
+      setCanEdit(
+        userPermissions.some((perm: any) => perm.permissionName === "MODIFICAR CARRERAS")
+      );
+      setCanCreate(
+        userPermissions.some((perm: any) => perm.permissionName === "CREAR CARRERAS")
+      );
+      const hasView = userPermissions.some((perm: any) => perm.permissionName === "VER CARRERAS");
+      setCanView(hasView);
+      if (!hasView) {
+        await Swal.fire({
+          icon: "warning",
+          title: "Acceso denegado",
+          text: "No tienes permiso para ver la lista de carreras.",
+        });
+        navigate("/home", { replace: true });
+      }
+    };
+    checkPermissions();
+  }, [navigate]);
+
+
+  useEffect(() => {
+    fetchCareers();
+  }, []);
+
+  if (!canView) {
+    return null;
+  }
+
   const handleEdit = (career: Career) => {
     navigate(`/careers/edit/${career.careerId}`);
   };
 
   const handleDeleteClick = async (career: Career) => {
+    if (!canDelete) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Acceso denegado",
+        text: "No tienes permiso para eliminar carreras.",
+      });
+      return;
+    }
     const result = await Swal.fire({
       title: "¿Estás seguro?",
       text: `Esta acción eliminará la carrera "${career.careerName}".`,
@@ -162,21 +205,23 @@ export const CareerListPage = () => {
             <Icon variant="home" className="me-2" />
             Regresar
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => navigate('/careers/new')}
-          >
-            <Icon variant="add" className="me-2" />
-            Nueva Carrera
-          </Button>
+          {canCreate && (
+            <Button
+              variant="primary"
+              onClick={() => navigate('/careers/new')}
+            >
+              <Icon variant="add" className="me-2" />
+              Nueva Carrera
+            </Button>
+          )}
         </div>
       </div>
 
       <Table
         columns={columns}
         data={careers}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
+        onEdit={canEdit ? handleEdit : undefined}
+        onDelete={canDelete ? handleDeleteClick : undefined}
       />
     </div>
   );

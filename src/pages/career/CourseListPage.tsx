@@ -8,6 +8,7 @@ import { Career, Course } from '../../types/carrerTypes';
 import { Alert, Spinner, Form, Row, Col } from 'react-bootstrap';
 import Swal from "sweetalert2";
 import { updateCourse, getNumberCarrersAssociated } from '../../services/courseService';
+import { getCurrentUser } from '../../services/userService';
 
 export const CourseListPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +16,8 @@ export const CourseListPage = () => {
   const [career, setCareer] = useState<Career | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [canDelete, setCanDelete] = useState(false);
+  const [canCreate, setCanCreate] = useState(false);
 
   // Para agregar curso
   const [showAdd, setShowAdd] = useState(false);
@@ -22,6 +25,20 @@ export const CourseListPage = () => {
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [selectedSemester, setSelectedSemester] = useState<number>(1);
   const [adding, setAdding] = useState(false);
+
+  useEffect(() => {
+    const checkPermissions = async () => {
+      const user = await getCurrentUser();
+      const userPermissions = user.userRoles?.flatMap(role => role.permissions) ?? [];
+      setCanDelete(
+        userPermissions.some((perm: any) => perm.permissionName === "ELIMINAR CURSOS")
+      );
+      setCanCreate(
+        userPermissions.some((perm: any) => perm.permissionName === "CREAR CURSOS")
+      );
+    };
+    checkPermissions();
+  }, []);
 
   // Cargar carrera
   useEffect(() => {
@@ -89,41 +106,50 @@ export const CourseListPage = () => {
   };
 
   const handleAddCourse = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!selectedCourseId || !career?.curricula?.curriculaId) return;
-  setAdding(true);
-  try {
-    // Llama al servicio centralizado
-    await addCourseToCareer(
-      career.curricula.curriculaId,
-      selectedCourseId,
-      selectedSemester
-    );
-    
-    const addedCourse = availableCourses.find(c => c.courseId === selectedCourseId);
-    if (addedCourse) {
-      await updateCourse({
-        ...addedCourse,
-        courseIsAsigned: true
-      });
-    }
+    e.preventDefault();
+    if (!selectedCourseId || !career?.curricula?.curriculaId) return;
+    setAdding(true);
+    try {
+      // Llama al servicio centralizado
+      await addCourseToCareer(
+        career.curricula.curriculaId,
+        selectedCourseId,
+        selectedSemester
+      );
 
-    await Swal.fire("Agregado", "El curso fue agregado correctamente.", "success");
-    // Refrescar carrera y cursos disponibles
-    const updatedCareer = await getCareerById(career.careerId);
-    setCareer(updatedCareer);
-    await fetchAvailableCourses();
-    setSelectedCourseId('');
-    setSelectedSemester(1);
-  } catch (error) {
-    await Swal.fire("Error", "Hubo un problema al agregar el curso.", "error");
-  } finally {
-    setAdding(false);
-  }
-};
+      const addedCourse = availableCourses.find(c => c.courseId === selectedCourseId);
+      if (addedCourse) {
+        await updateCourse({
+          ...addedCourse,
+          courseIsAsigned: true
+        });
+      }
+
+      await Swal.fire("Agregado", "El curso fue agregado correctamente.", "success");
+      // Refrescar carrera y cursos disponibles
+      const updatedCareer = await getCareerById(career.careerId);
+      setCareer(updatedCareer);
+      await fetchAvailableCourses();
+      setSelectedCourseId('');
+      setSelectedSemester(1);
+    } catch (error) {
+      await Swal.fire("Error", "Hubo un problema al agregar el curso.", "error");
+    } finally {
+      setAdding(false);
+    }
+  };
 
   // Eliminar curso
   const handleDeleteCourse = async (course: Course) => {
+    if (!canDelete) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Acceso denegado",
+        text: "No tienes permiso para eliminar cursos.",
+      });
+      return;
+    }
+
     if (!career) return;
     const result = await Swal.fire({
       title: "¿Estás seguro?",
@@ -232,20 +258,22 @@ export const CourseListPage = () => {
             <Icon variant="arrow-left" className="me-2" />
             Regresar
           </Button>
-          <Button
-            variant="primary"
-            onClick={handleShowAdd}
-          >
-            Agregar curso
-            <Icon
-              variant={showAdd ? "chevron-down" : "chevron-right"}
-              className="ms-2"
-            />
-          </Button>
+          {canCreate && (
+            <Button
+              variant="primary"
+              onClick={handleShowAdd}
+            >
+              Agregar curso
+              <Icon
+                variant={showAdd ? "chevron-down" : "chevron-right"}
+                className="ms-2"
+              />
+            </Button>
+          )}
         </div>
       </div>
 
-      {showAdd && (
+      {showAdd && canCreate &&(
         <Form onSubmit={handleAddCourse} className="mb-4 border rounded p-3 bg-light">
           <Row className="align-items-end">
             <Col md={6}>
@@ -273,7 +301,7 @@ export const CourseListPage = () => {
                   onChange={e => setSelectedSemester(Number(e.target.value))}
                   required
                 >
-                  {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                     <option key={n} value={n}>{n}</option>
                   ))}
                 </Form.Select>
@@ -302,7 +330,7 @@ export const CourseListPage = () => {
       <Table
         columns={columns}
         data={career.curricula.courses}
-        onDelete={handleDeleteCourse}
+        onDelete={canDelete ? handleDeleteCourse : undefined}
       />
     </div>
   );

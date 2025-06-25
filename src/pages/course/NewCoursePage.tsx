@@ -4,6 +4,8 @@ import Swal from 'sweetalert2';
 import { GenericForm, FormField } from '../../components/organisms/FormBar/GenericForm';
 import { getCourses, addCourse, CourseCreate } from '../../services/courseService';
 import { Form, Row, Col, Button } from 'react-bootstrap';
+import { getCurrentUser } from '../../services/userService';
+import { validateUserPermission } from '../../validations/userPermissionValidation';
 
 interface Course {
     courseId: string;
@@ -39,6 +41,35 @@ export const NewCoursesPage = () => {
     const [selectedCoreqId, setSelectedCoreqId] = useState<string>('');
     const [selectedCoreqSemester, setSelectedCoreqSemester] = useState<number>(1);
     const [corequisites, setCorequisites] = useState<PrereqOrCoreq[]>([]);
+    const [checkingPermission, setCheckingPermission] = useState(true);
+
+    useEffect(() => {
+        const checkPermission = async () => {
+            try {
+                const user = await getCurrentUser();
+                const { canEdit } = validateUserPermission(
+                    user,
+                    "CREAR CURSOS",
+                    "",
+                    ""
+                );
+                if (!canEdit) {
+                    await Swal.fire({
+                        icon: "warning",
+                        title: "Acceso denegado",
+                        text: "No tienes permiso para crear cursos.",
+                    });
+                    navigate("/course-list", { replace: true });
+                }
+            } catch {
+                await Swal.fire("Error", "No se pudo validar tu sesión", "error");
+                navigate("/course-list", { replace: true });
+            } finally {
+                setCheckingPermission(false);
+            }
+        };
+        checkPermission();
+    }, [navigate]);
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -52,6 +83,8 @@ export const NewCoursesPage = () => {
 
         fetchCourses();
     }, []);
+
+    
 
     const handleAddPrereq = (e: React.FormEvent) => {
         e.preventDefault();
@@ -218,6 +251,10 @@ export const NewCoursesPage = () => {
         navigate('/course-list');
     };
 
+    if (checkingPermission) {
+        return null; 
+    }
+    
     return (
         <div className="container py-4">
             <h2 className="mb-4">Nuevo Curso</h2>
