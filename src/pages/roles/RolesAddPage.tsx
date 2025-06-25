@@ -118,7 +118,7 @@ export const RolesAddPage = () => {
       Swal.fire({
         icon: "warning",
         title: "Nombre de rol inválido",
-        text: "El nombre debe contener solo letras (máx. 3 palabras, sin caracteres especiales y debe tener mínimo 3 a 25 caracteres).",
+        text: "El nombre debe contener debe tener mínimo 3 a 200 caracteres).",
       });
       return;
     }
@@ -211,8 +211,8 @@ export const RolesAddPage = () => {
             />
             {!isValidRolName(Roles.rolName) && (
               <div className="invalid-feedback">
-                El nombre debe tener solo letras, entre 1 y 3 palabras y de 3 a
-                25 caracteres.
+                El nombre debe tener de 3 a
+                200 caracteres.
               </div>
             )}
           </div>

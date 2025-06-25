@@ -187,7 +187,7 @@ export const RolesEditPage = () => {
       Swal.fire({
         icon: "warning",
         title: "Nombre de rol inválido",
-        text: "El nombre debe contener solo letras (máx. 3 palabras, sin caracteres especiales).",
+        text: "El nombre debe contener de 3 a 200 caracteres y no debe tener múltiples espacios ni caracteres especiales.",
       });
       return;
     }
