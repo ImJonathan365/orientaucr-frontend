@@ -71,19 +71,21 @@ export function HomePage() {
             </div>
             {/* Carreras */}
             <div className="col-md-6">
-              <div className="card text-white bg-secondary h-100 shadow-sm">
-                <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <i className="bi bi-mortarboard fs-2"></i>
-                    <i className="bi bi-chevron-right fs-5"></i>
+              <Link to="/career-list" style={{ textDecoration: "none" }}>
+                <div className="card text-white bg-secondary h-100 shadow-sm">
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <i className="bi bi-mortarboard fs-2"></i>
+                      <i className="bi bi-chevron-right fs-5"></i>
+                    </div>
+                    <h5 className="card-title fw-bold">Carreras UCR</h5>
+                    <p className="card-text">
+                      Explora todas las carreras disponibles en la UCR, sus requisitos de admisión, perfiles profesionales y oportunidades laborales.
+                    </p>
+                    <span className="badge bg-light text-dark mt-3">Información Académica</span>
                   </div>
-                  <h5 className="card-title fw-bold">Carreras UCR</h5>
-                  <p className="card-text">
-                    Explora todas las carreras disponibles en la UCR, sus requisitos de admisión, perfiles profesionales y oportunidades laborales.
-                  </p>
-                  <span className="badge bg-light text-dark mt-3">Información Académica</span>
                 </div>
-              </div>
+              </Link>
             </div>
 
             {/* Becas */}
@@ -133,7 +135,9 @@ export function HomePage() {
           <p className="lead text-secondary mb-4">La UCR te espera. Comienza tu proceso de orientación hoy mismo.</p>
           <div className="d-flex flex-column flex-sm-row justify-content-center gap-3">
             <button className="btn btn-info text-white px-4">Realizar Test Vocacional</button>
-            <button className="btn btn-outline-primary px-4">Explorar Carreras</button>
+            <Link to="/career-list" className="btn btn-outline-primary px-4">
+              Explorar Carreras
+            </Link>
           </div>
         </div>
       </section>
