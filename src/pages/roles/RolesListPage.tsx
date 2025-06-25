@@ -44,6 +44,15 @@ export const RolesListPage = () => {
 
 
   const handleDelete = async (roles: Roles) => {
+  if (roles.rolName === "ROL_DEFAULT") {
+    Swal.fire(
+      "Acción no permitida",
+      "El rol ROL_DEFAULT no se puede eliminar.",
+      "warning"
+    );
+    return; // Salimos de la función sin continuar
+  }
+
   const result = await Swal.fire({
     title: "¿Eliminar rol?",
     text: `¿Seguro que deseas eliminar el rol: ${roles.rolName}?`,

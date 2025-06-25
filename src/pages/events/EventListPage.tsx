@@ -50,7 +50,7 @@ export const EventsListPage = () => {
   };
 
   const handleEdit = async (event: Event) => {
-    if (!hasPermission("EDITAR EVENTOS")) {
+    if (!hasPermission("MODIFICAR EVENTOS")) {
       Swal.fire({
         icon: "warning",
         title: "Acceso denegado",
