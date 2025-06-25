@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { Link } from "react-router-dom";
 export function HomePage() {
   return (
     <div className="min-vh-100 bg-light ">
@@ -15,7 +15,7 @@ export function HomePage() {
           <div className="col-lg-8">
             <h1 className="display-4 fw-bold mb-4">OrientaUCR</h1>
             <p className="fs-5 mb-4">
-              La Universidad de Costa Rica te acompaña en tu proceso de admisión con herramientas especializadas 
+              La Universidad de Costa Rica te acompaña en tu proceso de admisión con herramientas especializadas
               para orientación vocacional, simulación de pruebas académicas y acceso a información sobre becas.
             </p>
             <p className="fs-6">
@@ -53,21 +53,22 @@ export function HomePage() {
 
             {/* Simulación de Pruebas */}
             <div className="col-md-6">
-              <div className="card text-white bg-success h-100 shadow-sm">
-                <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <i className="bi bi-file-earmark-text fs-2"></i>
-                    <i className="bi bi-chevron-right fs-5"></i>
+              <Link to="/simulation-exam-start" style={{ textDecoration: "none" }}>
+                <div className="card text-white bg-success h-100 shadow-sm" style={{ cursor: "pointer" }}>
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <i className="bi bi-file-earmark-text fs-2"></i>
+                      <i className="bi bi-chevron-right fs-5"></i>
+                    </div>
+                    <h5 className="card-title fw-bold">Prueba Simulada</h5>
+                    <p className="card-text">
+                      Practica con exámenes similares a las pruebas de admisión reales. Familiarízate con el formato y evalúa tu nivel de preparación.
+                    </p>
+                    <span className="badge bg-light text-dark mt-3">Preparación Académica</span>
                   </div>
-                  <h5 className="card-title fw-bold">Prueba Simulada</h5>
-                  <p className="card-text">
-                    Practica con exámenes similares a las pruebas de admisión reales. Familiarízate con el formato y evalúa tu nivel de preparación.
-                  </p>
-                  <span className="badge bg-light text-dark mt-3">Preparación Académica</span>
                 </div>
-              </div>
+              </Link>
             </div>
-
             {/* Carreras */}
             <div className="col-md-6">
               <div className="card text-white bg-secondary h-100 shadow-sm">
