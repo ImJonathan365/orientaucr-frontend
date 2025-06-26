@@ -263,14 +263,14 @@ export const NewCareerPage = () => {
 
             {/* Cursos */}
             <Form.Group className="mb-3">
-              <Form.Label>Agregar curso a la malla</Form.Label>
+              <Form.Label>Agregar curso y su semestre a la malla</Form.Label>
               <Row>
                 <Col md={6}>
                   <Form.Select
                     value={selectedCourseId}
                     onChange={e => setSelectedCourseId(e.target.value)}
                   >
-                    <option value="">Seleccione un curso y su semestre</option>
+                    <option value="">Seleccione un curso</option>
                     {courses
                       .filter(course => !selectedCourses.some(sc => sc.courseId === course.courseId))
                       .map(course => (
