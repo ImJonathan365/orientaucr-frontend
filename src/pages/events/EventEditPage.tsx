@@ -17,23 +17,36 @@ export const EventsEditPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const getTodayInCostaRica = (): string => {
-    const today = new Date();
-    const costaRicaOffset = -6 * 60;
-    const localTime = new Date(
-      today.getTime() - (today.getTimezoneOffset() - costaRicaOffset) * 60000
-    );
-    return localTime.toISOString().split("T")[0];
+const getTodayInCostaRica = (): string => {
+    const formatter = new Intl.DateTimeFormat("es-CR", {
+      timeZone: "America/Costa_Rica",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+
+    const parts = formatter.formatToParts(new Date());
+    const year = parts.find((p) => p.type === "year")?.value;
+    const month = parts.find((p) => p.type === "month")?.value;
+    const day = parts.find((p) => p.type === "day")?.value;
+
+    return `${year}-${month}-${day}`;
   };
 
   const getCostaRicaCurrentTotalMinutes = (): number => {
-    const now = new Date();
-    let costaRicaHours = now.getUTCHours() - 6;
-    if (costaRicaHours < 0) costaRicaHours += 24;
-    const costaRicaMinutes = now.getUTCMinutes();
-    return costaRicaHours * 60 + costaRicaMinutes;
-  };
+    const formatter = new Intl.DateTimeFormat("es-CR", {
+      timeZone: "America/Costa_Rica",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
 
+    const parts = formatter.formatToParts(new Date());
+    const hour = parseInt(parts.find(p => p.type === "hour")?.value || "0", 10);
+    const minute = parseInt(parts.find(p => p.type === "minute")?.value || "0", 10);
+
+    return hour * 60 + minute;
+  };
   const today = getTodayInCostaRica();
 
   const [eventData, setEventData] = useState<Event | null>(null);
@@ -181,9 +194,7 @@ export const EventsEditPage = () => {
     else {
       const [hours, minutes] = eventTime.split(":").map(Number);
       const totalMinutes = hours * 60 + minutes;
-      if (totalMinutes < 360 || totalMinutes > 1260) {
-        return "La hora del evento debe estar entre 6:00 AM y 9:00 PM.";
-      }
+    
       if (eventDate === today) {
         const currentTotalMinutes = getCostaRicaCurrentTotalMinutes();
         if (totalMinutes < currentTotalMinutes) {
@@ -322,8 +333,7 @@ export const EventsEditPage = () => {
             name="eventTime"
             value={eventData.eventTime}
             onChange={handleChange}
-            min="06:00"
-            max="21:00"
+            
           />
         </div>
 

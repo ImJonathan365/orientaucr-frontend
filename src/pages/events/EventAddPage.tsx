@@ -18,6 +18,7 @@ export const EventAddPage = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+
   const [eventData, setEventData] = useState<Event>({
     eventId: "",
     eventTitle: "",
@@ -35,24 +36,12 @@ export const EventAddPage = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const getTodayInCostaRica = (): string => {
-    const today = new Date();
-    const costaRicaOffset = -6 * 60;
-    const localTime = new Date(
-      today.getTime() - (today.getTimezoneOffset() - costaRicaOffset) * 60000
-    );
-    return localTime.toISOString().split("T")[0];
-  };
-
-  const today = getTodayInCostaRica();
-
-  const getCostaRicaCurrentTotalMinutes = (): number => {
-    const now = new Date();
-    let costaRicaHours = now.getUTCHours() - 6;
-    if (costaRicaHours < 0) costaRicaHours += 24;
-    const costaRicaMinutes = now.getUTCMinutes();
-    return costaRicaHours * 60 + costaRicaMinutes;
-  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNowFormattedTime(getFormattedCostaRicaTime());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchUserAndPermissions = async () => {
@@ -154,6 +143,46 @@ export const EventAddPage = () => {
     }
   };
 
+  const getTodayInCostaRica = (): string => {
+    const formatter = new Intl.DateTimeFormat("es-CR", {
+      timeZone: "America/Costa_Rica",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+
+    const parts = formatter.formatToParts(new Date());
+    const year = parts.find((p) => p.type === "year")?.value;
+    const month = parts.find((p) => p.type === "month")?.value;
+    const day = parts.find((p) => p.type === "day")?.value;
+
+    return `${year}-${month}-${day}`;
+  };
+
+  const getCostaRicaCurrentTotalMinutes = (): number => {
+    const formatter = new Intl.DateTimeFormat("es-CR", {
+      timeZone: "America/Costa_Rica",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    const parts = formatter.formatToParts(new Date());
+    const hour = parseInt(parts.find(p => p.type === "hour")?.value || "0", 10);
+    const minute = parseInt(parts.find(p => p.type === "minute")?.value || "0", 10);
+
+    return hour * 60 + minute;
+  };
+
+  const getFormattedCostaRicaTime = (): string => {
+    return new Intl.DateTimeFormat("es-CR", {
+      timeZone: "America/Costa_Rica",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }).format(new Date());
+  };
+
   const validateForm = (): string | null => {
     const {
       eventTitle,
@@ -178,18 +207,20 @@ export const EventAddPage = () => {
     if (eventDescription.length < 4 || eventDescription.length > 500)
       return "La descripción debe tener entre 4 y 500 caracteres.";
 
+    const today = getTodayInCostaRica();
+
     if (!eventDate || eventDate < today) return "La fecha no puede estar en el pasado.";
     if (!eventTime) return "La hora es obligatoria.";
 
     const [hours, minutes] = eventTime.split(":").map(Number);
     const totalMinutes = hours * 60 + minutes;
-    if (totalMinutes < 360 || totalMinutes > 1260)
-      return "La hora debe estar entre 6:00 AM y 9:00 PM.";
+
 
     if (eventDate === today) {
       const nowMinutes = getCostaRicaCurrentTotalMinutes();
-      if (totalMinutes < nowMinutes)
-        return "La hora debe ser mayor a la hora actual en Costa Rica.";
+      if (totalMinutes <= nowMinutes) {
+        return `La hora debe ser posterior a la actual en Costa Rica (ahora son ${nowFormattedTime}).`;
+      }
     }
 
     if (!eventModality) return "Debes seleccionar una modalidad.";
@@ -197,7 +228,7 @@ export const EventAddPage = () => {
 
     return null;
   };
-
+const [nowFormattedTime, setNowFormattedTime] = useState(getFormattedCostaRicaTime());
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const error = validateForm();
@@ -230,133 +261,62 @@ export const EventAddPage = () => {
       Swal.fire("Error", error.message || "No se pudo añadir el evento.", "error");
     }
   };
+
   return (
     <div className="container py-4">
       <Title variant="h2" className="mb-4">
         Añadir Evento
       </Title>
 
+      <p className="mb-3">
+        Hora actual en Costa Rica: <strong>{nowFormattedTime}</strong>
+      </p>
+
       {loading ? (
         <p>Cargando campus...</p>
       ) : (
         <form onSubmit={handleSubmit} encType="multipart/form-data">
-          {/* Título */}
           <div className="mb-3">
-            <label htmlFor="eventTitle" className="form-label">
-              Título del Evento
-            </label>
-            <Input
-              type="text"
-              className="form-control"
-              id="eventTitle"
-              name="eventTitle"
-              value={eventData.eventTitle}
-              onChange={handleChange}
-            />
+            <label htmlFor="eventTitle" className="form-label">Título del Evento</label>
+            <Input type="text" className="form-control" id="eventTitle" name="eventTitle" value={eventData.eventTitle} onChange={handleChange} />
           </div>
 
-          {/* Imagen */}
           <div className="mb-3">
-            <label htmlFor="image" className="form-label">
-              Imagen del evento
-            </label>
-            <input
-              type="file"
-              className="form-control"
-              id="image"
-              name="image"
-              onChange={handleFileChange}
-              accept="image/*"
-            />
+            <label htmlFor="image" className="form-label">Imagen del evento</label>
+            <input type="file" className="form-control" id="image" name="image" onChange={handleFileChange} accept="image/*" />
             {imagePreview && (
               <div className="mt-2">
-                <img
-                  src={imagePreview}
-                  alt="Vista previa"
-                  className="img-thumbnail"
-                  style={{ maxWidth: "200px", maxHeight: "200px" }}
-                />
+                <img src={imagePreview} alt="Vista previa" className="img-thumbnail" style={{ maxWidth: "200px", maxHeight: "200px" }} />
               </div>
             )}
           </div>
 
-          {/* Descripción */}
           <div className="mb-3">
-            <label htmlFor="eventDescription" className="form-label">
-              Descripción
-            </label>
-            <textarea
-              className="form-control"
-              id="eventDescription"
-              name="eventDescription"
-              rows={3}
-              value={eventData.eventDescription}
-              onChange={handleChange}
-            />
+            <label htmlFor="eventDescription" className="form-label">Descripción</label>
+            <textarea className="form-control" id="eventDescription" name="eventDescription" rows={3} value={eventData.eventDescription} onChange={handleChange} />
           </div>
 
-          {/* Fecha */}
           <div className="mb-3">
-            <label htmlFor="eventDate" className="form-label">
-              Fecha del Evento
-            </label>
-            <Input
-              type="date"
-              className="form-control"
-              id="eventDate"
-              name="eventDate"
-              value={eventData.eventDate}
-              onChange={handleChange}
-              min={today}
-            />
+            <label htmlFor="eventDate" className="form-label">Fecha del Evento</label>
+            <Input type="date" className="form-control" id="eventDate" name="eventDate" value={eventData.eventDate} onChange={handleChange} min={getTodayInCostaRica()} />
           </div>
 
-          {/* Hora */}
           <div className="mb-3">
-            <label htmlFor="eventTime" className="form-label">
-              Hora (6:00 AM - 9:00 PM)
-            </label>
-            <Input
-              type="time"
-              className="form-control"
-              id="eventTime"
-              name="eventTime"
-              value={eventData.eventTime}
-              onChange={handleChange}
-              min="06:00"
-              max="21:00"
-            />
+            <label htmlFor="eventTime" className="form-label">Hora del Evento</label>
+            <Input type="time" className="form-control" id="eventTime" name="eventTime" value={eventData.eventTime} onChange={handleChange} />
           </div>
 
-          {/* Modalidad */}
           <div className="mb-3">
-            <label htmlFor="eventModality" className="form-label">
-              Modalidad
-            </label>
-            <select
-              className="form-select"
-              id="eventModality"
-              name="eventModality"
-              value={eventData.eventModality}
-              onChange={handleChange}
-            >
+            <label htmlFor="eventModality" className="form-label">Modalidad</label>
+            <select className="form-select" id="eventModality" name="eventModality" value={eventData.eventModality} onChange={handleChange}>
               <option value="inPerson">Presencial</option>
               <option value="virtual">Virtual</option>
             </select>
           </div>
 
-          {/* Campus */}
           <div className="mb-3">
-            <label htmlFor="campusId" className="form-label">
-              Sedes
-            </label>
-            <select
-              className="form-select"
-              id="campusId"
-              name="campusId"
-              value={eventData.campusId ?? ""}
-              onChange={handleChange}
-            >
+            <label htmlFor="campusId" className="form-label">Sedes</label>
+            <select className="form-select" id="campusId" name="campusId" value={eventData.campusId ?? ""} onChange={handleChange}>
               <option value="">Selecciona una sede</option>
               {campuses.map((campus) => (
                 <option key={campus.campusId} value={campus.campusId}>
@@ -366,19 +326,9 @@ export const EventAddPage = () => {
             </select>
           </div>
 
-          {/* Subcampus */}
           <div className="mb-3">
-            <label htmlFor="subcampusId" className="form-label">
-              Recintos
-            </label>
-            <select
-              className="form-select"
-              id="subcampusId"
-              name="subcampusId"
-              value={eventData.subcampusId ?? ""}
-              onChange={handleChange}
-              disabled={!eventData.campusId}
-            >
+            <label htmlFor="subcampusId" className="form-label">Recintos</label>
+            <select className="form-select" id="subcampusId" name="subcampusId" value={eventData.subcampusId ?? ""} onChange={handleChange} disabled={!eventData.campusId}>
               <option value="">Selecciona un recinto</option>
               {subcampuses.map((sub) => (
                 <option key={sub.subcampusId} value={sub.subcampusId}>
@@ -388,13 +338,8 @@ export const EventAddPage = () => {
             </select>
           </div>
 
-          {/* Botones */}
-          <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => navigate("/events-list")}
-            >
+          <div className="d-flex gap-3">
+            <Button type="button" variant="secondary" onClick={() => navigate("/events-list")}>
               <i className="bi bi-x me-2"></i> Cancelar
             </Button>
             <Button type="submit" variant="primary">
