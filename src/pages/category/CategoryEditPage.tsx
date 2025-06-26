@@ -4,26 +4,52 @@ import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Button } from "../../components/atoms/Button/Button";
 import { Category } from "../../types/Category";
+import { getCurrentUser } from "../../services/userService";
+import { User } from "../../types/userType";
 
 export const CategoryEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const [category, setCategory] = useState<Category | null>(null);
   const [categoryName, setCategoryName] = useState("");
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchCategory = async () => {
-      const categories = await getAllCategories();
-      const found = categories.find(c => c.categoryId === id);
-      if (found) {
-        setCategory(found);
-        setCategoryName(found.categoryName);
-      } else {
-        Swal.fire("Error", "Categoría no encontrada", "error");
-        navigate("/categories");
+    const fetchUserAndCategory = async () => {
+      try {
+        const user: User = await getCurrentUser();
+        const hasPermission = user?.userRoles?.some(role =>
+          role.permissions?.some(p => p.permissionName === "MODIFICAR PREGUNTAS SIMULADAS")
+        );
+        
+        if (!hasPermission) {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso denegado",
+            text: "No tienes permiso para editar categorías.",
+          });
+          navigate("/categories", { replace: true });
+          return;
+        }
+
+        const categories = await getAllCategories();
+        const found = categories.find(c => c.categoryId === id);
+        if (found) {
+          setCategory(found);
+          setCategoryName(found.categoryName);
+        } else {
+          await Swal.fire("Error", "Categoría no encontrada", "error");
+          navigate("/categories");
+        }
+      } catch {
+        await Swal.fire("Error", "No se pudo validar tu sesión", "error");
+        navigate("/categories", { replace: true });
+      } finally {
+        setLoading(false);
       }
     };
-    fetchCategory();
+
+    fetchUserAndCategory();
   }, [id, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,7 +68,9 @@ export const CategoryEditPage = () => {
     }
   };
 
-  if (!category) return <div className="container py-4">Cargando...</div>;
+  if (loading || !category) {
+    return <div className="container py-4">Cargando...</div>;
+  }
 
   return (
     <div className="container py-4">
