@@ -104,7 +104,6 @@ export const SimulationQuestionAddPage = () => {
   }
 
   if (!authorized) {
-    // ⛔️ No autorizado, no renderiza el formulario
     return null;
   }
 

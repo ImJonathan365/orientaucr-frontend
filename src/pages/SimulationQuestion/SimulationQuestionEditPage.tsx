@@ -31,7 +31,7 @@ export const SimulationQuestionEditPage = () => {
       try {
         const user: User = await getCurrentUser();
         const hasPermission = user?.userRoles?.some(role =>
-          role.permissions?.some(p => p.permissionName === "MODIFICAR PREGUNTAS SIMULACION")
+          role.permissions?.some(p => p.permissionName === "MODIFICAR PREGUNTAS SIMULADAS")
         );
         if (!hasPermission) {
           await Swal.fire({
@@ -63,7 +63,6 @@ export const SimulationQuestionEditPage = () => {
   const handleSubmit = async (question: SimulationQuestion) => {
     const newText = normalizeQuestionText(question.questionText);
 
-    // Validar que la pregunta no sea solo espacios o símbolos
     if (!/[a-zA-Z0-9]/.test(newText)) {
       Swal.fire("Error", "La pregunta debe contener al menos una letra o número.", "warning");
       return;
