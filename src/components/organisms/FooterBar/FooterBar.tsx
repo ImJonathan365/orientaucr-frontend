@@ -9,16 +9,16 @@ export default function FooterBar() {
         </div>
         <ul className="nav">
           <li className="nav-item">
-            <Link to="/acerca-de" className="nav-link px-2 text-dark">Acerca de</Link>
+            {/*<Link to="/acerca-de" className="nav-link px-2 text-dark">Acerca de</Link>*/}
           </li>
           <li className="nav-item">
-            <Link to="/contacto" className="nav-link px-2 text-dark">Contacto</Link>
+            {/*<Link to="/contacto" className="nav-link px-2 text-dark">Contacto</Link>*/}
           </li>
           <li className="nav-item">
-            <Link to="/politicas" className="nav-link px-2 text-dark">Políticas</Link>
+            {/*<Link to="/politicas" className="nav-link px-2 text-dark">Políticas</Link>*/}
           </li>
           <li className="nav-item">
-            <Link to="/ayuda" className="nav-link px-2 text-dark">Ayuda</Link>
+            {/*<Link to="/ayuda" className="nav-link px-2 text-dark">Ayuda</Link>*/}
           </li>
         </ul>
       </div>
