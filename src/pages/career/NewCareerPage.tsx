@@ -270,7 +270,7 @@ export const NewCareerPage = () => {
                     value={selectedCourseId}
                     onChange={e => setSelectedCourseId(e.target.value)}
                   >
-                    <option value="">Seleccione un curso</option>
+                    <option value="">Seleccione un curso y su semestre</option>
                     {courses
                       .filter(course => !selectedCourses.some(sc => sc.courseId === course.courseId))
                       .map(course => (
