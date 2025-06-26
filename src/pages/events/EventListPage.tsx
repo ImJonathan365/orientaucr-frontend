@@ -122,10 +122,18 @@ export const EventsListPage = () => {
       },
     },
     {
-      key: "event_time",
-      label: "Hora",
-      render: (row) => row.eventTime?.slice(0, 5),
-    },
+  key: "event_time",
+  label: "Hora",
+  render: (row) => {
+    const date = new Date(`${row.eventDate}T${row.eventTime}`);
+    return date.toLocaleTimeString('es-CR', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  },
+},
+
     {
       key: "event_modality",
       label: "Modalidad",
