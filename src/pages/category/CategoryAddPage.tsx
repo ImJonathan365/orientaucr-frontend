@@ -1,12 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createCategory } from "../../services/Category";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Button } from "../../components/atoms/Button/Button";
+import { getCurrentUser } from "../../services/userService";
+import { User } from "../../types/userType";
 
 export const CategoryAddPage = () => {
   const [categoryName, setCategoryName] = useState("");
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUserAndPermissions = async () => {
+      try {
+        const user: User = await getCurrentUser();
+        const hasPermission = user?.userRoles?.some(role =>
+          role.permissions?.some(p => p.permissionName === "CREAR PREGUNTAS SIMULADAS")
+        );
+        if (!hasPermission) {
+          await Swal.fire({
+            icon: "warning",
+            title: "Acceso denegado",
+            text: "No tienes permiso para crear categorías.",
+          });
+          navigate("/categories", { replace: true });
+          return;
+        }
+      } catch {
+        await Swal.fire("Error", "No se pudo validar tu sesión", "error");
+        navigate("/categories", { replace: true });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUserAndPermissions();
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +51,10 @@ export const CategoryAddPage = () => {
       Swal.fire("Error", err.response?.data || "No se pudo crear la categoría", "error");
     }
   };
+
+  if (loading) {
+    return <div className="container py-4">Cargando...</div>;
+  }
 
   return (
     <div className="container py-4">

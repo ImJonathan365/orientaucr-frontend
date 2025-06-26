@@ -34,7 +34,7 @@ export const NotificationEditPage = () => {
           navigate("/notifications", { replace: true });
           return;
         }
-        // Solo si tiene permiso, carga eventos y la notificación
+      
         const [eventsData, notificationData] = await Promise.all([
           getAllEvents(),
           id ? getNotificationById(id) : Promise.resolve(null)
@@ -73,7 +73,6 @@ export const NotificationEditPage = () => {
     e.preventDefault();
     if (!form) return;
 
-    // Validación de asunto y mensaje
     if (!form.notificationTitle.trim()) {
       Swal.fire("Error", "El asunto no puede estar vacío ni ser solo espacios.", "warning");
       return;

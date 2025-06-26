@@ -39,7 +39,6 @@ export const NotificationAddPage = () => {
           navigate("/notifications", { replace: true });
           return;
         }
-        // Solo si tiene permiso, carga los eventos
         getAllEvents().then(setEvents);
       } catch {
         await Swal.fire("Error", "No se pudo validar tu sesión", "error");
@@ -74,7 +73,6 @@ export const NotificationAddPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validación de asunto y mensaje
     if (!form.notificationTitle.trim()) {
       Swal.fire("Error", "El asunto no puede estar vacío ni ser solo espacios.", "warning");
       return;
@@ -92,7 +90,6 @@ export const NotificationAddPage = () => {
       return;
     }
 
-    // Convertir la fecha local a UTC ISO string
     const notificationSendDateUTC = sendDateLocal.toISOString();
 
     const notification: Omit<Notification, "notificationId" | "attachments"> = {
