@@ -1,19 +1,30 @@
-import { HeaderBar } from "../components/organisms/HeaderBar/HeaderBar";
-import FooterBar from "../components/organisms/FooterBar/FooterBar";
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { removeTokens } from '../utils/Auth';
+import { LoadingScreen } from "../components/atoms/Spinner/LoadingScreen";
 
 export default function PublicHomePage() {
+  const [showSpinner, setShowSpinner] = useState(false);
   
   useEffect(() => {
     removeTokens();
   }, []);
 
+  const handleSpinnerClick = () => {
+    setShowSpinner(true);
+    // Simular carga por 3 segundos
+    setTimeout(() => {
+      setShowSpinner(false);
+    }, 3000);
+  };
+
+  if (showSpinner) {
+    return <LoadingScreen text="Cargando..." variant="primary" minHeight="100vh" />;
+  }
+
   return (
     <>
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        <HeaderBar />
         <div className="container py-5">
           <div className="text-center">
             <h1 className="mb-4">Bienvenido a ORIENTAUCR</h1>
@@ -28,9 +39,11 @@ export default function PublicHomePage() {
                 Registrarse
               </Link>
             </div>
+            <button className="btn btn-info" onClick={handleSpinnerClick}>
+              Spinner
+            </button>
           </div>
         </div>
-        <FooterBar />
       </div>
     </>
   );

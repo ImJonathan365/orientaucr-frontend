@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
 
-export default function MainLayout() {
+export const MainLayout = () => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const { user, loading } = useUser();
 
@@ -22,7 +22,7 @@ export default function MainLayout() {
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <HeaderBar />
         <div style={{ display: "flex", flex: 1 }}>
-          <SideBar visible={sidebarVisible} setVisible={setSidebarVisible} />
+          {user && <SideBar visible={sidebarVisible} setVisible={setSidebarVisible} />}
           <main style={{ flex: 1, transition: "margin-left 0.3s" }}>
             <Outlet />
           </main>
@@ -31,4 +31,4 @@ export default function MainLayout() {
       </div>
     </>
   );
-}
+};

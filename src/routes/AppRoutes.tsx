@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
-import MainLayout from "../pages/MainLayout";
-import SimpleLayout from "../pages/SimpleLayout";
+import { MainLayout } from "../pages/MainLayout";
+import { SimpleLayout } from "../pages/SimpleLayout";
 import LoginPage from "../pages/auth/LoginPage";
 import { RegisterPage } from "../pages/auth/RegisterPage";
 import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
@@ -49,51 +49,54 @@ import { CategoryEditPage } from "../pages/category/CategoryEditPage";
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Rutas públicas */}
-      <Route path="/" element={<PublicHomePage />} />
+      {/* Rutas de autenticación */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-      {/* Rutas privadas con el Header y el Sidebar*/}
+      {/* Rutas públicas con Header */}
       <Route element={<MainLayout />}>
-        <Route path="/home" element={<RequireAuth><HomePage /></RequireAuth>} />
-        <Route path="/events" element={<RequireAuth><EventsPage /></RequireAuth>} />
-        <Route path="/academic-centers" element={<RequireAuth><AcademicCentersPage /></RequireAuth>} />
-        <Route path="/vocational-test" element={<RequireAuth><VocationalTestPage /></RequireAuth>} />
-        <Route path="/simulation-test" element={<RequireAuth><SimulationTestPage /></RequireAuth>} />
-        <Route path="/career-list" element={<RequireAuth><CareerListPage /></RequireAuth>} />
-        <Route path="/test" element={<RequireAuth><TestPage /></RequireAuth>} />
-        <Route path="/test-list" element={<RequireAuth><TestListPage /></RequireAuth>} />
-        <Route path="/test-list/edit/:id" element={<RequireAuth><TestEditPage /></RequireAuth>} />
-        <Route path="/test-list/add" element={<RequireAuth><TestAddPage /></RequireAuth>} />
-        <Route path="/careers/new" element={<RequireAuth><NewCareerPage /></RequireAuth>} />
-        <Route path="/careers/edit/:id" element={<RequireAuth><EditCareerPage /></RequireAuth>} />
-        <Route path="/careers/curricula/:id" element={<RequireAuth><CourseListPage /></RequireAuth>} />
-        <Route path="/users/edit/:id" element={<RequireAuth><UserEditPage /></RequireAuth>} />
-        <Route path="/users" element={<RequireAuth><UserListPage /></RequireAuth>} />
-        <Route path="/users/add" element={<RequireAuth><UserCreatePage /></RequireAuth>} />
-        <Route path="/roles-list" element={<RequireAuth><RolesListPage /></RequireAuth>} />
-        <Route path="/roles-list/edit/:id" element={<RequireAuth><RolesEditPage /></RequireAuth>} />
-        <Route path="/roles-list/add" element={<RequireAuth><RolesAddPage /></RequireAuth>} />
-        <Route path="/events" element={<RequireAuth><EventsPage /></RequireAuth>} />
-        <Route path="/events-list" element={<RequireAuth><EventsListPage /></RequireAuth>} />
-        <Route path="/events-list/edit/:id" element={<RequireAuth><EventsEditPage /></RequireAuth>} />
-        <Route path="/events-list/add" element={<RequireAuth><EventAddPage /></RequireAuth>} />
-        <Route path="/simulation-questions" element={<RequireAuth><SimulationQuestionListPage /></RequireAuth>} />
-        <Route path="/simulation-questions/add" element={<RequireAuth><SimulationQuestionAddPage /></RequireAuth>} />
-        <Route path="/simulation-questions/edit/:id" element={<RequireAuth><SimulationQuestionEditPage /></RequireAuth>} />
-        <Route path="/simulation-exam" element={<RequireAuth><SimulationExamPage /></RequireAuth>} />
-        <Route path="/simulation-exam-start" element={<RequireAuth><SimulationExamStartPage /></RequireAuth>} />
-        <Route path="/notifications" element={<RequireAuth><NotificationListPage /></RequireAuth>} />
-        <Route path="/notifications/add" element={<RequireAuth><NotificationAddPage /></RequireAuth>} />
-        <Route path="/notifications/edit/:id" element={<RequireAuth><NotificationEditPage /></RequireAuth>} />
-        <Route path="/course-list" element={<RequireAuth><AllCourseListPage /></RequireAuth>} />
-        <Route path="/courses/new" element={<RequireAuth><NewCoursesPage /></RequireAuth>} />
-        <Route path="/courses/edit/:id" element={<RequireAuth><EditCoursePage /></RequireAuth>} />
-        <Route path="/categories" element={<RequireAuth><CategoryListPage /></RequireAuth>} />
-        <Route path="/categories/add" element={<RequireAuth><CategoryAddPage /></RequireAuth>} />
-        <Route path="/categories/edit/:id" element={<RequireAuth><CategoryEditPage /></RequireAuth>} />
+        <Route path="/" element={<PublicHomePage />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/academic-centers" element={<AcademicCentersPage />} />
+      </Route>
+
+      {/* Rutas privadas con Header y Sidebar */}
+      <Route element={<RequireAuth><MainLayout /></RequireAuth>}>
+        <Route path="/vocational-test" element={<VocationalTestPage />} />
+        <Route path="/simulation-test" element={<SimulationTestPage />} />
+        <Route path="/career-list" element={<CareerListPage />} />
+        <Route path="/test" element={<TestPage />} />
+        <Route path="/test-list" element={<TestListPage />} />
+        <Route path="/test-list/edit/:id" element={<TestEditPage />} />
+        <Route path="/test-list/add" element={<TestAddPage />} />
+        <Route path="/careers/new" element={<NewCareerPage />} />
+        <Route path="/careers/edit/:id" element={<EditCareerPage />} />
+        <Route path="/careers/curricula/:id" element={<CourseListPage />} />
+        <Route path="/users/edit/:id" element={<UserEditPage />} />
+        <Route path="/users" element={<UserListPage />} />
+        <Route path="/users/add" element={<UserCreatePage />} />
+        <Route path="/roles-list" element={<RolesListPage />} />
+        <Route path="/roles-list/edit/:id" element={<RolesEditPage />} />
+        <Route path="/roles-list/add" element={<RolesAddPage />} />
+        <Route path="/events" element={<EventsPage />} />
+        <Route path="/events-list" element={<EventsListPage />} />
+        <Route path="/events-list/edit/:id" element={<EventsEditPage />} />
+        <Route path="/events-list/add" element={<EventAddPage />} />
+        <Route path="/simulation-questions" element={<SimulationQuestionListPage />} />
+        <Route path="/simulation-questions/add" element={<SimulationQuestionAddPage />} />
+        <Route path="/simulation-questions/edit/:id" element={<SimulationQuestionEditPage />} />
+        <Route path="/simulation-exam" element={<SimulationExamPage />} />
+        <Route path="/simulation-exam-start" element={<SimulationExamStartPage />} />
+        <Route path="/notifications" element={<NotificationListPage />} />
+        <Route path="/notifications/add" element={<NotificationAddPage />} />
+        <Route path="/notifications/edit/:id" element={<NotificationEditPage />} />
+        <Route path="/course-list" element={<AllCourseListPage />} />
+        <Route path="/courses/new" element={<NewCoursesPage />} />
+        <Route path="/courses/edit/:id" element={<EditCoursePage />} />
+        <Route path="/categories" element={<CategoryListPage />} />
+        <Route path="/categories/add" element={<CategoryAddPage />} />
+        <Route path="/categories/edit/:id" element={<CategoryEditPage />} />
       </Route>
 
       {/* Rutas privadas sin Header ni Sidebar */}
@@ -102,7 +105,7 @@ export default function AppRoutes() {
         <Route path="/profile/edit" element={<RequireAuth><UserProfileEdit /></RequireAuth>} />
       </Route>
 
-      {/* Ruta de inicio por defecto */}
+      {/* Para rutas que no existen */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

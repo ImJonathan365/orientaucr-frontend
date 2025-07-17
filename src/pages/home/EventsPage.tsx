@@ -1,12 +1,6 @@
 import { useEffect, useState } from "react";
 import { Event } from "../../types/EventTypes";
-import {
-  getAllEvents,
-  insertUserInterestedEvent,
-  removeUserInterestedEvent,
-  getImage,
-  getUserInterestedEvents,
-} from "../../services/eventService";
+import { getAllEvents, insertUserInterestedEvent, removeUserInterestedEvent, getImage, getUserInterestedEvents } from "../../services/eventService";
 import Swal from "sweetalert2";
 import { getCurrentUser } from "../../services/userService";
 import { User } from "../../types/userType";

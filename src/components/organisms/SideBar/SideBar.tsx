@@ -71,7 +71,6 @@ export default function SideBar({ visible, setVisible }: SideBarProps) {
             <Link
               to={item.path}
               className={`nav-link ${location.pathname === item.path ? 'active' : 'link-dark'}`}
-              onClick={() => setVisible(false)}
             >
               <i className={`bi ${item.icon} me-2`}></i>
               {item.label}

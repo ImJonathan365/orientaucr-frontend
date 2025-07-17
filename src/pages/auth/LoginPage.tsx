@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { loginUser, setAuthToken } from '../../services/userService';
 import { useUser } from '../../contexts/UserContext';
 import { loginValidation } from '../../validations/user/loginValidation';
+import { Button } from '../../components/atoms/Button/Button';
+import { Icon } from '../../components/atoms/Icon/Icon';
 import Swal from 'sweetalert2';
 
 const LoginPage: React.FC = () => {
@@ -40,9 +42,22 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const handlePublicHome = () => {
+    navigate('/', { replace: true });
+  }
+
   return (
     <div className="container d-flex justify-content-center align-items-center vh-100">
       <div className="card p-4 shadow" style={{ maxWidth: '400px', width: '100%' }}>
+        <div className="text-center mb-4">
+          <Button
+            variant="secondary"
+            onClick={handlePublicHome}
+          >
+            <Icon variant="home" className="me-1" />
+            Regresar
+          </Button>
+        </div>
         <h2 className="text-center mb-4">Iniciar sesión</h2>
         <form onSubmit={handleLogin}>
           <div className="mb-3">
