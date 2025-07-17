@@ -1,18 +1,20 @@
 
 export async function validateProfileImage(file: File): Promise<{ valid: boolean; message?: string }> {
-  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
   if (!file.type || !allowedTypes.includes(file.type.toLowerCase())) {
-    return { valid: false, message: "Tipo de archivo no permitido. Solo JPG, PNG, GIF o WebP son aceptados para fotos de perfil." };
+    return { valid: false, message: "Tipo de archivo no permitido. Solo JPG, PNG, GIF son aceptados para fotos de perfil." };
   }
   const originalFilename = file.name;
-  if (
-    !originalFilename ||
-    !/^[a-zA-Z0-9_.-]+\.(jpg|jpeg|png|gif|webp)$/i.test(originalFilename)
-  ) {
-    return { valid: false, message: "Nombre de archivo inválido. Solo se permiten letras, números, punto y guion, y extensiones JPG, JPEG, PNG, GIF o WEBP." };
+  const validExtensions = /\.(jpg|jpeg|png|gif)$/i;
+  if (!originalFilename || !validExtensions.test(originalFilename)) {
+    return { valid: false, message: "El archivo debe tener una extensión válida: JPG, JPEG, PNG o GIF." };
   }
-  if (originalFilename.includes("..")) {
-    return { valid: false, message: "Nombre de archivo contiene caracteres no permitidos (traversal detectado)." };
+  const extensionCount = (originalFilename.match(/\./g) || []).length;
+  if (extensionCount > 1) {
+    return { valid: false, message: "El nombre del archivo no puede tener múltiples extensiones." };
+  }
+  if (originalFilename.includes("..") || originalFilename.includes("/") || originalFilename.includes("\\")) {
+    return { valid: false, message: "Nombre de archivo contiene caracteres no permitidos." };
   }
   if (file.size > 5 * 1024 * 1024) {
     return { valid: false, message: "El archivo excede el tamaño máximo permitido (5MB)." };

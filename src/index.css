@@ -28,3 +28,81 @@ code {
   margin-top: 8px;
 }
 
+/* Header Navigation Styles */
+.header-nav-link {
+  position: relative;
+  padding-bottom: 8px !important;
+  border-bottom: none;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.header-nav-link:hover {
+  text-decoration: none;
+}
+
+.header-nav-text {
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
+}
+
+.header-nav-text.active {
+  font-weight: bold;
+}
+
+/* Profile Button Styles */
+.profile-button {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  border: 2px solid #dee2e6 !important;
+  background-color: #f8f9fa !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  transition: all 0.2s ease-in-out !important;
+  min-width: 40px !important;
+  flex-shrink: 0 !important;
+}
+
+.profile-button:hover {
+  border-color: #6c757d !important;
+  background-color: #e9ecef !important;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-icon {
+  color: #6c757d !important;
+  font-size: 18px !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .profile-button {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  .profile-icon {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-button {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .profile-icon {
+    font-size: 14px !important;
+  }
+}

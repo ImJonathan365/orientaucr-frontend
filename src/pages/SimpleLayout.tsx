@@ -1,9 +1,13 @@
 import { Outlet } from "react-router-dom";
 
-export default function SimpleLayout() {
+export const SimpleLayout = () => {
   return (
-    <main style={{ minHeight: "100vh" }}>
-      <Outlet />
-    </main>
+    <>
+      <main style={{ minHeight: "100vh" }}>
+        <Outlet />
+      </main>
+    </>
   );
-}
+};
+
+export default SimpleLayout;
