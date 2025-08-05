@@ -3,7 +3,7 @@ import { getAllRoles, deleteRoles } from "../../services/rolesService";
 import { Roles } from "../../types/rolesType";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
 import { useNavigate } from "react-router-dom";
-import { Title } from "../../components/atoms/Title/Ttile";
+import { Title } from "../../components/atoms/Title/Title";
 import Swal from "sweetalert2";
 import { Button } from "../../components/atoms/Button/Button";
 import { Icon } from "../../components/atoms/Icon/Icon";

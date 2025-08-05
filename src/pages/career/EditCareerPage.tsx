@@ -1,9 +1,8 @@
 // src/pages/EditCareerPage.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { GenericForm } from '../../components/organisms/FormBar/GenericForm';
+import { GenericForm, FormField } from '../../components/organisms/FormBar/GenericForm';
 import { getCareerById, updateCareer, getCareers } from '../../services/careerService';
-import { FormField } from '../../components/organisms/FormBar/GenericForm';
 import { Career, Characteristic } from '../../types/carrerTypes';
 import { Alert, Spinner } from 'react-bootstrap';
 import Swal from "sweetalert2";

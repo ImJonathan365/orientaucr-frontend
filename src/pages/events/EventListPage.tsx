@@ -5,7 +5,7 @@ import { Event } from "../../types/EventTypes";
 import { User } from "../../types/userType";
 import { Table, TableColumn } from "../../components/organisms/Tables/Table";
 import { useNavigate } from "react-router-dom";
-import { Title } from "../../components/atoms/Title/Ttile";
+import { Title } from "../../components/atoms/Title/Title";
 import Swal from "sweetalert2";
 import { Icon } from "../../components/atoms/Icon/Icon";
 import { Button } from "../../components/atoms/Button/Button";

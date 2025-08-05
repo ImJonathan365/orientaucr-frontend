@@ -23,7 +23,6 @@ export const Title: React.FC<TitleProps> = ({
   children,
   ...props
 }) => {
-  // Mapeo de clases Bootstrap
   const colorClasses = {
     primary: 'text-primary',
     secondary: 'text-secondary',

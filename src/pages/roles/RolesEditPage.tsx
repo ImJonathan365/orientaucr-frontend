@@ -9,7 +9,7 @@ import {
   getAllRoles,
   getAllPermissions,
 } from "../../services/rolesService";
-import { Title } from "../../components/atoms/Title/Ttile";
+import { Title } from "../../components/atoms/Title/Title";
 import { Input } from "../../components/atoms/Input/Input";
 import { Button } from "../../components/atoms/Button/Button";
 import { getCurrentUser } from "../../services/userService";

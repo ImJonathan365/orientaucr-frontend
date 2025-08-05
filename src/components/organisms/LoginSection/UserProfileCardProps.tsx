@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Input } from '../../atoms/Input/Input';
 import { Button } from '../../atoms/Button/Button';
-import { Title } from '../../atoms/Title/Ttile';
+import { Title } from '../../atoms/Title/Title';
 import { User } from '../../../types/userType';
 import { useNavigate } from 'react-router-dom';
 

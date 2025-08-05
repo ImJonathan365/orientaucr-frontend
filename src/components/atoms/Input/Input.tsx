@@ -1,14 +1,13 @@
 import React from 'react';
 
 type InputSize = 'sm' | 'md' | 'lg';
-type InputWidth = 'full' | 'xl' | 'lg' | 'md' | 'sm' | 'xs'; // Nuevo: control de ancho
-type InputVariant = 
-  | 'default' | 'search' | 'password' | 'email' | 'textarea' | 'select';
+type InputWidth = 'full' | 'xl' | 'lg' | 'md' | 'sm' | 'xs';
+type InputVariant = | 'default' | 'search' | 'password' | 'email' | 'textarea' | 'select';
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>, 'size'> {
   variant?: InputVariant;
   size?: InputSize;
-  width?: InputWidth; // Nueva prop
+  width?: InputWidth;
   label?: string;
   error?: string;
   options?: { value: string; label: string }[];
@@ -18,7 +17,7 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement | H
 export const Input: React.FC<InputProps> = ({
   variant = 'default',
   size = 'md',
-  width = 'full', // Valor por defecto
+  width = 'full',
   label,
   error,
   className = '',

@@ -6,6 +6,8 @@ interface SpinnerProps {
     className?: string;
     text?: string;
     center?: boolean;
+    fullScreen?: boolean;
+    minHeight?: string;
 }
 
 export const Spinner: React.FC<SpinnerProps> = ({
@@ -14,6 +16,8 @@ export const Spinner: React.FC<SpinnerProps> = ({
     className = "",
     text,
     center = false,
+    fullScreen = false,
+    minHeight = "200px",
 }) => {
     const getSizeClass = () => {
         switch (size) {
@@ -41,10 +45,34 @@ export const Spinner: React.FC<SpinnerProps> = ({
         </div>
     );
 
+    if (fullScreen) {
+        return (
+            <div 
+                className="d-flex justify-content-center align-items-center" 
+                style={{ minHeight: "100vh" }}
+            >
+                <div className="text-center">
+                    <div
+                        className={`spinner-border text-${variant} ${size === 'lg' ? 'spinner-border-lg' : ''}`}
+                        role="status"
+                        aria-hidden="true"
+                    />
+                    {text && (
+                        <div className={`mt-3 text-${variant}`}>
+                            {text}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     if (center) {
         return (
-            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "200px" }}>
+            <div 
+                className="d-flex justify-content-center align-items-center" 
+                style={{ minHeight }}
+            >
                 {spinnerElement}
             </div>
         );

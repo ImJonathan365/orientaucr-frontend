@@ -5,7 +5,7 @@ import { Roles } from "../../types/rolesType";
 import { addRoles, getAllRoles, getAllPermissions } from "../../services/rolesService";
 import { Permission } from "../../types/permissionType";
 import { Input } from "../../components/atoms/Input/Input";
-import { Title } from "../../components/atoms/Title/Ttile";
+import { Title } from "../../components/atoms/Title/Title";
 import { Button } from "../../components/atoms/Button/Button";
 import { getCurrentUser } from "../../services/userService";
 import { User } from "../../types/userType";

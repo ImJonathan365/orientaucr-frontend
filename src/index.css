@@ -6,6 +6,8 @@ HEX #00457C RGB 0, 69, 124 HSL 207, 100%, 24%
 HEX #FFFFFF RGB 255, 255, 255 HSL 207, 0% 100% 
 */
 
+@import './components/atoms/components-styles.css';
+
 body {
   background-color: blue;
 }

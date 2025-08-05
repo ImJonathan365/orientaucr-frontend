@@ -6,7 +6,7 @@ interface Props {
   onChangeText: (text: string) => void;
   onChangeCorrect: (checked: boolean) => void;
   onRemove: () => void;
-  name: string; // <-- nuevo prop
+  name: string;
 }
 
 export const SimulationOptionInput: React.FC<Props> = ({
@@ -25,7 +25,7 @@ export const SimulationOptionInput: React.FC<Props> = ({
         type="radio"
         checked={isCorrect}
         onChange={() => onChangeCorrect(true)}
-        name={name} // <-- usa el prop name
+        name={name}
       />
       Correcta
     </label>
