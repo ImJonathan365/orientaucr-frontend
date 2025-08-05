@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Input } from "../../components/atoms/Input/Input";
-import { Title } from "../../components/atoms/Title/Ttile";
+import { Title } from "../../components/atoms/Title/Title";
 import { Button } from "../../components/atoms/Button/Button";
 import { Event } from "../../types/EventTypes";
 import { addEvent } from "../../services/eventService";

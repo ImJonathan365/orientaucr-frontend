@@ -9,7 +9,7 @@ import { Event } from "../../types/EventTypes";
 import { Campus } from "../../types/campusType";
 import { Subcampus } from "../../types/subcampusType";
 import { User } from "../../types/userType";
-import { Title } from "../../components/atoms/Title/Ttile";
+import { Title } from "../../components/atoms/Title/Title";
 import { Input } from "../../components/atoms/Input/Input";
 import { Button } from "../../components/atoms/Button/Button";
 

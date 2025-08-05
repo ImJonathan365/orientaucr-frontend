@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GenericForm } from '../../components/organisms/FormBar/GenericForm';
+import { GenericForm, FormField } from '../../components/organisms/FormBar/GenericForm';
 import { addCareer, getCoursesForCurricula, addCourseToCareer, getCareers, AddCareerPayload } from '../../services/careerService';
 import { getAllCharacteristics } from '../../services/characteristicService';
-import { FormField } from '../../components/organisms/FormBar/GenericForm';
 import Swal from "sweetalert2";
 import { Form, Row, Col, Button } from 'react-bootstrap';
 import { getCurrentUser } from '../../services/userService';

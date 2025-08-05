@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { removeTokens } from '../utils/Auth';
-import { LoadingScreen } from "../components/atoms/Spinner/LoadingScreen";
+import { Spinner } from "../components/atoms";
 
 export default function PublicHomePage() {
   const [showSpinner, setShowSpinner] = useState(false);
@@ -19,7 +19,7 @@ export default function PublicHomePage() {
   };
 
   if (showSpinner) {
-    return <LoadingScreen text="Cargando..." variant="primary" minHeight="100vh" />;
+    return <Spinner text="Cargando..." variant="primary" fullScreen />;
   }
 
   return (
