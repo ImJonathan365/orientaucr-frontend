@@ -6,7 +6,9 @@ export type IconVariant =
   | 'trash' | 'check' | 'edit' | 'add' | 'close' | 'search' | 'play'
   | 'arrow-left' | 'arrow-right' | 'settings' | 'info' | 'warning' | 'error'
   // Iconos para el header
-  | 'home' | 'book' | 'building' | 'clipboard' | 'user' | 'menu'
+  | 'home' | 'book' | 'building' | 'clipboard' | 'user' | 'menu'| 'bell' | 'help' | 'logout'
+  // Iconos para sidebar
+  | 'journal' | 'calendar-event' | 'people' | 'shield' | 'tags'
   // Redes sociales
   | 'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'youtube' | 'tiktok'
   // Iconos adicionales útiles
@@ -35,7 +37,6 @@ export const Icon: React.FC<IconProps> = ({
   fixedSize = false,
   ...props
 }) => {
-  // Mapeo completo de variants a iconos de Bootstrap Icons
   const iconMap: Record<IconVariant, string> = {
     // Iconos generales
     'trash': 'trash',
@@ -60,6 +61,13 @@ export const Icon: React.FC<IconProps> = ({
     'user': 'person',
     'menu': 'list',
     
+    // Iconos para sidebar
+    'journal': 'journal-text',
+    'calendar-event': 'calendar-event',
+    'people': 'people-fill',
+    'shield': 'shield-check',
+    'tags': 'tags-fill',
+    
     // Redes sociales
     'facebook': 'facebook',
     'instagram': 'instagram',
@@ -82,10 +90,14 @@ export const Icon: React.FC<IconProps> = ({
     'grid': 'grid',
     'list': 'list',
     'chevron-down': 'chevron-down',
-    'chevron-right': 'chevron-right'
+    'chevron-right': 'chevron-right',
+    
+    // Iconos para ProfileDropdown
+    'bell': 'bell',
+    'help': 'question-circle',
+    'logout': 'box-arrow-right'
   };
 
-  // Tamaños predefinidos
   const sizeMap: Record<string, string> = {
     'xs': '0.75rem',  // 12px
     'sm': '1rem',     // 16px
@@ -94,14 +106,12 @@ export const Icon: React.FC<IconProps> = ({
     'xl': '2rem'      // 32px
   };
 
-  // Determinar tamaño (height)
   const resolvedSize = typeof size === 'string' && sizeMap[size] 
     ? sizeMap[size] 
     : typeof size === 'number' 
       ? `${size}px` 
       : size;
 
-  // Determinar ancho (width)
   const resolvedWidth = typeof width === 'string' && sizeMap[width]
     ? sizeMap[width]
     : typeof width === 'number'
@@ -119,7 +129,8 @@ export const Icon: React.FC<IconProps> = ({
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        verticalAlign: 'middle',
+        verticalAlign: 'baseline',
+        lineHeight: '1',
         ...props.style
       }}
       aria-hidden="true"

@@ -31,7 +31,7 @@ interface TextProps extends React.HTMLAttributes<HTMLParagraphElement> {
   weight?: TextWeight;
   color?: TextColor;
   className?: string;
-  as?: React.ElementType; // Permite cambiar el elemento HTML
+  as?: React.ElementType;
 }
 
 export const Text: React.FC<TextProps> = ({
@@ -39,11 +39,10 @@ export const Text: React.FC<TextProps> = ({
   weight = 'normal',
   color = 'dark',
   className = '',
-  as: Component = 'p', // Por defecto es un párrafo
+  as: Component = 'p',
   children,
   ...props
 }) => {
-  // Mapeo de variants a clases de Bootstrap
   const variantClasses = {
     'body': '',
     'caption': 'small',
@@ -53,7 +52,6 @@ export const Text: React.FC<TextProps> = ({
     'display': 'display-6'
   };
 
-  // Mapeo de weights a clases
   const weightClasses = {
     'light': 'fw-light',
     'normal': 'fw-normal',
@@ -62,7 +60,6 @@ export const Text: React.FC<TextProps> = ({
     'bold': 'fw-bold'
   };
 
-  // Mapeo de colores
   const colorClasses = {
     'primary': 'text-primary',
     'secondary': 'text-secondary',
