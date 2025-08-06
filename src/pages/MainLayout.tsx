@@ -1,12 +1,12 @@
 import SideBar from "../components/organisms/SideBar/SideBar";
 import { HeaderBar } from "../components/organisms/HeaderBar/HeaderBar";
 import FooterBar from "../components/organisms/FooterBar/FooterBar";
-import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
+import { useSidebarState } from "../hooks/useSidebarState";
 
 export const MainLayout = () => {
-  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const { isVisible: sidebarVisible, setIsVisible: setSidebarVisible } = useSidebarState();
   const { user, loading } = useUser();
 
   if (loading && !user) {
