@@ -29,7 +29,6 @@ export const VerifyEmailPage = () => {
         setVerificationStatus('success');
         setMessage(response.message);
         
-        // Auto-redirect after 3 seconds
         setTimeout(() => {
           navigate("/home");
         }, 3000);
