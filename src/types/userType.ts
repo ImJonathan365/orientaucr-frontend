@@ -10,6 +10,7 @@ export interface User {
   userDiversifiedAverage: number | null;
   userProfilePicture?: string;
   userAllowEmailNotification: boolean;
+  isEmailVerified?: boolean;
   userRoles?: Roles[];
 }
 

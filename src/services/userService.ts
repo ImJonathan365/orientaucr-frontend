@@ -18,7 +18,7 @@ export const loginUser = async (userEmail: string, userPassword: string): Promis
 };
 
 export const registerUser = async (user: Pick<User, 'userName' | 'userEmail' | 'userPassword'>): Promise<string> => {
-  const response = await axios.post<{ token: string, refreshToken: string }>(
+  const response = await axios.post<string>(
     `${API_BASE_URL}/auth/register`,
     {
       ...user,
@@ -30,8 +30,18 @@ export const registerUser = async (user: Pick<User, 'userName' | 'userEmail' | '
       }
     }
   );
+  return response.data;
+};
+
+export const verifyEmail = async (token: string): Promise<{ token: string, refreshToken: string, message: string }> => {
+  const response = await axios.get<{ token: string, refreshToken: string, message: string }>(
+    `${API_BASE_URL}/auth/verify`,
+    {
+      params: { token }
+    }
+  );
   saveTokens(response.data.token, response.data.refreshToken);
-  return response.data.token;
+  return response.data;
 };
 
 export const addUser = async (user: User, imageFile?: File): Promise<string> => {
