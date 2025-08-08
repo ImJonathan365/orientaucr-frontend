@@ -2,72 +2,80 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../services/userService";
 import { validateUserForm } from "../../validations/user/userFormValidation";
-import Swal from "sweetalert2";
+import { showError, showSuccess } from "../../utils/Alert";
+import { RegistrationForm, RegistrationSuccess } from "../../components/organisms";
+
+interface RegistrationFormData {
+  userName: string;
+  userEmail: string;
+  userPassword: string;
+  confirmPassword: string;
+}
 
 export const RegisterPage = () => {
   const navigate = useNavigate();
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
-  const [userPassword, setUserPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [formData, setFormData] = useState<RegistrationFormData>({
+    userName: "",
+    userEmail: "",
+    userPassword: "",
+    confirmPassword: ""
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
+  const handleInputChange = (field: keyof RegistrationFormData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const validation = validateUserForm({
-      userName,
+      userName: formData.userName,
       userLastname: "",
-      userEmail,
+      userEmail: formData.userEmail,
       userBirthdate: "",
-      userPassword,
+      userPassword: formData.userPassword,
       userDiversifiedAverage: "",
     }, false);
     if (!validation.valid) {
-      await Swal.fire({
-        icon: "error",
-        title: "Error de validación",
-        text: validation.message,
-        confirmButtonText: "Aceptar",
-      });
+      await showError("Error de validación", validation.message || "Datos inválidos");
       return;
     }
-    if (userPassword !== confirmPassword) {
-      return Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Las contraseñas no coinciden",
-        confirmButtonText: "Aceptar",
-      });
+    if (formData.userPassword !== formData.confirmPassword) {
+      await showError("Error", "Las contraseñas no coinciden");
+      return;
     }
     setIsLoading(true);
     try {
       const user = {
-        userName,
-        userEmail,
-        userPassword,
+        userName: formData.userName,
+        userEmail: formData.userEmail,
+        userPassword: formData.userPassword,
       };
       const message = await registerUser(user);
+      console.log("Registro exitoso:", message);
       setRegistrationSuccess(true);
-      await Swal.fire({
-        icon: "success",
-        title: "Registro exitoso",
-        text: "Te hemos enviado un correo de verificación. Por favor, revisa tu bandeja de entrada.",
-        confirmButtonText: "Aceptar",
-      });
-
+      await showSuccess(
+        "Registro exitoso",
+        "Te hemos enviado un correo de verificación. Por favor, revisa tu bandeja de entrada."
+      );
     } catch (err: any) {
       const backendMsg = err.response?.data || err.message || "Error al registrar usuario";
-      await Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: backendMsg,
-        confirmButtonText: "Aceptar",
-      });
+      await showError("Error", backendMsg);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    navigate("/login");
+  };
+
+  const handleGoToLogin = () => {
+    navigate("/login");
   };
 
   return (
@@ -75,100 +83,18 @@ export const RegisterPage = () => {
       <div className="card shadow-sm w-100" style={{ maxWidth: "500px" }}>
         <div className="card-body">
           {registrationSuccess ? (
-            <div className="text-center">
-              <h2 className="card-title text-success mb-4">¡Registro Exitoso!</h2>
-              <div className="alert alert-info">
-                <i className="bi bi-envelope-check fs-1 text-info d-block mb-3"></i>
-                <p className="mb-3">
-                  Te hemos enviado un correo de verificación a <strong>{userEmail}</strong>
-                </p>
-                <p className="text-muted">
-                  Por favor, revisa tu bandeja de entrada y haz clic en el enlace de verificación para activar tu cuenta.
-                </p>
-              </div>
-              <button
-                className="btn btn-primary w-100 mt-3"
-                onClick={() => navigate("/login")}
-              >
-                Ir al Login
-              </button>
-            </div>
+            <RegistrationSuccess
+              userEmail={formData.userEmail}
+              onGoToLogin={handleGoToLogin}
+            />
           ) : (
-            <>
-              <h2 className="card-title text-center mb-4">Registro de Usuario</h2>
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label htmlFor="userName" className="form-label">
-                    Nombre:
-                  </label>
-                  <input
-                    id="userName"
-                    type="text"
-                    className="form-control"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    required
-                    placeholder="Ej: Juan"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="userEmail" className="form-label">
-                    Correo electrónico:
-                  </label>
-                  <input
-                    id="userEmail"
-                    type="email"
-                    className="form-control"
-                    value={userEmail}
-                    onChange={(e) => setUserEmail(e.target.value)}
-                    required
-                    placeholder="Ej: juan@email.com"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="userPassword" className="form-label">
-                    Contraseña:
-                  </label>
-                  <input
-                    id="userPassword"
-                    type="password"
-                    className="form-control"
-                    value={userPassword}
-                    onChange={(e) => setUserPassword(e.target.value)}
-                    required
-                    placeholder="********"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="confirmPassword" className="form-label">
-                    Confirmar contraseña:
-                  </label>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    className="form-control"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    placeholder="********"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="btn btn-primary w-100"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Registrando..." : "Registrarse"}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary w-100 mt-2"
-                  onClick={() => navigate("/login")}
-                >
-                  Cancelar
-                </button>
-              </form>
-            </>
+            <RegistrationForm
+              formData={formData}
+              isLoading={isLoading}
+              onInputChange={handleInputChange}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+            />
           )}
         </div>
       </div>

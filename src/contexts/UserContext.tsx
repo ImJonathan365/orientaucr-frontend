@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "../types/userType";
-import { getCurrentUser } from "../services/userService";
+import { getCurrentUser, setAuthToken } from "../services/userService";
 import { getToken } from "../utils/Auth";
 
 type UserContextType = {
@@ -22,11 +22,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUser = async () => {
     setLoading(true);
     const token = getToken();
+    
     if (!token) {
       setUser(null);
       setLoading(false);
       return;
     }
+    
+    setAuthToken(token);
+    
     try {
       const u = await getCurrentUser();
       setUser(u);

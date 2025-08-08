@@ -14,6 +14,7 @@ export const loginUser = async (userEmail: string, userPassword: string): Promis
       }
     });
     saveTokens(response.data.token, response.data.refreshToken);
+    setAuthToken(response.data.token);
     return response.data.token;
 };
 
@@ -41,6 +42,7 @@ export const verifyEmail = async (token: string): Promise<{ token: string, refre
     }
   );
   saveTokens(response.data.token, response.data.refreshToken);
+  setAuthToken(response.data.token);
   return response.data;
 };
 
